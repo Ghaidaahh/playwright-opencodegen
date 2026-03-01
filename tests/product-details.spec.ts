@@ -17,7 +17,7 @@ test.describe('Product Details Page', () => {
     await page.waitForLoadState('domcontentloaded');
   }
 
-  test('PDP-001: Product Title Display - Verify product title is displayed correctly', async ({ page }) => {
+  test.only('PDP-001: Product Title Display - Verify product title is displayed correctly', async ({ page }) => {
     // Navigate to a product detail page
     await navigateToPdp(page, 'laptop');
     

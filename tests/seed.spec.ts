@@ -3,7 +3,7 @@
 // Login credentials are public: standard_user / secret_sauce
 import { test, expect } from '@playwright/test';
 
-test('seed', async ({ page }) => {
+test.only('seed', async ({ page }) => {
   await page.goto('https://www.saucedemo.com');
 
   // Login with public test credentials

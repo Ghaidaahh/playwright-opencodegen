@@ -4,7 +4,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Search Functionality', () => {
-  test('SF-001: Basic Search - Verify basic keyword search returns relevant results', async ({ page }) => {
+  test.only('SF-001: Basic Search - Verify basic keyword search returns relevant results', async ({ page }) => {
     // Navigate to Amazon homepage
     await page.goto('https://www.amazon.com');
     

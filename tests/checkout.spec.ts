@@ -24,7 +24,7 @@ test.describe('Checkout Flow', () => {
     await page.waitForTimeout(1000);
   }
 
-  test('CHECK-001: Checkout Page Load - Verify checkout page loads with cart items', async ({ page }) => {
+  test.only('CHECK-001: Checkout Page Load - Verify checkout page loads with cart items', async ({ page }) => {
     // Add item to cart
     await addItemToCart(page, 'laptop');
     

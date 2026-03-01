@@ -12,7 +12,7 @@ test.describe('Product Listing Page', () => {
     await page.waitForLoadState('domcontentloaded');
   }
 
-  test('PLP-001: Product Cards Display - Verify product cards are displayed in search results', async ({ page }) => {
+  test.only('PLP-001: Product Cards Display - Verify product cards are displayed in search results', async ({ page }) => {
     // Perform a search
     await performSearch(page, 'laptop');
     

@@ -16,7 +16,7 @@ test.describe('Footer Links', () => {
     await expect(getToKnowUs).toBeVisible();
   });
 
-  test('FOOT-002: Amazon Footer - Make Money - Verify Make Money with Us section is present', async ({ page }) => {
+  test.only('FOOT-002: Amazon Footer - Make Money - Verify Make Money with Us section is present', async ({ page }) => {
     // Navigate to Amazon homepage
     await page.goto('https://www.amazon.com');
     

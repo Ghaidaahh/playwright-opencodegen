@@ -24,7 +24,7 @@ test.describe('Shopping Cart', () => {
     await page.waitForTimeout(1000);
   }
 
-  test('CART-001: View Cart - Verify cart page displays added items', async ({ page }) => {
+  test.only('CART-001: View Cart - Verify cart page displays added items', async ({ page }) => {
     // Add item to cart
     await addItemToCart(page, 'laptop');
     

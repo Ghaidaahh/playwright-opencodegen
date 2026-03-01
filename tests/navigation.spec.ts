@@ -4,7 +4,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Navigation', () => {
-  test('NAV-001: Category Menu - All - Verify All menu expands with categories', async ({ page }) => {
+  test.only('NAV-001: Category Menu - All - Verify All menu expands with categories', async ({ page }) => {
     // Navigate to Amazon homepage
     await page.goto('https://www.amazon.com');
     

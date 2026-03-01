@@ -128,7 +128,7 @@ test.describe('User Authentication', () => {
     await expect(page).toHaveURL(/ap\/password\/reset/);
   });
 
-  test('AUTH-009: Stay Signed In - Verify Keep me signed in checkbox functionality', async ({ page }) => {
+  test.only('AUTH-009: Stay Signed In - Verify Keep me signed in checkbox functionality', async ({ page }) => {
     // Navigate to sign-in page
     await page.goto('https://www.amazon.com/ap/signin');
     

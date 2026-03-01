@@ -4,7 +4,7 @@
 import { test, expect } from '@playwright/test';
 
 test.describe('Homepage', () => {
-  test('HP-001: Homepage Load - Verify Amazon homepage loads successfully with all core elements', async ({ page }) => {
+  test.only('HP-001: Homepage Load - Verify Amazon homepage loads successfully with all core elements', async ({ page }) => {
     // Navigate to https://www.amazon.com
     await page.goto('https://www.amazon.com');
     

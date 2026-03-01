@@ -18,7 +18,7 @@ test.describe('Account / Profile', () => {
     await expect(page).toHaveURL(/order-history/);
   });
 
-  test('ACC-002: Wishlist Access - Verify wishlist functionality is accessible', async ({ page }) => {
+  test.only('ACC-002: Wishlist Access - Verify wishlist functionality is accessible', async ({ page }) => {
     // Navigate to Amazon homepage
     await page.goto('https://www.amazon.com');
     
