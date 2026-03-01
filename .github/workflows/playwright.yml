@@ -18,7 +18,7 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests
-      run: npx playwright test --reporter=html,json
+      run: npx playwright test --reporter=html,json --workers=4
       env:
         PLAYWRIGHT_JSON_OUTPUT_NAME: results.json
     - uses: actions/upload-artifact@v4
