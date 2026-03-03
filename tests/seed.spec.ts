@@ -15,3 +15,4 @@ test.only('seed', async ({ page }) => {
   await expect(page).toHaveURL(/inventory/);
   await expect(page.locator('.inventory_list')).toBeVisible();
 });// test
+// test
