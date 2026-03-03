@@ -14,4 +14,4 @@ test.only('seed', async ({ page }) => {
   // Verify we're on the products page
   await expect(page).toHaveURL(/inventory/);
   await expect(page.locator('.inventory_list')).toBeVisible();
-});
+});// test

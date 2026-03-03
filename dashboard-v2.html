@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Playwright Dashboard · playwright-opencodegen</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:#07080f;--surface:#0d0f1a;--surface2:#13162a;--surface3:#1a1e32;
+      --border:#22263d;--accent:#5b8af0;--accent-glow:rgba(91,138,240,0.12);
+      --green:#1fd195;--green-glow:rgba(31,209,149,0.12);
+      --red:#f05b7a;--red-glow:rgba(240,91,122,0.12);
+      --yellow:#f0c84a;--yellow-glow:rgba(240,200,74,0.12);
+      --purple:#a78bfa;--purple-glow:rgba(167,139,250,0.12);
+      --text:#dde1f5;--muted:#565d80;--muted2:#363c5a;
+    }
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'Figtree',sans-serif;min-height:100vh;overflow-x:hidden;}
+    ::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--muted2);border-radius:3px;}
+
+    /* AUTH */
+    #auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(91,138,240,0.07) 0%,transparent 70%);}
+    .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px;width:100%;max-width:460px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,0.5);}
+    .auth-logo{width:68px;height:68px;background:linear-gradient(135deg,var(--accent),var(--green));border-radius:18px;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 24px;box-shadow:0 8px 32px rgba(91,138,240,0.3);}
+    .auth-card h1{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:8px;}
+    .auth-card p{color:var(--muted);font-size:13px;line-height:1.7;margin-bottom:32px;}
+    .auth-card p a{color:var(--accent);text-decoration:none;}
+    .form-group{text-align:left;margin-bottom:16px;}
+    .form-group label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px;}
+    .form-group input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;outline:none;transition:border-color .2s,box-shadow .2s;}
+    .form-group input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow);}
+    .btn-primary{width:100%;padding:14px;background:linear-gradient(135deg,var(--accent),#3a5fd4);border:none;border-radius:10px;color:white;font-family:'Figtree',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;margin-top:8px;}
+    .btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+    .btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+    .error-msg{background:var(--red-glow);border:1px solid var(--red);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:16px;display:none;text-align:left;}
+    .auth-note{margin-top:16px;font-size:11px;color:var(--muted);line-height:1.6;}
+
+    /* LAYOUT */
+    #dashboard{display:none;}
+    .layout{display:flex;min-height:100vh;}
+
+    /* SIDEBAR */
+    .sidebar{width:230px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:50;}
+    .sidebar-top{padding:24px 20px;border-bottom:1px solid var(--border);}
+    .logo-mark{display:flex;align-items:center;gap:10px;}
+    .logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--green));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;}
+    .logo-name{font-family:'Syne',sans-serif;font-weight:800;font-size:15px;}
+    .logo-name span{color:var(--accent);}
+    .sidebar-repo{padding:14px 20px;border-bottom:1px solid var(--border);}
+    .repo-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
+    .repo-name{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);}
+    .sidebar-nav{padding:16px 12px;flex:1;overflow-y:auto;}
+    .nav-section{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:0 8px;margin:16px 0 6px;}
+    .nav-section:first-child{margin-top:0;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:500;color:var(--muted);transition:all .15s;margin-bottom:2px;}
+    .nav-item:hover{background:var(--surface2);color:var(--text);}
+    .nav-item.active{background:var(--accent-glow);color:var(--accent);}
+    .nav-item .icon{font-size:15px;width:20px;text-align:center;}
+    .sidebar-footer{padding:16px 20px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+    .live-badge{display:flex;align-items:center;gap:7px;font-size:11px;color:var(--green);font-family:'JetBrains Mono',monospace;}
+    .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);animation:blink 2s infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+    .logout-btn{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;font-family:'Figtree',sans-serif;padding:4px 8px;border-radius:4px;transition:color .15s;}
+    .logout-btn:hover{color:var(--red);}
+
+    /* MAIN */
+    .main{margin-left:230px;flex:1;min-width:0;}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:20px 32px;border-bottom:1px solid var(--border);background:rgba(7,8,15,.8);backdrop-filter:blur(12px);position:sticky;top:0;z-index:40;}
+    .topbar-left{display:flex;flex-direction:column;gap:2px;}
+    .page-title{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;letter-spacing:-.3px;}
+    .page-sub{font-size:12px;color:var(--muted);font-family:'JetBrains Mono',monospace;}
+    .topbar-right{display:flex;align-items:center;gap:10px;}
+    .tab-group{display:flex;background:var(--surface2);border-radius:8px;padding:3px;border:1px solid var(--border);}
+    .tab{padding:6px 14px;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;color:var(--muted);transition:all .15s;}
+    .tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.4);}
+    .icon-btn{width:34px;height:34px;display:flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:15px;transition:border-color .15s;}
+    .icon-btn:hover{border-color:var(--accent);}
+
+    /* PAGES */
+    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    .page{display:none;padding:28px 32px;}
+    .page.active{display:block;}
+
+    /* CARDS */
+    .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+    .grid-3{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px;animation:fadeUp .35s ease both;}
+    .card-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+    .card-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;}
+    .card-badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;background:var(--surface3);color:var(--muted);border:1px solid var(--border);}
+
+    /* STAT CARDS */
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;animation:fadeUp .35s ease both;transition:border-color .2s;}
+    .stat-card:hover{border-color:var(--muted2);}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+    .stat-card.green::before{background:var(--green);}
+    .stat-card.red::before{background:var(--red);}
+    .stat-card.blue::before{background:var(--accent);}
+    .stat-card.yellow::before{background:var(--yellow);}
+    .stat-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+    .stat-value{font-family:'Syne',sans-serif;font-size:32px;font-weight:800;letter-spacing:-1px;line-height:1;margin-bottom:6px;}
+    .stat-card.green .stat-value{color:var(--green);}
+    .stat-card.red .stat-value{color:var(--red);}
+    .stat-card.blue .stat-value{color:var(--accent);}
+    .stat-card.yellow .stat-value{color:var(--yellow);}
+    .stat-sub{font-size:12px;color:var(--muted);}
+    .stat-icon{position:absolute;top:18px;right:18px;font-size:20px;opacity:.1;}
+
+    /* PILLS */
+    .pill{padding:2px 9px;border-radius:5px;font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;display:inline-block;}
+    .pill.pass{background:var(--green-glow);color:var(--green);}
+    .pill.fail{background:var(--red-glow);color:var(--red);}
+    .pill.skip{background:var(--yellow-glow);color:var(--yellow);}
+    .pill.running{background:var(--accent-glow);color:var(--accent);}
+    .pill.cancelled{background:var(--surface3);color:var(--muted);}
+    .branch-badge{display:inline-flex;align-items:center;gap:3px;font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 7px;background:var(--surface3);border:1px solid var(--border);border-radius:4px;color:var(--accent);}
+    .version-badge{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:12px;padding:4px 10px;background:var(--green-glow);border:1px solid rgba(31,209,149,.3);border-radius:6px;color:var(--green);}
+
+    /* PIPELINE ITEMS */
+    .pipeline-item{display:flex;align-items:center;gap:12px;padding:12px 8px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;border-radius:6px;margin:0 -8px;}
+    .pipeline-item:last-child{border-bottom:none;}
+    .pipeline-item:hover{background:var(--surface2);}
+    .p-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+    .p-dot.pass{background:var(--green);box-shadow:0 0 6px var(--green);}
+    .p-dot.fail{background:var(--red);box-shadow:0 0 6px var(--red);}
+    .p-dot.running{background:var(--accent);box-shadow:0 0 6px var(--accent);animation:blink 1s infinite;}
+    .p-dot.cancelled{background:var(--muted);}
+    .p-info{flex:1;min-width:0;}
+    .p-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .p-meta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);margin-top:3px;display:flex;align-items:center;gap:6px;}
+
+    /* CHART */
+    .chart-wrap{position:relative;height:200px;}
+
+    /* LOADING */
+    .loading{display:flex;flex-direction:column;align-items:center;justify-content:center;height:160px;gap:12px;}
+    .spinner{width:28px;height:28px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-text{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+    .empty{text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;line-height:1.8;}
+    .empty .e-icon{font-size:32px;margin-bottom:10px;}
+
+    /* RELEASE PAGE */
+    .release-hero{background:linear-gradient(135deg,var(--surface2),var(--surface));border:1px solid var(--border);border-radius:16px;padding:32px;margin-bottom:24px;position:relative;overflow:hidden;}
+    .release-hero::before{content:'';position:absolute;top:-60px;right:-60px;width:200px;height:200px;background:radial-gradient(circle,rgba(31,209,149,.07),transparent 70%);border-radius:50%;}
+    .release-tag{display:flex;align-items:center;gap:12px;margin-bottom:16px;}
+    .release-name{font-family:'Syne',sans-serif;font-size:28px;font-weight:800;margin-bottom:6px;}
+    .release-date{font-size:13px;color:var(--muted);margin-bottom:20px;}
+    .release-body{font-size:14px;color:var(--text);line-height:1.8;white-space:pre-wrap;max-width:700px;}
+    .feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px;}
+    .feature-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;animation:fadeUp .35s ease both;transition:border-color .2s;}
+    .feature-card:hover{border-color:var(--accent);}
+    .feature-icon{font-size:24px;margin-bottom:10px;}
+    .feature-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:6px;}
+    .feature-desc{font-size:12px;color:var(--muted);line-height:1.6;}
+
+    /* FUTURE BUILD */
+    .future-card{background:linear-gradient(135deg,var(--surface2),var(--surface));border:1px solid var(--border);border-radius:14px;padding:24px;margin-bottom:16px;}
+    .future-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-family:'Figtree',sans-serif;font-size:13px;resize:vertical;min-height:100px;outline:none;margin-bottom:10px;transition:border-color .2s;line-height:1.6;}
+    .future-input:focus{border-color:var(--accent);}
+    .save-btn{padding:8px 18px;background:var(--accent-glow);border:1px solid var(--accent);border-radius:7px;color:var(--accent);font-family:'Figtree',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:background .15s;}
+    .save-btn:hover{background:rgba(91,138,240,.2);}
+
+    /* MODAL */
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:200;align-items:center;justify-content:center;}
+    .modal-overlay.open{display:flex;}
+    .modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:90%;max-width:600px;max-height:80vh;overflow-y:auto;padding:28px;animation:fadeUp .2s ease;}
+    .modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+    .modal-title{font-family:'Syne',sans-serif;font-size:17px;font-weight:800;}
+    .close-btn{background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:4px;transition:color .15s;}
+    .close-btn:hover{color:var(--text);}
+    .detail-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);font-size:13px;}
+    .detail-row:last-child{border-bottom:none;}
+    .detail-label{color:var(--muted);font-size:12px;}
+    .gh-link{display:inline-flex;align-items:center;gap:6px;margin-top:18px;padding:10px 16px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--accent);text-decoration:none;font-size:13px;font-weight:500;transition:border-color .15s;}
+    .gh-link:hover{border-color:var(--accent);}
+
+    /* COMPARE */
+    .compare-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:24px;}
+    .month-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;animation:fadeUp .35s ease both;}
+    .month-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:14px;}
+    .month-stat{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+    .month-stat:last-child{border-bottom:none;}
+    .month-val{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;}
+    .delta{font-size:10px;font-weight:600;padding:2px 6px;border-radius:4px;}
+    .delta.up{background:var(--green-glow);color:var(--green);}
+    .delta.down{background:var(--red-glow);color:var(--red);}
+    .delta.neutral{background:var(--surface3);color:var(--muted);}
+  </style>
+</head>
+<body>
+
+<!-- AUTH -->
+<div id="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">🎭</div>
+    <h1>Playwright Dashboard</h1>
+    <p>Connect to <strong>Ghaidaahh/playwright-opencodegen</strong> using a GitHub Personal Access Token.<br><br>
+    <a href="https://github.com/settings/tokens/new?scopes=repo,actions&description=Playwright+Dashboard" target="_blank">→ Generate a token here</a> — enable <strong>repo</strong> and <strong>actions</strong> scopes.</p>
+    <div class="error-msg" id="error-msg">❌ Invalid token or repo not accessible.</div>
+    <div class="form-group">
+      <label>GitHub Personal Access Token</label>
+      <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+    </div>
+    <button class="btn-primary" id="connect-btn" onclick="connect()">Connect →</button>
+    <div class="auth-note">🔒 Token stored only in your browser. Never sent anywhere except GitHub's API.</div>
+  </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="dashboard">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="logo-mark">
+          <div class="logo-icon">🎭</div>
+          <div class="logo-name">Play<span>watch</span></div>
+        </div>
+      </div>
+      <div class="sidebar-repo">
+        <div class="repo-label">Repository</div>
+        <div class="repo-name">playwright-opencodegen</div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">Overview</div>
+        <div class="nav-item active" onclick="showPage('overview',this)"><span class="icon">📊</span> Dashboard</div>
+        <div class="nav-section">Releases</div>
+        <div class="nav-item" onclick="showPage('release',this)"><span class="icon">🚀</span> Current Build</div>
+        <div class="nav-item" onclick="showPage('future',this)"><span class="icon">🔭</span> Future Build</div>
+        <div class="nav-section">Automation</div>
+        <div class="nav-item" onclick="showPage('runs',this)"><span class="icon">🔁</span> Pipeline Runs</div>
+        <div class="nav-item" onclick="showPage('compare',this)"><span class="icon">📅</span> Month Comparison</div>
+        <div class="nav-section">Links</div>
+        <div class="nav-item" onclick="window.open('https://github.com/Ghaidaahh/playwright-opencodegen/actions','_blank')"><span class="icon">⚡</span> GitHub Actions ↗</div>
+        <div class="nav-item" onclick="window.open('https://github.com/Ghaidaahh/playwright-opencodegen/releases','_blank')"><span class="icon">🏷️</span> Releases ↗</div>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+        <button class="logout-btn" onclick="logout()">Sign out</button>
+      </div>
+    </aside>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="topbar-left">
+          <div class="page-title" id="topbar-title">Dashboard</div>
+          <div class="page-sub" id="topbar-sub">Loading...</div>
+        </div>
+        <div class="topbar-right">
+          <div class="tab-group" id="time-tabs">
+            <div class="tab active" onclick="setTimeRange('week',this)">Week</div>
+            <div class="tab" onclick="setTimeRange('month',this)">Month</div>
+            <div class="tab" onclick="setTimeRange('all',this)">All</div>
+          </div>
+          <div class="icon-btn" onclick="loadData()" title="Refresh">🔄</div>
+        </div>
+      </div>
+
+      <!-- OVERVIEW -->
+      <div class="page active" id="page-overview">
+        <div class="grid-4" style="margin-top:28px">
+          <div class="stat-card blue" style="animation-delay:.05s"><div class="stat-icon">🔁</div><div class="stat-label">Total Runs</div><div class="stat-value" id="s-runs">—</div><div class="stat-sub" id="s-runs-sub">loading...</div></div>
+          <div class="stat-card green" style="animation-delay:.1s"><div class="stat-icon">✅</div><div class="stat-label">Pass Rate</div><div class="stat-value" id="s-rate">—</div><div class="stat-sub" id="s-rate-sub">loading...</div></div>
+          <div class="stat-card red" style="animation-delay:.15s"><div class="stat-icon">❌</div><div class="stat-label">Failed Runs</div><div class="stat-value" id="s-fail">—</div><div class="stat-sub" id="s-fail-sub">loading...</div></div>
+          <div class="stat-card yellow" style="animation-delay:.2s"><div class="stat-icon">⏱️</div><div class="stat-label">Avg Duration</div><div class="stat-value" id="s-dur">—</div><div class="stat-sub" id="s-dur-sub">loading...</div></div>
+        </div>
+        <div class="grid-3">
+          <div class="card" style="animation-delay:.2s">
+            <div class="card-hd"><div class="card-title">Pass / Fail Trend</div><div class="card-badge" id="trend-label">LAST 40 RUNS</div></div>
+            <div class="chart-wrap"><div class="loading" id="trend-loading"><div class="spinner"></div><div class="loading-text">Fetching runs...</div></div><canvas id="trendChart" style="display:none"></canvas></div>
+          </div>
+          <div class="card" style="animation-delay:.25s">
+            <div class="card-hd"><div class="card-title">Breakdown</div><div class="card-badge">ALL TIME</div></div>
+            <div style="display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:8px">
+              <div class="loading" id="donut-loading"><div class="spinner"></div></div>
+              <canvas id="donutChart" style="max-height:130px;max-width:130px;display:none"></canvas>
+              <div id="donut-legend" style="display:none;gap:10px;font-size:12px;flex-wrap:wrap;justify-content:center"></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card" style="animation-delay:.3s">
+            <div class="card-hd"><div class="card-title">Recent Pipeline Runs</div><div class="card-badge">CLICK TO INSPECT</div></div>
+            <div id="pipeline-list-overview"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+          <div class="card" style="animation-delay:.35s">
+            <div class="card-hd"><div class="card-title">Current Build</div><div class="card-badge">LATEST RELEASE</div></div>
+            <div id="release-summary"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RELEASE -->
+      <div class="page" id="page-release">
+        <div style="margin-top:28px">
+          <div id="release-hero-wrap"><div class="loading"><div class="spinner"></div><div class="loading-text">Fetching release...</div></div></div>
+          <div id="feature-grid-wrap" style="display:none">
+            <div style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;margin-bottom:14px">✨ What's New</div>
+            <div class="feature-grid" id="feature-grid"></div>
+          </div>
+          <div id="all-releases-wrap" style="display:none">
+            <div class="card"><div class="card-hd"><div class="card-title">All Releases</div><div class="card-badge">GITHUB TAGS</div></div><div id="all-releases-list"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FUTURE BUILD -->
+      <div class="page" id="page-future">
+        <div style="margin-top:28px">
+          <div class="future-card">
+            <div class="card-hd" style="margin-bottom:12px"><div class="card-title" style="font-size:16px">🔭 Upcoming Release Notes</div><div class="card-badge">EDITABLE</div></div>
+            <p style="font-size:13px;color:var(--muted);margin-bottom:14px;line-height:1.6">Write notes about the next release — features coming, known issues, deployment date. Paste Jira/Notion links too.</p>
+            <textarea class="future-input" id="future-notes" placeholder="e.g. v2.1.0 — Expected March 15&#10;&#10;Features:&#10;- New checkout flow&#10;- Improved search&#10;&#10;Jira: https://..."></textarea>
+            <button class="save-btn" onclick="saveFutureNotes()">💾 Save Notes</button>
+          </div>
+          <div class="card">
+            <div class="card-hd"><div class="card-title">Open Pull Requests</div><div class="card-badge">COMING UP</div></div>
+            <div id="pr-list"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PIPELINE RUNS -->
+      <div class="page" id="page-runs">
+        <div style="margin-top:28px">
+          <div class="card">
+            <div class="card-hd"><div class="card-title">All Pipeline Runs</div><div class="card-badge">playwright.yml · CLICK TO INSPECT</div></div>
+            <div id="all-runs-list"><div class="loading"><div class="spinner"></div></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- COMPARE -->
+      <div class="page" id="page-compare">
+        <div style="margin-top:28px">
+          <div class="compare-grid" id="compare-grid"><div class="loading"><div class="spinner"></div></div></div>
+          <div class="card" style="animation-delay:.2s">
+            <div class="card-hd"><div class="card-title">6-Month Pass Rate Trend</div><div class="card-badge">PASS RATE %</div></div>
+            <div class="chart-wrap"><canvas id="compareChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-hd">
+      <div class="modal-title" id="modal-title">Run Details</div>
+      <button class="close-btn" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+
+<script>
+const REPO='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
+let token='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', allRuns=[], releases=[], timeRange='month';
+let trendChart=null, donutChart=null, compareChart=null;
+
+async function connect(){
+  token=document.getElementById('token-input').value.trim();
+  if(!token)return;
+  const btn=document.getElementById('connect-btn');
+  btn.disabled=true; btn.textContent='Connecting...';
+  document.getElementById('error-msg').style.display='none';
+  try{
+    const r=await ghFetch(`https://api.github.com/repos/${REPO}`);
+    if(!r.ok)throw new Error();
+    localStorage.setItem('pw_token',token);
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    loadData();
+  }catch{
+    document.getElementById('error-msg').style.display='block';
+    btn.disabled=false; btn.textContent='Connect →';
+  }
+}
+
+function logout(){
+  localStorage.removeItem('pw_token'); token='';
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('token-input').value='';
+}
+
+function ghFetch(url){
+  return fetch(url,{headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}});
+}
+
+const pageTitles={overview:['Dashboard','Test automation overview'],release:['Current Build','Latest release from GitHub'],future:['Future Build','Upcoming release planning'],runs:['Pipeline Runs','All GitHub Actions runs'],compare:['Month Comparison','Month-over-month analysis']};
+
+function showPage(id,el){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  el.classList.add('active');
+  const[t,s]=pageTitles[id];
+  document.getElementById('topbar-title').textContent=t;
+  document.getElementById('topbar-sub').textContent=s;
+}
+
+function setTimeRange(r,el){
+  timeRange=r;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderOverview();
+}
+
+async function loadData(){
+  document.getElementById('topbar-sub').textContent='Syncing with GitHub...';
+  try{
+    const[rr,relR,prR]=await Promise.all([
+      ghFetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=100`),
+      ghFetch(`https://api.github.com/repos/${REPO}/releases?per_page=10`),
+      ghFetch(`https://api.github.com/repos/${REPO}/pulls?state=open&per_page=20`)
+    ]);
+    allRuns=(await rr.json()).workflow_runs||[];
+    releases=relR.ok?await relR.json():[];
+    const prs=prR.ok?await prR.json():[];
+    renderOverview(); renderRelease(releases); renderFuture(prs); renderAllRuns(); renderCompare();
+    const l=allRuns[0];
+    document.getElementById('topbar-sub').textContent=l?`playwright.yml · Last run ${timeAgo(l.updated_at)}`:'playwright.yml · No runs yet';
+  }catch(e){
+    document.getElementById('topbar-sub').textContent='⚠️ Failed to sync — check token';
+  }
+}
+
+function filteredRuns(){
+  const now=Date.now(), cutoff=timeRange==='week'?7:timeRange==='month'?30:9999;
+  return allRuns.filter(r=>(now-new Date(r.created_at))/86400000<=cutoff);
+}
+
+function renderOverview(){
+  const runs=filteredRuns(), completed=runs.filter(r=>r.status==='completed');
+  const passed=completed.filter(r=>r.conclusion==='success').length;
+  const failed=completed.filter(r=>r.conclusion==='failure').length;
+  const rate=completed.length?((passed/completed.length)*100).toFixed(1):'0';
+  const durs=completed.map(r=>(new Date(r.updated_at)-new Date(r.created_at))/1000).filter(d=>d>0);
+  const avg=durs.length?durs.reduce((a,b)=>a+b,0)/durs.length:0;
+  document.getElementById('s-runs').textContent=runs.length;
+  document.getElementById('s-runs-sub').textContent=`${completed.length} completed`;
+  document.getElementById('s-rate').textContent=rate+'%';
+  document.getElementById('s-rate-sub').textContent=`${passed} successful`;
+  document.getElementById('s-fail').textContent=failed;
+  document.getElementById('s-fail-sub').textContent=`${completed.length-passed-failed} other`;
+  document.getElementById('s-dur').textContent=fmtDur(avg);
+  document.getElementById('s-dur-sub').textContent='per pipeline run';
+  renderTrend(runs); renderDonut(completed); renderPipelineList('pipeline-list-overview',allRuns.slice(0,6));
+}
+
+function renderTrend(runs){
+  const recent=runs.slice(0,40).reverse();
+  document.getElementById('trend-loading').style.display='none';
+  const canvas=document.getElementById('trendChart'); canvas.style.display='block';
+  if(trendChart)trendChart.destroy();
+  trendChart=new Chart(canvas.getContext('2d'),{type:'bar',data:{labels:recent.map((_,i)=>`#${i+1}`),datasets:[
+    {label:'Passed',data:recent.map(r=>r.conclusion==='success'?1:0),backgroundColor:'rgba(31,209,149,.7)',borderRadius:3,borderSkipped:false},
+    {label:'Failed',data:recent.map(r=>r.conclusion==='failure'?1:0),backgroundColor:'rgba(240,91,122,.7)',borderRadius:3,borderSkipped:false}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d0f1a',borderColor:'#22263d',borderWidth:1,titleColor:'#dde1f5',bodyColor:'#565d80',padding:10,callbacks:{title:items=>recent[items[0].dataIndex]?.display_title?.slice(0,40)||''}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#565d80',font:{family:'JetBrains Mono',size:9}},border:{display:false}},y:{stacked:true,max:1,grid:{color:'rgba(255,255,255,.03)'},ticks:{display:false},border:{display:false}}},onClick:(_,els)=>{if(els.length)openRunModal(recent[els[0].index]);}}});
+}
+
+function renderDonut(completed){
+  const passed=completed.filter(r=>r.conclusion==='success').length;
+  const failed=completed.filter(r=>r.conclusion==='failure').length;
+  const other=completed.length-passed-failed;
+  document.getElementById('donut-loading').style.display='none';
+  const canvas=document.getElementById('donutChart'); canvas.style.display='block';
+  const leg=document.getElementById('donut-legend'); leg.style.display='flex';
+  leg.innerHTML=`<span style="color:var(--green)">● ${passed} Pass</span><span style="color:var(--red)">● ${failed} Fail</span><span style="color:var(--muted)">● ${other} Other</span>`;
+  if(donutChart)donutChart.destroy();
+  donutChart=new Chart(canvas.getContext('2d'),{type:'doughnut',data:{datasets:[{data:[passed,failed,other],backgroundColor:['rgba(31,209,149,.8)','rgba(240,91,122,.8)','rgba(86,93,128,.4)'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,cutout:'72%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d0f1a',borderColor:'#22263d',borderWidth:1}}}});
+}
+
+function renderPipelineList(id,runs){
+  const el=document.getElementById(id);
+  if(!runs.length){el.innerHTML='<div class="empty"><div class="e-icon">🎭</div>No runs yet.</div>';return;}
+  el.innerHTML=runs.map(r=>{
+    const cls=r.status==='in_progress'?'running':r.conclusion==='success'?'pass':r.conclusion==='failure'?'fail':'cancelled';
+    const data=encodeURIComponent(JSON.stringify(r));
+    return `<div class="pipeline-item" onclick="openRunModal(decodeURIComponent('${data}'))">
+      <div class="p-dot ${cls}"></div>
+      <div class="p-info">
+        <div class="p-name">${(r.display_title||r.head_commit?.message||'Run').slice(0,50)}</div>
+        <div class="p-meta">${timeAgo(r.updated_at)} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${r.head_branch}</span></div>
+      </div>
+      <span class="pill ${cls}">${cls==='pass'?'✓ pass':cls==='fail'?'✗ fail':cls==='running'?'⟳ running':'— '+cls}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderRelease(rels){
+  const wrap=document.getElementById('release-hero-wrap');
+  const sum=document.getElementById('release-summary');
+  if(!rels.length){
+    wrap.innerHTML='<div class="empty"><div class="e-icon">🏷️</div>No releases yet.<br>Create one on GitHub to show it here.</div>';
+    sum.innerHTML='<div class="empty"><div class="e-icon">🏷️</div>No releases yet.</div>';
+    return;
+  }
+  const r=rels[0];
+  const date=new Date(r.published_at).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  wrap.innerHTML=`<div class="release-hero">
+    <div class="release-tag"><span class="version-badge">🏷️ ${r.tag_name}</span>${r.prerelease?'<span class="pill skip">pre-release</span>':'<span class="pill pass">stable</span>'}</div>
+    <div class="release-name">${r.name||r.tag_name}</div>
+    <div class="release-date">Released ${date} · by ${r.author?.login||'unknown'}</div>
+    <div class="release-body">${(r.body||'No release notes provided.').slice(0,800)}</div>
+    <a href="${r.html_url}" target="_blank" class="gh-link">🔗 View on GitHub</a>
+  </div>`;
+  const lines=(r.body||'').split('\n').filter(l=>l.trim().startsWith('-')||l.trim().startsWith('*'));
+  if(lines.length){
+    document.getElementById('feature-grid-wrap').style.display='block';
+    const icons=['✨','🔧','🚀','🐛','⚡','🎯','🛡️','📦'];
+    document.getElementById('feature-grid').innerHTML=lines.slice(0,6).map((l,i)=>`
+      <div class="feature-card" style="animation-delay:${.05*i}s">
+        <div class="feature-icon">${icons[i%icons.length]}</div>
+        <div class="feature-title">Update ${i+1}</div>
+        <div class="feature-desc">${l.replace(/^[-*]\s*/,'')}</div>
+      </div>`).join('');
+  }
+  document.getElementById('all-releases-wrap').style.display='block';
+  document.getElementById('all-releases-list').innerHTML=rels.map(rel=>`
+    <div class="pipeline-item" onclick="window.open('${rel.html_url}','_blank')">
+      <div class="p-dot pass"></div>
+      <div class="p-info"><div class="p-name">${rel.name||rel.tag_name}</div><div class="p-meta">${new Date(rel.published_at).toLocaleDateString()} · ${rel.author?.login}</div></div>
+      <span class="version-badge">${rel.tag_name}</span>
+    </div>`).join('');
+  sum.innerHTML=`<div style="display:flex;flex-direction:column;gap:12px">
+    <div style="display:flex;align-items:center;gap:10px"><span class="version-badge">🏷️ ${r.tag_name}</span>${r.prerelease?'<span class="pill skip">pre-release</span>':'<span class="pill pass">stable</span>'}</div>
+    <div style="font-family:'Syne',sans-serif;font-size:18px;font-weight:800">${r.name||r.tag_name}</div>
+    <div style="font-size:12px;color:var(--muted)">Released ${date}</div>
+    <div style="font-size:13px;color:var(--text);line-height:1.7">${(r.body||'No notes.').slice(0,200)}${(r.body||'').length>200?'...':''}</div>
+    <a href="${r.html_url}" target="_blank" class="gh-link" style="margin-top:4px">🔗 Full release notes</a>
+  </div>`;
+}
+
+function renderFuture(prs){
+  const saved=localStorage.getItem('pw_future_notes');
+  if(saved)document.getElementById('future-notes').value=saved;
+  const el=document.getElementById('pr-list');
+  if(!prs.length){el.innerHTML='<div class="empty"><div class="e-icon">🔃</div>No open pull requests.</div>';return;}
+  el.innerHTML=prs.map(p=>`
+    <div class="pipeline-item" onclick="window.open('${p.html_url}','_blank')">
+      <div class="p-dot running"></div>
+      <div class="p-info"><div class="p-name">${p.title.slice(0,60)}</div><div class="p-meta">#${p.number} · ${p.user.login} · ${timeAgo(p.created_at)} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${p.head.ref}</span></div></div>
+      <span class="pill running">open</span>
+    </div>`).join('');
+}
+
+function saveFutureNotes(){
+  localStorage.setItem('pw_future_notes',document.getElementById('future-notes').value);
+  const btn=event.target; btn.textContent='✅ Saved!';
+  setTimeout(()=>btn.textContent='💾 Save Notes',2000);
+}
+
+function renderAllRuns(){renderPipelineList('all-runs-list',allRuns.slice(0,40));}
+
+function renderCompare(){
+  const now=new Date(), tm=now.getMonth(), ty=now.getFullYear();
+  const lm=tm===0?11:tm-1, ly=tm===0?ty-1:ty;
+  const getMRuns=(y,m)=>allRuns.filter(r=>{const d=new Date(r.created_at);return d.getFullYear()===y&&d.getMonth()===m&&r.status==='completed';});
+  const stats=runs=>{
+    const p=runs.filter(r=>r.conclusion==='success').length;
+    const f=runs.filter(r=>r.conclusion==='failure').length;
+    const rate=runs.length?((p/runs.length)*100).toFixed(1):'0';
+    const d=runs.map(r=>(new Date(r.updated_at)-new Date(r.created_at))/1000).filter(d=>d>0);
+    const avg=d.length?d.reduce((a,b)=>a+b,0)/d.length:0;
+    return{total:runs.length,passed:p,failed:f,rate,avg};
+  };
+  const t=stats(getMRuns(ty,tm)), l=stats(getMRuns(ly,lm));
+  const mn=(y,m)=>new Date(y,m).toLocaleString('default',{month:'long',year:'numeric'});
+  const delta=(curr,prev,hiGood=true)=>{
+    if(!prev)return '<span class="delta neutral">—</span>';
+    const d=curr-prev, pct=prev?((d/prev)*100).toFixed(1):0;
+    const good=hiGood?d>=0:d<=0;
+    return `<span class="delta ${good?'up':'down'}">${d>=0?'↑':'↓'} ${Math.abs(pct)}%</span>`;
+  };
+  document.getElementById('compare-grid').innerHTML=`
+    <div class="month-card">
+      <div class="month-label">📅 ${mn(ty,tm)} (Current)</div>
+      <div class="month-stat"><span>Total Runs</span><span class="month-val">${t.total}</span></div>
+      <div class="month-stat"><span>Pass Rate</span><span class="month-val" style="color:var(--green)">${t.rate}%</span></div>
+      <div class="month-stat"><span>Passed</span><span class="month-val">${t.passed}</span></div>
+      <div class="month-stat"><span>Failed</span><span class="month-val" style="color:var(--red)">${t.failed}</span></div>
+      <div class="month-stat"><span>Avg Duration</span><span class="month-val">${fmtDur(t.avg)}</span></div>
+    </div>
+    <div class="month-card">
+      <div class="month-label">📅 ${mn(ly,lm)} (Previous)</div>
+      <div class="month-stat"><span>Total Runs</span><span class="month-val">${l.total} ${delta(t.total,l.total)}</span></div>
+      <div class="month-stat"><span>Pass Rate</span><span class="month-val" style="color:var(--green)">${l.rate}% ${delta(parseFloat(t.rate),parseFloat(l.rate))}</span></div>
+      <div class="month-stat"><span>Passed</span><span class="month-val">${l.passed} ${delta(t.passed,l.passed)}</span></div>
+      <div class="month-stat"><span>Failed</span><span class="month-val" style="color:var(--red)">${l.failed} ${delta(t.failed,l.failed,false)}</span></div>
+      <div class="month-stat"><span>Avg Duration</span><span class="month-val">${fmtDur(l.avg)} ${delta(t.avg,l.avg,false)}</span></div>
+    </div>`;
+  const months=Array.from({length:6},(_,i)=>{const d=new Date(now.getFullYear(),now.getMonth()-(5-i));return{label:d.toLocaleString('default',{month:'short'}),y:d.getFullYear(),m:d.getMonth()};});
+  const rates=months.map(mo=>{const r=getMRuns(mo.y,mo.m),p=r.filter(x=>x.conclusion==='success').length;return r.length?parseFloat(((p/r.length)*100).toFixed(1)):null;});
+  if(compareChart)compareChart.destroy();
+  compareChart=new Chart(document.getElementById('compareChart').getContext('2d'),{type:'line',data:{labels:months.map(m=>m.label),datasets:[{label:'Pass Rate %',data:rates,borderColor:'rgba(91,138,240,.9)',backgroundColor:'rgba(91,138,240,.08)',borderWidth:2,pointRadius:5,pointBackgroundColor:'rgba(91,138,240,1)',tension:.3,fill:true,spanGaps:true}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d0f1a',borderColor:'#22263d',borderWidth:1,titleColor:'#dde1f5',bodyColor:'#565d80'}},scales:{x:{grid:{display:false},ticks:{color:'#565d80',font:{family:'JetBrains Mono',size:11}},border:{display:false}},y:{min:0,max:100,grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#565d80',font:{family:'JetBrains Mono',size:10},callback:v=>v+'%'},border:{display:false}}}}});
+}
+
+function openRunModal(run){
+  if(typeof run==='string')run=JSON.parse(run);
+  const cls=run.status==='in_progress'?'running':run.conclusion==='success'?'pass':run.conclusion==='failure'?'fail':'cancelled';
+  document.getElementById('modal-title').textContent=(run.display_title||'Run Details').slice(0,50);
+  document.getElementById('modal-body').innerHTML=`
+    <div class="detail-row"><span class="detail-label">Run #</span><span style="font-family:'JetBrains Mono',monospace">${run.run_number}</span></div>
+    <div class="detail-row"><span class="detail-label">Status</span><span class="pill ${cls}">${run.conclusion||run.status}</span></div>
+    <div class="detail-row"><span class="detail-label">Branch</span><span class="branch-badge">⎇ ${run.head_branch}</span></div>
+    <div class="detail-row"><span class="detail-label">Commit</span><span style="font-family:'JetBrains Mono',monospace;color:var(--accent)">${run.head_sha?.slice(0,7)}</span></div>
+    <div class="detail-row"><span class="detail-label">Triggered by</span><span>${run.triggering_actor?.login||'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">Started</span><span>${new Date(run.created_at).toLocaleString()}</span></div>
+    <div class="detail-row"><span class="detail-label">Duration</span><span style="font-family:'JetBrains Mono',monospace">${fmtDur((new Date(run.updated_at)-new Date(run.created_at))/1000)}</span></div>
+    <div class="detail-row"><span class="detail-label">Attempt</span><span>#${run.run_attempt}</span></div>
+    <a href="${run.html_url}" target="_blank" class="gh-link">🔗 View full run on GitHub</a>`;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(e){
+  if(!e||e.target===document.getElementById('modal-overlay'))
+    document.getElementById('modal-overlay').classList.remove('open');
+}
+
+function fmtDur(s){if(!s||s<0)return'—';const m=Math.floor(s/60),sec=Math.round(s%60);return m>0?`${m}m ${sec}s`:`${sec}s`;}
+function timeAgo(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'just now';if(s<3600)return`${Math.floor(s/60)}m ago`;if(s<86400)return`${Math.floor(s/3600)}h ago`;return`${Math.floor(s/86400)}d ago`;}
+
+window.addEventListener('load',()=>{
+  const saved=localStorage.getItem('pw_token');
+  if(saved){token=saved;document.getElementById('auth-screen').style.display='none';document.getElementById('dashboard').style.display='block';loadData();}
+  document.getElementById('token-input').addEventListener('keydown',e=>{if(e.key==='Enter')connect();});
+});
+setInterval(loadData,120000);
+</script>
+</body>
+</html>
