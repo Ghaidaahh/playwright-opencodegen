@@ -11,6 +11,7 @@ test.describe('Homepage', () => {
     // Verify page title contains "Amazon"
     await expect(page).toHaveTitle(/Amazon/);
     
+    
     // Verify search bar is visible
     await expect(page.locator('#twotabsearchtextbox')).toBeVisible();
     
