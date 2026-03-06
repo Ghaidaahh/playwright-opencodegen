@@ -7,7 +7,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Figtree:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
-  
     :root {
       --bg:#07080f;--surface:#0d0f1a;--surface2:#13162a;--surface3:#1a1e32;
       --border:#22263d;--accent:#5b8af0;--accent-glow:rgba(91,138,240,0.12);
@@ -190,6 +189,23 @@
     .delta.up{background:var(--green-glow);color:var(--green);}
     .delta.down{background:var(--red-glow);color:var(--red);}
     .delta.neutral{background:var(--surface3);color:var(--muted);}
+
+    /* TICKET STYLES */
+    .ticket-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;animation:fadeUp .3s ease both;}
+    .ticket-item:last-child{margin-bottom:0;}
+    .ticket-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:12px;}
+    .ticket-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;flex:1;}
+    .ticket-meta{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace;margin-bottom:10px;}
+    .ticket-summary{font-size:13px;color:var(--text);line-height:1.6;margin-bottom:10px;}
+    .ticket-actions{display:flex;gap:8px;margin-top:12px;}
+    .ticket-btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;border:1px solid;transition:opacity .15s;}
+    .ticket-btn:hover{opacity:.8;}
+    .ticket-btn.confirm{background:var(--green-glow);border-color:var(--green);color:var(--green);}
+    .ticket-btn.edit{background:var(--accent-glow);border-color:var(--accent);color:var(--accent);}
+    .ticket-btn.delete{background:var(--red-glow);border-color:var(--red);color:var(--red);}
+    .ticket-btn.push{background:linear-gradient(135deg,#0052cc,#0065ff);border-color:#0052ff;color:white;}
+    .create-ticket-btn{padding:5px 10px;background:var(--red-glow);border:1px solid var(--red);border-radius:6px;color:var(--red);font-size:11px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;transition:background .15s;white-space:nowrap;}
+    .create-ticket-btn:hover{background:rgba(240,91,122,.2);}
   </style>
 </head>
 <body>
@@ -234,6 +250,8 @@
         <div class="nav-section">Automation</div>
         <div class="nav-item" onclick="showPage('runs',this)"><span class="icon">🔁</span> Pipeline Runs</div>
         <div class="nav-item" onclick="showPage('compare',this)"><span class="icon">📅</span> Month Comparison</div>
+        <div class="nav-section">Bugs</div>
+        <div class="nav-item" onclick="showPage('tickets',this)"><span class="icon">🐛</span> Jira Tickets <span id="ticket-count-badge" style="margin-left:auto;background:var(--red-glow);color:var(--red);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;display:none"></span></div>
         <div class="nav-section">Links</div>
         <div class="nav-item" onclick="window.open('https://github.com/Ghaidaahh/playwright-opencodegen/actions','_blank')"><span class="icon">⚡</span> GitHub Actions ↗</div>
         <div class="nav-item" onclick="window.open('https://github.com/Ghaidaahh/playwright-opencodegen/releases','_blank')"><span class="icon">🏷️</span> Releases ↗</div>
@@ -334,6 +352,26 @@
         </div>
       </div>
 
+      <!-- TICKETS -->
+      <div class="page" id="page-tickets">
+        <div style="margin-top:28px">
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-hd">
+              <div class="card-title">🐛 Pending Jira Tickets</div>
+              <div class="card-badge">AWAITING CONFIRMATION</div>
+            </div>
+            <div id="tickets-list"><div class="empty"><div class="e-icon">🎉</div>No pending tickets. Create one from a failed run.</div></div>
+          </div>
+          <div class="card">
+            <div class="card-hd">
+              <div class="card-title">✅ Confirmed Tickets</div>
+              <div class="card-badge">READY FOR JIRA</div>
+            </div>
+            <div id="confirmed-tickets-list"><div class="empty"><div class="e-icon">📋</div>No confirmed tickets yet.</div></div>
+          </div>
+        </div>
+      </div>
+
       <!-- COMPARE -->
       <div class="page" id="page-compare">
         <div style="margin-top:28px">
@@ -349,6 +387,58 @@
   </div>
 </div>
 
+<!-- TICKET MODAL -->
+<div class="modal-overlay" id="ticket-modal-overlay" onclick="closeTicketModal(event)">
+  <div class="modal" style="max-width:700px">
+    <div class="modal-hd">
+      <div class="modal-title">🐛 Create Jira Ticket</div>
+      <button class="close-btn" onclick="closeTicketModal()">✕</button>
+    </div>
+    <div id="ticket-modal-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div class="form-group" style="margin:0">
+          <label>Bug Title</label>
+          <input type="text" id="t-title" placeholder="e.g. Checkout payment step fails" />
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Branch / Pipeline Run</label>
+          <input type="text" id="t-branch" readonly style="opacity:.7" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Summary</label>
+        <input type="text" id="t-summary" placeholder="Brief description of the bug" />
+      </div>
+      <div class="form-group">
+        <label>Steps to Reproduce</label>
+        <textarea class="future-input" id="t-steps" style="min-height:80px" placeholder="1. Navigate to...&#10;2. Click...&#10;3. Observe..."></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div class="form-group" style="margin:0">
+          <label>Expected Result</label>
+          <textarea class="future-input" id="t-expected" style="min-height:70px" placeholder="What should happen..."></textarea>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Actual Result</label>
+          <textarea class="future-input" id="t-actual" style="min-height:70px" placeholder="What actually happened..."></textarea>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Evidence (Screenshot / Video URL)</label>
+        <input type="text" id="t-evidence" placeholder="Paste GitHub Actions artifact URL or screenshot link" />
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea class="future-input" id="t-notes" style="min-height:60px" placeholder="Any additional context, workarounds, related tickets..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <button class="save-btn" style="flex:1;padding:12px;font-size:14px" onclick="confirmTicket()">✅ Confirm & Add to Pending</button>
+        <button class="save-btn" style="background:var(--red-glow);border-color:var(--red);color:var(--red);padding:12px 20px" onclick="closeTicketModal()">Cancel</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
   <div class="modal">
@@ -360,10 +450,9 @@
   </div>
 </div>
 
-
 <script>
 const REPO='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
-let token='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', allRuns=[], releases=[], timeRange='month';
+let token='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', allRuns=[], releases=[], timeRange='month';
 let trendChart=null, donutChart=null, compareChart=null;
 
 async function connect(){
@@ -396,7 +485,7 @@ function ghFetch(url){
   return fetch(url,{headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}});
 }
 
-const pageTitles={overview:['Dashboard','Test automation overview'],release:['Current Build','Latest release from GitHub'],future:['Future Build','Upcoming release planning'],runs:['Pipeline Runs','All GitHub Actions runs'],compare:['Month Comparison','Month-over-month analysis']};
+const pageTitles={overview:['Dashboard','Test automation overview'],release:['Current Build','Latest release from GitHub'],future:['Future Build','Upcoming release planning'],runs:['Pipeline Runs','All GitHub Actions runs'],compare:['Month Comparison','Month-over-month analysis'],tickets:['Jira Tickets','Review and confirm bug tickets']};
 
 function showPage(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -486,13 +575,17 @@ function renderPipelineList(id,runs){
   el.innerHTML=runs.map(r=>{
     const cls=r.status==='in_progress'?'running':r.conclusion==='success'?'pass':r.conclusion==='failure'?'fail':'cancelled';
     const data=encodeURIComponent(JSON.stringify(r));
+    const ticketBtn = r.conclusion==='failure' ? `<button class="create-ticket-btn" onclick="event.stopPropagation();openCreateTicketModal(JSON.parse(decodeURIComponent('${data}')))">🐛 Create Ticket</button>` : '';
     return `<div class="pipeline-item" onclick="openRunModal(decodeURIComponent('${data}'))">
       <div class="p-dot ${cls}"></div>
       <div class="p-info">
         <div class="p-name">${(r.display_title||r.head_commit?.message||'Run').slice(0,50)}</div>
         <div class="p-meta">${timeAgo(r.updated_at)} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${r.head_branch}</span></div>
       </div>
-      <span class="pill ${cls}">${cls==='pass'?'✓ pass':cls==='fail'?'✗ fail':cls==='running'?'⟳ running':'— '+cls}</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        ${ticketBtn}
+        <span class="pill ${cls}">${cls==='pass'?'✓ pass':cls==='fail'?'✗ fail':cls==='running'?'⟳ running':'— '+cls}</span>
+      </div>
     </div>`;
   }).join('');
 }
@@ -627,6 +720,172 @@ function closeModal(e){
     document.getElementById('modal-overlay').classList.remove('open');
 }
 
+// ── TICKETS ───────────────────────────────────────────────────
+let pendingTickets = JSON.parse(localStorage.getItem('pw_pending_tickets') || '[]');
+let confirmedTickets = JSON.parse(localStorage.getItem('pw_confirmed_tickets') || '[]');
+let currentEditTicket = null;
+
+function saveTickets(){
+  localStorage.setItem('pw_pending_tickets', JSON.stringify(pendingTickets));
+  localStorage.setItem('pw_confirmed_tickets', JSON.stringify(confirmedTickets));
+  updateTicketBadge();
+}
+
+function updateTicketBadge(){
+  const badge = document.getElementById('ticket-count-badge');
+  if(pendingTickets.length > 0){
+    badge.style.display = 'inline-block';
+    badge.textContent = pendingTickets.length;
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function openCreateTicketModal(run){
+  currentEditTicket = null;
+  document.getElementById('t-title').value = `[FAIL] ${(run.display_title || run.head_commit?.message || 'Test failed').slice(0,60)}`;
+  document.getElementById('t-branch').value = `${run.head_branch} · Run #${run.run_number}`;
+  document.getElementById('t-summary').value = `Automated test failed on branch "${run.head_branch}" in pipeline run #${run.run_number}. Conclusion: ${run.conclusion}.`;
+  document.getElementById('t-steps').value = `1. Push to branch "${run.head_branch}"\n2. GitHub Actions triggers playwright.yml\n3. Test fails at run #${run.run_number}`;
+  document.getElementById('t-expected').value = 'All tests should pass successfully.';
+  document.getElementById('t-actual').value = `Test failed with conclusion: ${run.conclusion}. See GitHub Actions for full error log.`;
+  document.getElementById('t-evidence').value = run.html_url || '';
+  document.getElementById('t-notes').value = `Commit: ${run.head_sha?.slice(0,7)} · Triggered by: ${run.triggering_actor?.login || 'unknown'} · Duration: ${fmtDur((new Date(run.updated_at)-new Date(run.created_at))/1000)}`;
+  document.getElementById('t-title').dataset.runId = run.id;
+  document.getElementById('t-title').dataset.runUrl = run.html_url;
+  document.getElementById('ticket-modal-overlay').classList.add('open');
+}
+
+function openEditTicketModal(ticketId, fromConfirmed=false){
+  const list = fromConfirmed ? confirmedTickets : pendingTickets;
+  const ticket = list.find(t => t.id === ticketId);
+  if(!ticket) return;
+  currentEditTicket = {ticketId, fromConfirmed};
+  document.getElementById('t-title').value = ticket.title;
+  document.getElementById('t-branch').value = ticket.branch;
+  document.getElementById('t-summary').value = ticket.summary;
+  document.getElementById('t-steps').value = ticket.steps;
+  document.getElementById('t-expected').value = ticket.expected;
+  document.getElementById('t-actual').value = ticket.actual;
+  document.getElementById('t-evidence').value = ticket.evidence;
+  document.getElementById('t-notes').value = ticket.notes;
+  document.getElementById('ticket-modal-overlay').classList.add('open');
+}
+
+function confirmTicket(){
+  const ticket = {
+    id: currentEditTicket ? currentEditTicket.ticketId : Date.now().toString(),
+    title: document.getElementById('t-title').value.trim(),
+    branch: document.getElementById('t-branch').value.trim(),
+    summary: document.getElementById('t-summary').value.trim(),
+    steps: document.getElementById('t-steps').value.trim(),
+    expected: document.getElementById('t-expected').value.trim(),
+    actual: document.getElementById('t-actual').value.trim(),
+    evidence: document.getElementById('t-evidence').value.trim(),
+    notes: document.getElementById('t-notes').value.trim(),
+    createdAt: new Date().toISOString(),
+    runUrl: document.getElementById('t-title').dataset.runUrl || '',
+  };
+  if(!ticket.title){ alert('Please add a bug title.'); return; }
+
+  if(currentEditTicket){
+    if(currentEditTicket.fromConfirmed){
+      const idx = confirmedTickets.findIndex(t => t.id === currentEditTicket.ticketId);
+      if(idx > -1) confirmedTickets[idx] = ticket;
+    } else {
+      const idx = pendingTickets.findIndex(t => t.id === currentEditTicket.ticketId);
+      if(idx > -1) pendingTickets[idx] = ticket;
+    }
+  } else {
+    pendingTickets.push(ticket);
+  }
+
+  saveTickets();
+  closeTicketModal();
+  renderTickets();
+
+  // Show tickets page
+  const ticketNav = document.querySelector('[onclick="showPage(\'tickets\',this)"]');
+  if(ticketNav) showPage('tickets', ticketNav);
+}
+
+function approveTicket(id){
+  const idx = pendingTickets.findIndex(t => t.id === id);
+  if(idx > -1){
+    confirmedTickets.push({...pendingTickets[idx], confirmedAt: new Date().toISOString()});
+    pendingTickets.splice(idx, 1);
+    saveTickets();
+    renderTickets();
+  }
+}
+
+function deleteTicket(id, fromConfirmed=false){
+  if(!confirm('Delete this ticket?')) return;
+  if(fromConfirmed){ confirmedTickets = confirmedTickets.filter(t => t.id !== id); }
+  else { pendingTickets = pendingTickets.filter(t => t.id !== id); }
+  saveTickets();
+  renderTickets();
+}
+
+function pushToJira(id){
+  alert('🚧 Jira integration coming soon!\n\nThis ticket is confirmed and ready.\nWhen Jira is connected, it will be pushed automatically.');
+}
+
+function renderTickets(){
+  const pendingEl = document.getElementById('tickets-list');
+  const confirmedEl = document.getElementById('confirmed-tickets-list');
+
+  if(!pendingEl || !confirmedEl) return;
+
+  if(!pendingTickets.length){
+    pendingEl.innerHTML = '<div class="empty"><div class="e-icon">🎉</div>No pending tickets. Create one from a failed run in Pipeline Runs.</div>';
+  } else {
+    pendingEl.innerHTML = pendingTickets.map((t,i) => `
+      <div class="ticket-item" style="animation-delay:${i*.05}s">
+        <div class="ticket-hd">
+          <div class="ticket-title">${t.title}</div>
+          <span class="pill fail">pending</span>
+        </div>
+        <div class="ticket-meta">📅 ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span></div>
+        <div class="ticket-summary">${t.summary}</div>
+        ${t.evidence ? `<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>` : ''}
+        <div class="ticket-actions">
+          <button class="ticket-btn confirm" onclick="approveTicket('${t.id}')">✅ Approve</button>
+          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}', false)">✏️ Edit</button>
+          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}', false)">🗑️ Delete</button>
+        </div>
+      </div>`).join('');
+  }
+
+  if(!confirmedTickets.length){
+    confirmedEl.innerHTML = '<div class="empty"><div class="e-icon">📋</div>No confirmed tickets yet. Approve pending tickets to see them here.</div>';
+  } else {
+    confirmedEl.innerHTML = confirmedTickets.map((t,i) => `
+      <div class="ticket-item" style="animation-delay:${i*.05}s;border-color:rgba(31,209,149,.2)">
+        <div class="ticket-hd">
+          <div class="ticket-title">${t.title}</div>
+          <span class="pill pass">confirmed</span>
+        </div>
+        <div class="ticket-meta">✅ Confirmed ${new Date(t.confirmedAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span></div>
+        <div class="ticket-summary">${t.summary}</div>
+        ${t.evidence ? `<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>` : ''}
+        <div class="ticket-actions">
+          <button class="ticket-btn push" onclick="pushToJira('${t.id}')">🚀 Push to Jira</button>
+          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}', true)">✏️ Edit</button>
+          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}', true)">🗑️ Delete</button>
+        </div>
+      </div>`).join('');
+  }
+
+  updateTicketBadge();
+}
+
+function closeTicketModal(e){
+  if(!e || e.target === document.getElementById('ticket-modal-overlay'))
+    document.getElementById('ticket-modal-overlay').classList.remove('open');
+}
+
+// ── END TICKETS ────────────────────────────────────────────────
 function fmtDur(s){if(!s||s<0)return'—';const m=Math.floor(s/60),sec=Math.round(s%60);return m>0?`${m}m ${sec}s`:`${sec}s`;}
 function timeAgo(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'just now';if(s<3600)return`${Math.floor(s/60)}m ago`;if(s<86400)return`${Math.floor(s/3600)}h ago`;return`${Math.floor(s/86400)}d ago`;}
 
@@ -634,6 +893,7 @@ window.addEventListener('load',()=>{
   const saved=localStorage.getItem('pw_token');
   if(saved){token=saved;document.getElementById('auth-screen').style.display='none';document.getElementById('dashboard').style.display='block';loadData();}
   document.getElementById('token-input').addEventListener('keydown',e=>{if(e.key==='Enter')connect();});
+  renderTickets();
 });
 setInterval(loadData,120000);
 </script>
