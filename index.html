@@ -206,8 +206,6 @@
     .ticket-btn.push{background:linear-gradient(135deg,#0052cc,#0065ff);border-color:#0052ff;color:white;}
     .create-ticket-btn{padding:5px 10px;background:var(--red-glow);border:1px solid var(--red);border-radius:6px;color:var(--red);font-size:11px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;transition:background .15s;white-space:nowrap;}
     .create-ticket-btn:hover{background:rgba(240,91,122,.2);}
-    .pill.fixed{background:var(--green-glow);color:var(--green);}
-    .fixed-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;background:var(--green-glow);border:1px solid rgba(31,209,149,.3);border-radius:6px;color:var(--green);margin-top:8px;}
   </style>
 </head>
 <body>
@@ -362,21 +360,14 @@
               <div class="card-title">🐛 Pending Jira Tickets</div>
               <div class="card-badge">AWAITING CONFIRMATION</div>
             </div>
-            <div id="tickets-list"><div class="empty"><div class="e-icon">🎉</div>No pending tickets. They auto-generate from failed runs.</div></div>
+            <div id="tickets-list"><div class="empty"><div class="e-icon">🎉</div>No pending tickets. Create one from a failed run.</div></div>
           </div>
-          <div class="card" style="margin-bottom:16px">
+          <div class="card">
             <div class="card-hd">
               <div class="card-title">✅ Confirmed Tickets</div>
               <div class="card-badge">READY FOR JIRA</div>
             </div>
             <div id="confirmed-tickets-list"><div class="empty"><div class="e-icon">📋</div>No confirmed tickets yet.</div></div>
-          </div>
-          <div class="card">
-            <div class="card-hd">
-              <div class="card-title">🟢 Fixed Tickets</div>
-              <div class="card-badge">PASSED IN LATER RUN</div>
-            </div>
-            <div id="fixed-tickets-list"><div class="empty"><div class="e-icon">✨</div>No fixed tickets yet.</div></div>
           </div>
         </div>
       </div>
@@ -525,7 +516,6 @@ async function loadData(){
     releases=relR.ok?await relR.json():[];
     const prs=prR.ok?await prR.json():[];
     renderOverview(); renderRelease(releases); renderFuture(prs); renderAllRuns(); renderCompare();
-    await autoGenerateTicketsFromLatestRun();
     const l=allRuns[0];
     document.getElementById('topbar-sub').textContent=l?`playwright.yml · Last run ${timeAgo(l.updated_at)}`:'playwright.yml · No runs yet';
   }catch(e){
@@ -733,14 +723,11 @@ function closeModal(e){
 // ── TICKETS ───────────────────────────────────────────────────
 let pendingTickets = JSON.parse(localStorage.getItem('pw_pending_tickets') || '[]');
 let confirmedTickets = JSON.parse(localStorage.getItem('pw_confirmed_tickets') || '[]');
-let fixedTickets = JSON.parse(localStorage.getItem('pw_fixed_tickets') || '[]');
 let currentEditTicket = null;
-let lastProcessedRunId = localStorage.getItem('pw_last_processed_run') || '';
 
 function saveTickets(){
   localStorage.setItem('pw_pending_tickets', JSON.stringify(pendingTickets));
   localStorage.setItem('pw_confirmed_tickets', JSON.stringify(confirmedTickets));
-  localStorage.setItem('pw_fixed_tickets', JSON.stringify(fixedTickets));
   updateTicketBadge();
 }
 
@@ -752,112 +739,6 @@ function updateTicketBadge(){
   } else {
     badge.style.display = 'none';
   }
-}
-
-// Auto-generate tickets from latest run's artifact results.json
-async function autoGenerateTicketsFromLatestRun(){
-  if(!allRuns.length) return;
-  const latestRun = allRuns[0];
-
-  // Only process if this is a new run we haven't seen before
-  if(latestRun.id.toString() === lastProcessedRunId) return;
-  if(latestRun.status !== 'completed') return;
-
-  try {
-    // Get artifacts for latest run
-    const artRes = await ghFetch(`https://api.github.com/repos/${REPO}/actions/runs/${latestRun.id}/artifacts`);
-    const artData = await artRes.json();
-    const artifacts = artData.artifacts || [];
-    const resultsArtifact = artifacts.find(a => a.name === 'playwright-results');
-
-    if(!resultsArtifact){
-      // No results.json artifact — check if run failed overall and create one ticket for the run
-      if(latestRun.conclusion === 'failure'){
-        autoCreateRunTicket(latestRun);
-      }
-      // Check if previously failed tests passed in this run
-      checkIfPreviouslyFailedTestsNowPass(latestRun, []);
-      markRunAsProcessed(latestRun.id);
-      return;
-    }
-
-    // Download the artifact zip — GitHub API requires redirect
-    const zipRes = await ghFetch(`https://api.github.com/repos/${REPO}/actions/artifacts/${resultsArtifact.id}/zip`);
-    // We can't unzip in browser easily, so fall back to run-level ticket if failed
-    if(latestRun.conclusion === 'failure'){
-      autoCreateRunTicket(latestRun);
-    }
-    checkIfPreviouslyFailedTestsNowPass(latestRun, []);
-    markRunAsProcessed(latestRun.id);
-
-  } catch(e) {
-    // Silently fail — manual ticket creation still works
-    console.log('Auto-ticket generation:', e.message);
-  }
-}
-
-function autoCreateRunTicket(run){
-  const testKey = `run-${run.id}`;
-  // No duplicate — check if ticket already exists for this run
-  const alreadyExists = [...pendingTickets, ...confirmedTickets, ...fixedTickets]
-    .some(t => t.testKey === testKey);
-  if(alreadyExists) return;
-
-  const ticket = {
-    id: Date.now().toString(),
-    testKey,
-    title: `[FAIL] ${(run.display_title || run.head_commit?.message || 'Pipeline failed').slice(0,60)}`,
-    branch: `${run.head_branch} · Run #${run.run_number}`,
-    summary: `Automated pipeline run #${run.run_number} failed on branch "${run.head_branch}".`,
-    steps: `1. Push to branch "${run.head_branch}"\n2. GitHub Actions triggers playwright.yml\n3. Pipeline run #${run.run_number} fails`,
-    expected: 'All tests should pass successfully.',
-    actual: `Pipeline failed with conclusion: ${run.conclusion}.`,
-    evidence: run.html_url || '',
-    notes: `Commit: ${run.head_sha?.slice(0,7)} · Triggered by: ${run.triggering_actor?.login || 'unknown'} · Duration: ${fmtDur((new Date(run.updated_at)-new Date(run.created_at))/1000)}\n\nAuto-generated from Run #${run.run_number}`,
-    createdAt: new Date().toISOString(),
-    runId: run.id,
-    runNumber: run.run_number,
-    autoGenerated: true,
-  };
-
-  pendingTickets.push(ticket);
-  saveTickets();
-  renderTickets();
-}
-
-function checkIfPreviouslyFailedTestsNowPass(latestRun, passedTests){
-  if(latestRun.conclusion !== 'success') return;
-
-  // Find any pending/confirmed tickets from previous runs that are now fixed
-  const nowFixed = [...pendingTickets, ...confirmedTickets].filter(t => {
-    // If ticket was auto-generated from a run, and latest run passed — mark as fixed
-    return t.autoGenerated && t.runId && t.runId !== latestRun.id;
-  });
-
-  if(!nowFixed.length) return;
-
-  nowFixed.forEach(t => {
-    const fixedTicket = {
-      ...t,
-      fixedAt: new Date().toISOString(),
-      fixedInRun: latestRun.run_number,
-      fixedInBranch: latestRun.head_branch,
-      fixedRunUrl: latestRun.html_url,
-    };
-    fixedTickets.push(fixedTicket);
-    pendingTickets = pendingTickets.filter(p => p.id !== t.id);
-    confirmedTickets = confirmedTickets.filter(c => c.id !== t.id);
-  });
-
-  if(nowFixed.length) {
-    saveTickets();
-    renderTickets();
-  }
-}
-
-function markRunAsProcessed(runId){
-  lastProcessedRunId = runId.toString();
-  localStorage.setItem('pw_last_processed_run', lastProcessedRunId);
 }
 
 function openCreateTicketModal(run){
@@ -875,11 +756,11 @@ function openCreateTicketModal(run){
   document.getElementById('ticket-modal-overlay').classList.add('open');
 }
 
-function openEditTicketModal(ticketId, fromList){
-  const lists = {pending: pendingTickets, confirmed: confirmedTickets, fixed: fixedTickets};
-  const ticket = lists[fromList]?.find(t => t.id === ticketId);
+function openEditTicketModal(ticketId, fromConfirmed=false){
+  const list = fromConfirmed ? confirmedTickets : pendingTickets;
+  const ticket = list.find(t => t.id === ticketId);
   if(!ticket) return;
-  currentEditTicket = {ticketId, fromList};
+  currentEditTicket = {ticketId, fromConfirmed};
   document.getElementById('t-title').value = ticket.title;
   document.getElementById('t-branch').value = ticket.branch;
   document.getElementById('t-summary').value = ticket.summary;
@@ -894,7 +775,6 @@ function openEditTicketModal(ticketId, fromList){
 function confirmTicket(){
   const ticket = {
     id: currentEditTicket ? currentEditTicket.ticketId : Date.now().toString(),
-    testKey: currentEditTicket ? (pendingTickets.find(t=>t.id===currentEditTicket.ticketId)||confirmedTickets.find(t=>t.id===currentEditTicket.ticketId)||{}).testKey : null,
     title: document.getElementById('t-title').value.trim(),
     branch: document.getElementById('t-branch').value.trim(),
     summary: document.getElementById('t-summary').value.trim(),
@@ -905,15 +785,17 @@ function confirmTicket(){
     notes: document.getElementById('t-notes').value.trim(),
     createdAt: new Date().toISOString(),
     runUrl: document.getElementById('t-title').dataset.runUrl || '',
-    autoGenerated: false,
   };
   if(!ticket.title){ alert('Please add a bug title.'); return; }
 
   if(currentEditTicket){
-    const {ticketId, fromList} = currentEditTicket;
-    if(fromList === 'pending'){ const idx=pendingTickets.findIndex(t=>t.id===ticketId); if(idx>-1) pendingTickets[idx]={...pendingTickets[idx],...ticket}; }
-    else if(fromList === 'confirmed'){ const idx=confirmedTickets.findIndex(t=>t.id===ticketId); if(idx>-1) confirmedTickets[idx]={...confirmedTickets[idx],...ticket}; }
-    else if(fromList === 'fixed'){ const idx=fixedTickets.findIndex(t=>t.id===ticketId); if(idx>-1) fixedTickets[idx]={...fixedTickets[idx],...ticket}; }
+    if(currentEditTicket.fromConfirmed){
+      const idx = confirmedTickets.findIndex(t => t.id === currentEditTicket.ticketId);
+      if(idx > -1) confirmedTickets[idx] = ticket;
+    } else {
+      const idx = pendingTickets.findIndex(t => t.id === currentEditTicket.ticketId);
+      if(idx > -1) pendingTickets[idx] = ticket;
+    }
   } else {
     pendingTickets.push(ticket);
   }
@@ -921,6 +803,8 @@ function confirmTicket(){
   saveTickets();
   closeTicketModal();
   renderTickets();
+
+  // Show tickets page
   const ticketNav = document.querySelector('[onclick="showPage(\'tickets\',this)"]');
   if(ticketNav) showPage('tickets', ticketNav);
 }
@@ -930,16 +814,17 @@ function approveTicket(id){
   if(idx > -1){
     confirmedTickets.push({...pendingTickets[idx], confirmedAt: new Date().toISOString()});
     pendingTickets.splice(idx, 1);
-    saveTickets(); renderTickets();
+    saveTickets();
+    renderTickets();
   }
 }
 
-function deleteTicket(id, fromList){
+function deleteTicket(id, fromConfirmed=false){
   if(!confirm('Delete this ticket?')) return;
-  if(fromList==='pending') pendingTickets = pendingTickets.filter(t=>t.id!==id);
-  else if(fromList==='confirmed') confirmedTickets = confirmedTickets.filter(t=>t.id!==id);
-  else if(fromList==='fixed') fixedTickets = fixedTickets.filter(t=>t.id!==id);
-  saveTickets(); renderTickets();
+  if(fromConfirmed){ confirmedTickets = confirmedTickets.filter(t => t.id !== id); }
+  else { pendingTickets = pendingTickets.filter(t => t.id !== id); }
+  saveTickets();
+  renderTickets();
 }
 
 function pushToJira(id){
@@ -949,17 +834,16 @@ function pushToJira(id){
 function renderTickets(){
   const pendingEl = document.getElementById('tickets-list');
   const confirmedEl = document.getElementById('confirmed-tickets-list');
-  const fixedEl = document.getElementById('fixed-tickets-list');
-  if(!pendingEl) return;
 
-  // PENDING
+  if(!pendingEl || !confirmedEl) return;
+
   if(!pendingTickets.length){
-    pendingEl.innerHTML = '<div class="empty"><div class="e-icon">🎉</div>No pending tickets. They auto-generate when a pipeline run fails.</div>';
+    pendingEl.innerHTML = '<div class="empty"><div class="e-icon">🎉</div>No pending tickets. Create one from a failed run in Pipeline Runs.</div>';
   } else {
     pendingEl.innerHTML = pendingTickets.map((t,i) => `
       <div class="ticket-item" style="animation-delay:${i*.05}s">
         <div class="ticket-hd">
-          <div class="ticket-title">${t.title} ${t.autoGenerated ? '<span style="font-size:10px;background:var(--accent-glow);color:var(--accent);padding:2px 6px;border-radius:4px;font-weight:600;margin-left:6px">AUTO</span>' : ''}</div>
+          <div class="ticket-title">${t.title}</div>
           <span class="pill fail">pending</span>
         </div>
         <div class="ticket-meta">📅 ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span></div>
@@ -967,14 +851,12 @@ function renderTickets(){
         ${t.evidence ? `<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>` : ''}
         <div class="ticket-actions">
           <button class="ticket-btn confirm" onclick="approveTicket('${t.id}')">✅ Approve</button>
-          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','pending')">✏️ Edit</button>
-          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}','pending')">🗑️ Delete</button>
+          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}', false)">✏️ Edit</button>
+          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}', false)">🗑️ Delete</button>
         </div>
       </div>`).join('');
   }
 
-  // CONFIRMED
-  if(!confirmedEl) return;
   if(!confirmedTickets.length){
     confirmedEl.innerHTML = '<div class="empty"><div class="e-icon">📋</div>No confirmed tickets yet. Approve pending tickets to see them here.</div>';
   } else {
@@ -989,28 +871,8 @@ function renderTickets(){
         ${t.evidence ? `<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>` : ''}
         <div class="ticket-actions">
           <button class="ticket-btn push" onclick="pushToJira('${t.id}')">🚀 Push to Jira</button>
-          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','confirmed')">✏️ Edit</button>
-          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}','confirmed')">🗑️ Delete</button>
-        </div>
-      </div>`).join('');
-  }
-
-  // FIXED
-  if(!fixedEl) return;
-  if(!fixedTickets.length){
-    fixedEl.innerHTML = '<div class="empty"><div class="e-icon">✨</div>No fixed tickets yet. When a previously failed test passes, it appears here.</div>';
-  } else {
-    fixedEl.innerHTML = fixedTickets.map((t,i) => `
-      <div class="ticket-item" style="animation-delay:${i*.05}s;border-color:rgba(31,209,149,.3)">
-        <div class="ticket-hd">
-          <div class="ticket-title">${t.title}</div>
-          <span class="pill fixed">fixed</span>
-        </div>
-        <div class="ticket-meta">📅 Originally found: ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span></div>
-        <div class="fixed-badge">✅ Fixed in Run #${t.fixedInRun} · ${t.fixedInBranch} &nbsp;<a href="${t.fixedRunUrl}" target="_blank" style="color:var(--green);text-decoration:none">↗</a></div>
-        <div class="ticket-actions" style="margin-top:12px">
-          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','fixed')">✏️ View Details</button>
-          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}','fixed')">🗑️ Delete</button>
+          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}', true)">✏️ Edit</button>
+          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}', true)">🗑️ Delete</button>
         </div>
       </div>`).join('');
   }
@@ -1022,6 +884,7 @@ function closeTicketModal(e){
   if(!e || e.target === document.getElementById('ticket-modal-overlay'))
     document.getElementById('ticket-modal-overlay').classList.remove('open');
 }
+
 // ── END TICKETS ────────────────────────────────────────────────
 function fmtDur(s){if(!s||s<0)return'—';const m=Math.floor(s/60),sec=Math.round(s%60);return m>0?`${m}m ${sec}s`:`${sec}s`;}
 function timeAgo(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'just now';if(s<3600)return`${Math.floor(s/60)}m ago`;if(s<86400)return`${Math.floor(s/3600)}h ago`;return`${Math.floor(s/86400)}d ago`;}
