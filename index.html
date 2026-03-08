@@ -93,8 +93,10 @@
     .card-badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;background:var(--surface3);color:var(--muted);border:1px solid var(--border);}
 
     /* STAT CARDS */
-    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;animation:fadeUp .35s ease both;transition:border-color .2s;}
-    .stat-card:hover{border-color:var(--muted2);}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;animation:fadeUp .35s ease both;transition:border-color .2s,transform .15s;cursor:pointer;}
+    .stat-card:hover{border-color:var(--muted2);transform:translateY(-2px);}
+    .stat-card.no-click{cursor:default;}
+    .stat-card.no-click:hover{transform:none;}
     .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
     .stat-card.green::before{background:var(--green);}
     .stat-card.red::before{background:var(--red);}
@@ -206,6 +208,8 @@
     .ticket-btn.push{background:linear-gradient(135deg,#0052cc,#0065ff);border-color:#0052ff;color:white;}
     .create-ticket-btn{padding:5px 10px;background:var(--red-glow);border:1px solid var(--red);border-radius:6px;color:var(--red);font-size:11px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;transition:background .15s;white-space:nowrap;}
     .create-ticket-btn:hover{background:rgba(240,91,122,.2);}
+    .pill.fixed{background:var(--green-glow);color:var(--green);}
+    .fixed-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;background:var(--green-glow);border:1px solid rgba(31,209,149,.3);border-radius:6px;color:var(--green);margin-top:8px;}
   </style>
 </head>
 <body>
@@ -281,14 +285,14 @@
       <!-- OVERVIEW -->
       <div class="page active" id="page-overview">
         <div class="grid-4" style="margin-top:28px">
-          <div class="stat-card blue" style="animation-delay:.05s"><div class="stat-icon">🔁</div><div class="stat-label">Total Runs</div><div class="stat-value" id="s-runs">—</div><div class="stat-sub" id="s-runs-sub">loading...</div></div>
-          <div class="stat-card green" style="animation-delay:.1s"><div class="stat-icon">✅</div><div class="stat-label">Pass Rate</div><div class="stat-value" id="s-rate">—</div><div class="stat-sub" id="s-rate-sub">loading...</div></div>
-          <div class="stat-card red" style="animation-delay:.15s"><div class="stat-icon">❌</div><div class="stat-label">Failed Runs</div><div class="stat-value" id="s-fail">—</div><div class="stat-sub" id="s-fail-sub">loading...</div></div>
-          <div class="stat-card yellow" style="animation-delay:.2s"><div class="stat-icon">⏱️</div><div class="stat-label">Avg Duration</div><div class="stat-value" id="s-dur">—</div><div class="stat-sub" id="s-dur-sub">loading...</div></div>
+          <div class="stat-card blue" style="animation-delay:.05s" onclick="goToRunsFiltered('all')"><div class="stat-icon">🔁</div><div class="stat-label">Total Runs</div><div class="stat-value" id="s-runs">—</div><div class="stat-sub" id="s-runs-sub">loading...</div></div>
+          <div class="stat-card green" style="animation-delay:.1s" onclick="goToRunsFiltered('pass')"><div class="stat-icon">✅</div><div class="stat-label">Pass Rate</div><div class="stat-value" id="s-rate">—</div><div class="stat-sub" id="s-rate-sub">loading...</div></div>
+          <div class="stat-card red" style="animation-delay:.15s" onclick="goToRunsFiltered('fail')"><div class="stat-icon">❌</div><div class="stat-label">Failed Runs</div><div class="stat-value" id="s-fail">—</div><div class="stat-sub" id="s-fail-sub">loading...</div></div>
+          <div class="stat-card yellow no-click" style="animation-delay:.2s"><div class="stat-icon">⏱️</div><div class="stat-label">Avg Duration</div><div class="stat-value" id="s-dur">—</div><div class="stat-sub" id="s-dur-sub">loading...</div></div>
         </div>
         <div class="grid-3">
           <div class="card" style="animation-delay:.2s">
-            <div class="card-hd"><div class="card-title">Pass / Fail Trend</div><div class="card-badge" id="trend-label">LAST 40 RUNS</div></div>
+            <div class="card-hd"><div class="card-title">Pass / Fail Trend</div><div style="display:flex;align-items:center;gap:8px"><div class="tab-group" style="padding:2px"><div class="tab active" id="trend-tab-day" onclick="setTrendMode('day',this)">Day</div><div class="tab" id="trend-tab-week" onclick="setTrendMode('week',this)">Week</div><div class="tab" id="trend-tab-month" onclick="setTrendMode('month',this)">Month</div></div><div class="card-badge" id="trend-label">DAILY</div></div></div>
             <div class="chart-wrap"><div class="loading" id="trend-loading"><div class="spinner"></div><div class="loading-text">Fetching runs...</div></div><canvas id="trendChart" style="display:none"></canvas></div>
           </div>
           <div class="card" style="animation-delay:.25s">
@@ -360,14 +364,21 @@
               <div class="card-title">🐛 Pending Jira Tickets</div>
               <div class="card-badge">AWAITING CONFIRMATION</div>
             </div>
-            <div id="tickets-list"><div class="empty"><div class="e-icon">🎉</div>No pending tickets. Create one from a failed run.</div></div>
+            <div id="tickets-list"><div class="empty"><div class="e-icon">🎉</div>No pending tickets. They auto-generate from failed runs.</div></div>
           </div>
-          <div class="card">
+          <div class="card" style="margin-bottom:16px">
             <div class="card-hd">
               <div class="card-title">✅ Confirmed Tickets</div>
               <div class="card-badge">READY FOR JIRA</div>
             </div>
             <div id="confirmed-tickets-list"><div class="empty"><div class="e-icon">📋</div>No confirmed tickets yet.</div></div>
+          </div>
+          <div class="card">
+            <div class="card-hd">
+              <div class="card-title">🟢 Fixed Tickets</div>
+              <div class="card-badge">PASSED IN LATER RUN</div>
+            </div>
+            <div id="fixed-tickets-list"><div class="empty"><div class="e-icon">✨</div>No fixed tickets yet.</div></div>
           </div>
         </div>
       </div>
@@ -452,8 +463,25 @@
 
 <script>
 const REPO='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
-let token='', allRuns=[], releases=[], timeRange='month';
+let token='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', allRuns=[], releases=[], timeRange='month', trendMode='day';
 let trendChart=null, donutChart=null, compareChart=null;
+let runsFilter='all';
+
+function goToRunsFiltered(filter){
+  runsFilter=filter;
+  const nav=document.querySelector('[onclick="showPage(\'runs\',this)"]');
+  if(nav) showPage('runs',nav);
+  renderAllRuns();
+}
+
+function setTrendMode(mode,el){
+  trendMode=mode;
+  document.querySelectorAll('[id^="trend-tab-"]').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const labels={day:'DAILY',week:'WEEKLY',month:'MONTHLY'};
+  document.getElementById('trend-label').textContent=labels[mode];
+  renderTrend(filteredRuns());
+}
 
 async function connect(){
   token=document.getElementById('token-input').value.trim();
@@ -516,6 +544,7 @@ async function loadData(){
     releases=relR.ok?await relR.json():[];
     const prs=prR.ok?await prR.json():[];
     renderOverview(); renderRelease(releases); renderFuture(prs); renderAllRuns(); renderCompare();
+    await autoGenerateTicketsFromLatestRun();
     const l=allRuns[0];
     document.getElementById('topbar-sub').textContent=l?`playwright.yml · Last run ${timeAgo(l.updated_at)}`:'playwright.yml · No runs yet';
   }catch(e){
@@ -547,14 +576,43 @@ function renderOverview(){
 }
 
 function renderTrend(runs){
-  const recent=runs.slice(0,40).reverse();
   document.getElementById('trend-loading').style.display='none';
   const canvas=document.getElementById('trendChart'); canvas.style.display='block';
   if(trendChart)trendChart.destroy();
-  trendChart=new Chart(canvas.getContext('2d'),{type:'bar',data:{labels:recent.map((_,i)=>`#${i+1}`),datasets:[
-    {label:'Passed',data:recent.map(r=>r.conclusion==='success'?1:0),backgroundColor:'rgba(31,209,149,.7)',borderRadius:3,borderSkipped:false},
-    {label:'Failed',data:recent.map(r=>r.conclusion==='failure'?1:0),backgroundColor:'rgba(240,91,122,.7)',borderRadius:3,borderSkipped:false}
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d0f1a',borderColor:'#22263d',borderWidth:1,titleColor:'#dde1f5',bodyColor:'#565d80',padding:10,callbacks:{title:items=>recent[items[0].dataIndex]?.display_title?.slice(0,40)||''}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#565d80',font:{family:'JetBrains Mono',size:9}},border:{display:false}},y:{stacked:true,max:1,grid:{color:'rgba(255,255,255,.03)'},ticks:{display:false},border:{display:false}}},onClick:(_,els)=>{if(els.length)openRunModal(recent[els[0].index]);}}});
+
+  const completed=runs.filter(r=>r.status==='completed');
+
+  if(trendMode==='day'||trendMode==='week'||trendMode==='month'){
+    // Group runs by period
+    const groups={};
+    completed.forEach(r=>{
+      const d=new Date(r.created_at);
+      let key;
+      if(trendMode==='day') key=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      else if(trendMode==='week'){
+        // Get Monday of the week
+        const day=d.getDay(), diff=d.getDate()-day+(day===0?-6:1);
+        const mon=new Date(d.setDate(diff));
+        key=mon.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+      } else {
+        key=d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
+      }
+      if(!groups[key]) groups[key]={pass:0,fail:0};
+      if(r.conclusion==='success') groups[key].pass++;
+      else if(r.conclusion==='failure') groups[key].fail++;
+    });
+
+    // Sort keys chronologically by taking last N periods
+    const keys=Object.keys(groups).slice(-20);
+    const passData=keys.map(k=>groups[k].pass);
+    const failData=keys.map(k=>groups[k].fail);
+    const maxVal=Math.max(...keys.map(k=>groups[k].pass+groups[k].fail),1);
+
+    trendChart=new Chart(canvas.getContext('2d'),{type:'bar',data:{labels:keys,datasets:[
+      {label:'Passed',data:passData,backgroundColor:'rgba(31,209,149,.7)',borderRadius:4,borderSkipped:false},
+      {label:'Failed',data:failData,backgroundColor:'rgba(240,91,122,.7)',borderRadius:4,borderSkipped:false}
+    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#565d80',font:{family:'JetBrains Mono',size:10},boxWidth:10}},tooltip:{backgroundColor:'#0d0f1a',borderColor:'#22263d',borderWidth:1,titleColor:'#dde1f5',bodyColor:'#565d80',padding:10}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#565d80',font:{family:'JetBrains Mono',size:9}},border:{display:false}},y:{stacked:true,max:maxVal+1,grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#565d80',font:{family:'JetBrains Mono',size:9},stepSize:1},border:{display:false}}}}});
+  }
 }
 
 function renderDonut(completed){
@@ -653,7 +711,43 @@ function saveFutureNotes(){
   setTimeout(()=>btn.textContent='💾 Save Notes',2000);
 }
 
-function renderAllRuns(){renderPipelineList('all-runs-list',allRuns.slice(0,40));}
+function renderAllRuns(){
+  let runs=allRuns.slice(0,100);
+  if(runsFilter==='pass') runs=runs.filter(r=>r.conclusion==='success');
+  else if(runsFilter==='fail') runs=runs.filter(r=>r.conclusion==='failure');
+  // Update page subtitle to show active filter
+  const filterLabel={all:'All runs',pass:'✓ Passed runs only',fail:'✗ Failed runs only'};
+  const sub=document.querySelector('#page-runs .card .card-hd .card-badge');
+  if(sub) sub.textContent=filterLabel[runsFilter]||'CLICK TO INSPECT';
+  // Add filter pills above the list
+  const listEl=document.getElementById('all-runs-list');
+  const filterBar=`<div style="display:flex;gap:8px;margin-bottom:16px">
+    <button onclick="runsFilter='all';renderAllRuns()" style="padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;border:1px solid;background:${runsFilter==='all'?'var(--accent-glow)':'var(--surface3)'};border-color:${runsFilter==='all'?'var(--accent)':'var(--border)'};color:${runsFilter==='all'?'var(--accent)':'var(--muted)'}">All (${allRuns.length})</button>
+    <button onclick="runsFilter='pass';renderAllRuns()" style="padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;border:1px solid;background:${runsFilter==='pass'?'var(--green-glow)':'var(--surface3)'};border-color:${runsFilter==='pass'?'var(--green)':'var(--border)'};color:${runsFilter==='pass'?'var(--green)':'var(--muted)'}">✓ Passed (${allRuns.filter(r=>r.conclusion==='success').length})</button>
+    <button onclick="runsFilter='fail';renderAllRuns()" style="padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;border:1px solid;background:${runsFilter==='fail'?'var(--red-glow)':'var(--surface3)'};border-color:${runsFilter==='fail'?'var(--red)':'var(--border)'};color:${runsFilter==='fail'?'var(--red)':'var(--muted)'}">✗ Failed (${allRuns.filter(r=>r.conclusion==='failure').length})</button>
+  </div>`;
+  listEl.innerHTML=filterBar;
+  const tempEl=document.createElement('div');
+  document.getElementById('all-runs-list').appendChild(tempEl);
+  renderPipelineList2(tempEl, runs);
+}
+
+function renderPipelineList2(el, runs){
+  if(!runs.length){el.innerHTML='<div class="empty"><div class="e-icon">🎭</div>No runs found.</div>';return;}
+  el.innerHTML=runs.map(r=>{
+    const cls=r.status==='in_progress'?'running':r.conclusion==='success'?'pass':r.conclusion==='failure'?'fail':'cancelled';
+    const data=encodeURIComponent(JSON.stringify(r));
+    const ticketBtn=r.conclusion==='failure'?`<button class="create-ticket-btn" onclick="event.stopPropagation();openCreateTicketModal(JSON.parse(decodeURIComponent('${data}')))">🐛 Create Ticket</button>`:'';
+    return `<div class="pipeline-item" onclick="openRunModal(decodeURIComponent('${data}'))">
+      <div class="p-dot ${cls}"></div>
+      <div class="p-info">
+        <div class="p-name">${(r.display_title||r.head_commit?.message||'Run').slice(0,50)}</div>
+        <div class="p-meta">${timeAgo(r.updated_at)} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${r.head_branch}</span></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">${ticketBtn}<span class="pill ${cls}">${cls==='pass'?'✓ pass':cls==='fail'?'✗ fail':cls==='running'?'⟳ running':'— '+cls}</span></div>
+    </div>`;
+  }).join('');
+}
 
 function renderCompare(){
   const now=new Date(), tm=now.getMonth(), ty=now.getFullYear();
@@ -723,11 +817,14 @@ function closeModal(e){
 // ── TICKETS ───────────────────────────────────────────────────
 let pendingTickets = JSON.parse(localStorage.getItem('pw_pending_tickets') || '[]');
 let confirmedTickets = JSON.parse(localStorage.getItem('pw_confirmed_tickets') || '[]');
+let fixedTickets = JSON.parse(localStorage.getItem('pw_fixed_tickets') || '[]');
 let currentEditTicket = null;
+let lastProcessedRunId = localStorage.getItem('pw_last_processed_run') || '';
 
 function saveTickets(){
   localStorage.setItem('pw_pending_tickets', JSON.stringify(pendingTickets));
   localStorage.setItem('pw_confirmed_tickets', JSON.stringify(confirmedTickets));
+  localStorage.setItem('pw_fixed_tickets', JSON.stringify(fixedTickets));
   updateTicketBadge();
 }
 
@@ -739,6 +836,112 @@ function updateTicketBadge(){
   } else {
     badge.style.display = 'none';
   }
+}
+
+// Auto-generate tickets from latest run's artifact results.json
+async function autoGenerateTicketsFromLatestRun(){
+  if(!allRuns.length) return;
+  const latestRun = allRuns[0];
+
+  // Only process if this is a new run we haven't seen before
+  if(latestRun.id.toString() === lastProcessedRunId) return;
+  if(latestRun.status !== 'completed') return;
+
+  try {
+    // Get artifacts for latest run
+    const artRes = await ghFetch(`https://api.github.com/repos/${REPO}/actions/runs/${latestRun.id}/artifacts`);
+    const artData = await artRes.json();
+    const artifacts = artData.artifacts || [];
+    const resultsArtifact = artifacts.find(a => a.name === 'playwright-results');
+
+    if(!resultsArtifact){
+      // No results.json artifact — check if run failed overall and create one ticket for the run
+      if(latestRun.conclusion === 'failure'){
+        autoCreateRunTicket(latestRun);
+      }
+      // Check if previously failed tests passed in this run
+      checkIfPreviouslyFailedTestsNowPass(latestRun, []);
+      markRunAsProcessed(latestRun.id);
+      return;
+    }
+
+    // Download the artifact zip — GitHub API requires redirect
+    const zipRes = await ghFetch(`https://api.github.com/repos/${REPO}/actions/artifacts/${resultsArtifact.id}/zip`);
+    // We can't unzip in browser easily, so fall back to run-level ticket if failed
+    if(latestRun.conclusion === 'failure'){
+      autoCreateRunTicket(latestRun);
+    }
+    checkIfPreviouslyFailedTestsNowPass(latestRun, []);
+    markRunAsProcessed(latestRun.id);
+
+  } catch(e) {
+    // Silently fail — manual ticket creation still works
+    console.log('Auto-ticket generation:', e.message);
+  }
+}
+
+function autoCreateRunTicket(run){
+  const testKey = `run-${run.id}`;
+  // No duplicate — check if ticket already exists for this run
+  const alreadyExists = [...pendingTickets, ...confirmedTickets, ...fixedTickets]
+    .some(t => t.testKey === testKey);
+  if(alreadyExists) return;
+
+  const ticket = {
+    id: Date.now().toString(),
+    testKey,
+    title: `[FAIL] ${(run.display_title || run.head_commit?.message || 'Pipeline failed').slice(0,60)}`,
+    branch: `${run.head_branch} · Run #${run.run_number}`,
+    summary: `Automated pipeline run #${run.run_number} failed on branch "${run.head_branch}".`,
+    steps: `1. Push to branch "${run.head_branch}"\n2. GitHub Actions triggers playwright.yml\n3. Pipeline run #${run.run_number} fails`,
+    expected: 'All tests should pass successfully.',
+    actual: `Pipeline failed with conclusion: ${run.conclusion}.`,
+    evidence: run.html_url || '',
+    notes: `Commit: ${run.head_sha?.slice(0,7)} · Triggered by: ${run.triggering_actor?.login || 'unknown'} · Duration: ${fmtDur((new Date(run.updated_at)-new Date(run.created_at))/1000)}\n\nAuto-generated from Run #${run.run_number}`,
+    createdAt: new Date().toISOString(),
+    runId: run.id,
+    runNumber: run.run_number,
+    autoGenerated: true,
+  };
+
+  pendingTickets.push(ticket);
+  saveTickets();
+  renderTickets();
+}
+
+function checkIfPreviouslyFailedTestsNowPass(latestRun, passedTests){
+  if(latestRun.conclusion !== 'success') return;
+
+  // Find any pending/confirmed tickets from previous runs that are now fixed
+  const nowFixed = [...pendingTickets, ...confirmedTickets].filter(t => {
+    // If ticket was auto-generated from a run, and latest run passed — mark as fixed
+    return t.autoGenerated && t.runId && t.runId !== latestRun.id;
+  });
+
+  if(!nowFixed.length) return;
+
+  nowFixed.forEach(t => {
+    const fixedTicket = {
+      ...t,
+      fixedAt: new Date().toISOString(),
+      fixedInRun: latestRun.run_number,
+      fixedInBranch: latestRun.head_branch,
+      fixedRunUrl: latestRun.html_url,
+    };
+    fixedTickets.push(fixedTicket);
+    pendingTickets = pendingTickets.filter(p => p.id !== t.id);
+    confirmedTickets = confirmedTickets.filter(c => c.id !== t.id);
+  });
+
+  if(nowFixed.length) {
+    saveTickets();
+    renderTickets();
+  }
+}
+
+function markRunAsProcessed(runId){
+  lastProcessedRunId = runId.toString();
+  localStorage.setItem('pw_last_processed_run', lastProcessedRunId);
 }
 
 function openCreateTicketModal(run){
@@ -756,11 +959,11 @@ function openCreateTicketModal(run){
   document.getElementById('ticket-modal-overlay').classList.add('open');
 }
 
-function openEditTicketModal(ticketId, fromConfirmed=false){
-  const list = fromConfirmed ? confirmedTickets : pendingTickets;
-  const ticket = list.find(t => t.id === ticketId);
+function openEditTicketModal(ticketId, fromList){
+  const lists = {pending: pendingTickets, confirmed: confirmedTickets, fixed: fixedTickets};
+  const ticket = lists[fromList]?.find(t => t.id === ticketId);
   if(!ticket) return;
-  currentEditTicket = {ticketId, fromConfirmed};
+  currentEditTicket = {ticketId, fromList};
   document.getElementById('t-title').value = ticket.title;
   document.getElementById('t-branch').value = ticket.branch;
   document.getElementById('t-summary').value = ticket.summary;
@@ -775,6 +978,7 @@ function openEditTicketModal(ticketId, fromConfirmed=false){
 function confirmTicket(){
   const ticket = {
     id: currentEditTicket ? currentEditTicket.ticketId : Date.now().toString(),
+    testKey: currentEditTicket ? (pendingTickets.find(t=>t.id===currentEditTicket.ticketId)||confirmedTickets.find(t=>t.id===currentEditTicket.ticketId)||{}).testKey : null,
     title: document.getElementById('t-title').value.trim(),
     branch: document.getElementById('t-branch').value.trim(),
     summary: document.getElementById('t-summary').value.trim(),
@@ -785,17 +989,15 @@ function confirmTicket(){
     notes: document.getElementById('t-notes').value.trim(),
     createdAt: new Date().toISOString(),
     runUrl: document.getElementById('t-title').dataset.runUrl || '',
+    autoGenerated: false,
   };
   if(!ticket.title){ alert('Please add a bug title.'); return; }
 
   if(currentEditTicket){
-    if(currentEditTicket.fromConfirmed){
-      const idx = confirmedTickets.findIndex(t => t.id === currentEditTicket.ticketId);
-      if(idx > -1) confirmedTickets[idx] = ticket;
-    } else {
-      const idx = pendingTickets.findIndex(t => t.id === currentEditTicket.ticketId);
-      if(idx > -1) pendingTickets[idx] = ticket;
-    }
+    const {ticketId, fromList} = currentEditTicket;
+    if(fromList === 'pending'){ const idx=pendingTickets.findIndex(t=>t.id===ticketId); if(idx>-1) pendingTickets[idx]={...pendingTickets[idx],...ticket}; }
+    else if(fromList === 'confirmed'){ const idx=confirmedTickets.findIndex(t=>t.id===ticketId); if(idx>-1) confirmedTickets[idx]={...confirmedTickets[idx],...ticket}; }
+    else if(fromList === 'fixed'){ const idx=fixedTickets.findIndex(t=>t.id===ticketId); if(idx>-1) fixedTickets[idx]={...fixedTickets[idx],...ticket}; }
   } else {
     pendingTickets.push(ticket);
   }
@@ -803,8 +1005,6 @@ function confirmTicket(){
   saveTickets();
   closeTicketModal();
   renderTickets();
-
-  // Show tickets page
   const ticketNav = document.querySelector('[onclick="showPage(\'tickets\',this)"]');
   if(ticketNav) showPage('tickets', ticketNav);
 }
@@ -814,17 +1014,16 @@ function approveTicket(id){
   if(idx > -1){
     confirmedTickets.push({...pendingTickets[idx], confirmedAt: new Date().toISOString()});
     pendingTickets.splice(idx, 1);
-    saveTickets();
-    renderTickets();
+    saveTickets(); renderTickets();
   }
 }
 
-function deleteTicket(id, fromConfirmed=false){
+function deleteTicket(id, fromList){
   if(!confirm('Delete this ticket?')) return;
-  if(fromConfirmed){ confirmedTickets = confirmedTickets.filter(t => t.id !== id); }
-  else { pendingTickets = pendingTickets.filter(t => t.id !== id); }
-  saveTickets();
-  renderTickets();
+  if(fromList==='pending') pendingTickets = pendingTickets.filter(t=>t.id!==id);
+  else if(fromList==='confirmed') confirmedTickets = confirmedTickets.filter(t=>t.id!==id);
+  else if(fromList==='fixed') fixedTickets = fixedTickets.filter(t=>t.id!==id);
+  saveTickets(); renderTickets();
 }
 
 function pushToJira(id){
@@ -834,16 +1033,17 @@ function pushToJira(id){
 function renderTickets(){
   const pendingEl = document.getElementById('tickets-list');
   const confirmedEl = document.getElementById('confirmed-tickets-list');
+  const fixedEl = document.getElementById('fixed-tickets-list');
+  if(!pendingEl) return;
 
-  if(!pendingEl || !confirmedEl) return;
-
+  // PENDING
   if(!pendingTickets.length){
-    pendingEl.innerHTML = '<div class="empty"><div class="e-icon">🎉</div>No pending tickets. Create one from a failed run in Pipeline Runs.</div>';
+    pendingEl.innerHTML = '<div class="empty"><div class="e-icon">🎉</div>No pending tickets. They auto-generate when a pipeline run fails.</div>';
   } else {
     pendingEl.innerHTML = pendingTickets.map((t,i) => `
       <div class="ticket-item" style="animation-delay:${i*.05}s">
         <div class="ticket-hd">
-          <div class="ticket-title">${t.title}</div>
+          <div class="ticket-title">${t.title} ${t.autoGenerated ? '<span style="font-size:10px;background:var(--accent-glow);color:var(--accent);padding:2px 6px;border-radius:4px;font-weight:600;margin-left:6px">AUTO</span>' : ''}</div>
           <span class="pill fail">pending</span>
         </div>
         <div class="ticket-meta">📅 ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span></div>
@@ -851,12 +1051,14 @@ function renderTickets(){
         ${t.evidence ? `<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>` : ''}
         <div class="ticket-actions">
           <button class="ticket-btn confirm" onclick="approveTicket('${t.id}')">✅ Approve</button>
-          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}', false)">✏️ Edit</button>
-          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}', false)">🗑️ Delete</button>
+          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','pending')">✏️ Edit</button>
+          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}','pending')">🗑️ Delete</button>
         </div>
       </div>`).join('');
   }
 
+  // CONFIRMED
+  if(!confirmedEl) return;
   if(!confirmedTickets.length){
     confirmedEl.innerHTML = '<div class="empty"><div class="e-icon">📋</div>No confirmed tickets yet. Approve pending tickets to see them here.</div>';
   } else {
@@ -871,8 +1073,28 @@ function renderTickets(){
         ${t.evidence ? `<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>` : ''}
         <div class="ticket-actions">
           <button class="ticket-btn push" onclick="pushToJira('${t.id}')">🚀 Push to Jira</button>
-          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}', true)">✏️ Edit</button>
-          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}', true)">🗑️ Delete</button>
+          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','confirmed')">✏️ Edit</button>
+          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}','confirmed')">🗑️ Delete</button>
+        </div>
+      </div>`).join('');
+  }
+
+  // FIXED
+  if(!fixedEl) return;
+  if(!fixedTickets.length){
+    fixedEl.innerHTML = '<div class="empty"><div class="e-icon">✨</div>No fixed tickets yet. When a previously failed test passes, it appears here.</div>';
+  } else {
+    fixedEl.innerHTML = fixedTickets.map((t,i) => `
+      <div class="ticket-item" style="animation-delay:${i*.05}s;border-color:rgba(31,209,149,.3)">
+        <div class="ticket-hd">
+          <div class="ticket-title">${t.title}</div>
+          <span class="pill fixed">fixed</span>
+        </div>
+        <div class="ticket-meta">📅 Originally found: ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span></div>
+        <div class="fixed-badge">✅ Fixed in Run #${t.fixedInRun} · ${t.fixedInBranch} &nbsp;<a href="${t.fixedRunUrl}" target="_blank" style="color:var(--green);text-decoration:none">↗</a></div>
+        <div class="ticket-actions" style="margin-top:12px">
+          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','fixed')">✏️ View Details</button>
+          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}','fixed')">🗑️ Delete</button>
         </div>
       </div>`).join('');
   }
@@ -884,7 +1106,6 @@ function closeTicketModal(e){
   if(!e || e.target === document.getElementById('ticket-modal-overlay'))
     document.getElementById('ticket-modal-overlay').classList.remove('open');
 }
-
 // ── END TICKETS ────────────────────────────────────────────────
 function fmtDur(s){if(!s||s<0)return'—';const m=Math.floor(s/60),sec=Math.round(s%60);return m>0?`${m}m ${sec}s`:`${sec}s`;}
 function timeAgo(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'just now';if(s<3600)return`${Math.floor(s/60)}m ago`;if(s<86400)return`${Math.floor(s/3600)}h ago`;return`${Math.floor(s/86400)}d ago`;}
