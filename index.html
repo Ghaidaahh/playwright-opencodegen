@@ -208,7 +208,37 @@
     .ticket-btn.push{background:linear-gradient(135deg,#0052cc,#0065ff);border-color:#0052ff;color:white;}
     .create-ticket-btn{padding:5px 10px;background:var(--red-glow);border:1px solid var(--red);border-radius:6px;color:var(--red);font-size:11px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;transition:background .15s;white-space:nowrap;}
     .create-ticket-btn:hover{background:rgba(240,91,122,.2);}
+    .priority-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;}
+    .priority-badge.critical{background:rgba(240,91,122,.2);color:var(--red);border:1px solid rgba(240,91,122,.4);}
+    .priority-badge.high{background:rgba(240,200,74,.15);color:var(--yellow);border:1px solid rgba(240,200,74,.3);}
+    .priority-badge.medium{background:var(--accent-glow);color:var(--accent);border:1px solid rgba(91,138,240,.3);}
+    .priority-badge.low{background:var(--surface3);color:var(--muted);border:1px solid var(--border);}
+    .ticket-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:2px 7px;}
+    .search-wrap{position:relative;margin-bottom:14px;}
+    .search-wrap::before{content:'🔍';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;}
+    .search-bar{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 14px 10px 36px;color:var(--text);font-family:'Figtree',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
+    .search-bar:focus{border-color:var(--accent);}
     .pill.fixed{background:var(--green-glow);color:var(--green);}
+    @media(max-width:768px){
+      .sidebar{width:100%;height:auto;position:relative;}
+      .sidebar-nav{display:flex;flex-direction:row;flex-wrap:wrap;padding:8px;gap:4px;overflow-x:auto;}
+      .nav-section{display:none;}
+      .nav-item{padding:6px 10px;font-size:12px;white-space:nowrap;}
+      .main{margin-left:0;}
+      .topbar{padding:14px 16px;flex-wrap:wrap;gap:8px;}
+      .page{padding:16px;}
+      .grid-4{grid-template-columns:1fr 1fr;}
+      .grid-2,.grid-3{grid-template-columns:1fr;}
+      .compare-grid{grid-template-columns:1fr;}
+      .feature-grid{grid-template-columns:1fr 1fr;}
+      .tab-group{display:none;}
+      #sync-status{display:none!important;}
+      .layout{flex-direction:column;}
+    }
+    @media(max-width:480px){
+      .grid-4{grid-template-columns:1fr;}
+      .feature-grid{grid-template-columns:1fr;}
+    }
     .fixed-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;background:var(--green-glow);border:1px solid rgba(31,209,149,.3);border-radius:6px;color:var(--green);margin-top:8px;}
   </style>
 </head>
@@ -351,7 +381,8 @@
       <div class="page" id="page-runs">
         <div style="margin-top:28px">
           <div class="card">
-            <div class="card-hd"><div class="card-title">All Pipeline Runs</div><div class="card-badge">playwright.yml · CLICK TO INSPECT</div></div>
+            <div class="card-hd"><div class="card-title">All Pipeline Runs</div><div class="card-badge" id="runs-filter-badge">playwright.yml · CLICK TO INSPECT</div></div>
+            <div class="search-wrap"><input class="search-bar" id="runs-search" placeholder="Search by branch, commit, title..." oninput="renderAllRuns()"></div>
             <div id="all-runs-list"><div class="loading"><div class="spinner"></div></div></div>
           </div>
         </div>
@@ -417,6 +448,25 @@
           <input type="text" id="t-branch" readonly style="opacity:.7" />
         </div>
       </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
+        <div class="form-group" style="margin:0">
+          <label>Priority</label>
+          <select id="t-priority" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-family:'Figtree',sans-serif;font-size:13px;outline:none;">
+            <option value="critical">🔴 Critical</option>
+            <option value="high">🟡 High</option>
+            <option value="medium" selected>🔵 Medium</option>
+            <option value="low">⚪ Low</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Created By</label>
+          <input type="text" id="t-creator" placeholder="Your name" />
+        </div>
+        <div class="form-group" style="margin:0">
+          <label>Ticket ID</label>
+          <input type="text" id="t-ticket-id" readonly style="opacity:.7;font-family:'JetBrains Mono',monospace;font-size:12px;" />
+        </div>
+      </div>
       <div class="form-group">
         <label>Summary</label>
         <input type="text" id="t-summary" placeholder="Brief description of the bug" />
@@ -464,7 +514,7 @@
 
 <script>
 const REPO='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
-let token='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', allRuns=[], releases=[], timeRange='month', trendMode='day';
+let token='', allRuns=[], releases=[], timeRange='month', trendMode='day';
 let trendChart=null, donutChart=null, compareChart=null;
 let runsFilter='all';
 
@@ -745,23 +795,27 @@ function saveFutureNotes(){
 }
 
 function renderAllRuns(){
-  let runs=allRuns.slice(0,100);
+  const searchQuery = (document.getElementById('runs-search')?.value || '').toLowerCase();
+  let runs = allRuns.slice(0,100);
   if(runsFilter==='pass') runs=runs.filter(r=>r.conclusion==='success');
   else if(runsFilter==='fail') runs=runs.filter(r=>r.conclusion==='failure');
-  // Update page subtitle to show active filter
-  const filterLabel={all:'All runs',pass:'✓ Passed runs only',fail:'✗ Failed runs only'};
-  const sub=document.querySelector('#page-runs .card .card-hd .card-badge');
-  if(sub) sub.textContent=filterLabel[runsFilter]||'CLICK TO INSPECT';
-  // Add filter pills above the list
+  if(searchQuery) runs=runs.filter(r=>{
+    const title=(r.display_title||r.head_commit?.message||'').toLowerCase();
+    const branch=(r.head_branch||'').toLowerCase();
+    const sha=(r.head_sha||'').toLowerCase();
+    return title.includes(searchQuery)||branch.includes(searchQuery)||sha.includes(searchQuery);
+  });
+  const badge=document.getElementById('runs-filter-badge');
+  if(badge){const filterLabel={all:'All runs',pass:'✓ Passed only',fail:'✗ Failed only'};badge.textContent=filterLabel[runsFilter]||'CLICK TO INSPECT';}
   const listEl=document.getElementById('all-runs-list');
-  const filterBar=`<div style="display:flex;gap:8px;margin-bottom:16px">
+  const filterBar=`<div style="display:flex;gap:8px;margin-bottom:14px">
     <button onclick="runsFilter='all';renderAllRuns()" style="padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;border:1px solid;background:${runsFilter==='all'?'var(--accent-glow)':'var(--surface3)'};border-color:${runsFilter==='all'?'var(--accent)':'var(--border)'};color:${runsFilter==='all'?'var(--accent)':'var(--muted)'}">All (${allRuns.length})</button>
     <button onclick="runsFilter='pass';renderAllRuns()" style="padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;border:1px solid;background:${runsFilter==='pass'?'var(--green-glow)':'var(--surface3)'};border-color:${runsFilter==='pass'?'var(--green)':'var(--border)'};color:${runsFilter==='pass'?'var(--green)':'var(--muted)'}">✓ Passed (${allRuns.filter(r=>r.conclusion==='success').length})</button>
     <button onclick="runsFilter='fail';renderAllRuns()" style="padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;border:1px solid;background:${runsFilter==='fail'?'var(--red-glow)':'var(--surface3)'};border-color:${runsFilter==='fail'?'var(--red)':'var(--border)'};color:${runsFilter==='fail'?'var(--red)':'var(--muted)'}">✗ Failed (${allRuns.filter(r=>r.conclusion==='failure').length})</button>
   </div>`;
   listEl.innerHTML=filterBar;
   const tempEl=document.createElement('div');
-  document.getElementById('all-runs-list').appendChild(tempEl);
+  listEl.appendChild(tempEl);
   renderPipelineList2(tempEl, runs);
 }
 
@@ -977,6 +1031,12 @@ function markRunAsProcessed(runId){
   localStorage.setItem('pw_last_processed_run', lastProcessedRunId);
 }
 
+function genTicketId(){
+  const prefix='PW';
+  const num=String(pendingTickets.length+confirmedTickets.length+fixedTickets.length+1).padStart(4,'0');
+  return `${prefix}-${num}`;
+}
+
 function openCreateTicketModal(run){
   currentEditTicket = null;
   document.getElementById('t-title').value = `[FAIL] ${(run.display_title || run.head_commit?.message || 'Test failed').slice(0,60)}`;
@@ -987,6 +1047,9 @@ function openCreateTicketModal(run){
   document.getElementById('t-actual').value = `Test failed with conclusion: ${run.conclusion}. See GitHub Actions for full error log.`;
   document.getElementById('t-evidence').value = run.html_url || '';
   document.getElementById('t-notes').value = `Commit: ${run.head_sha?.slice(0,7)} · Triggered by: ${run.triggering_actor?.login || 'unknown'} · Duration: ${fmtDur((new Date(run.updated_at)-new Date(run.created_at))/1000)}`;
+  document.getElementById('t-priority').value = 'medium';
+  document.getElementById('t-creator').value = localStorage.getItem('pw_creator_name') || '';
+  document.getElementById('t-ticket-id').value = genTicketId();
   document.getElementById('t-title').dataset.runId = run.id;
   document.getElementById('t-title').dataset.runUrl = run.html_url;
   document.getElementById('ticket-modal-overlay').classList.add('open');
@@ -1005,12 +1068,18 @@ function openEditTicketModal(ticketId, fromList){
   document.getElementById('t-actual').value = ticket.actual;
   document.getElementById('t-evidence').value = ticket.evidence;
   document.getElementById('t-notes').value = ticket.notes;
+  document.getElementById('t-priority').value = ticket.priority || 'medium';
+  document.getElementById('t-creator').value = ticket.creator || '';
+  document.getElementById('t-ticket-id').value = ticket.ticketRef || genTicketId();
   document.getElementById('ticket-modal-overlay').classList.add('open');
 }
 
 function confirmTicket(){
+  const creator = document.getElementById('t-creator').value.trim();
+  if(creator) localStorage.setItem('pw_creator_name', creator);
   const ticket = {
     id: currentEditTicket ? currentEditTicket.ticketId : Date.now().toString(),
+    ticketRef: document.getElementById('t-ticket-id').value.trim(),
     testKey: currentEditTicket ? (pendingTickets.find(t=>t.id===currentEditTicket.ticketId)||confirmedTickets.find(t=>t.id===currentEditTicket.ticketId)||{}).testKey : null,
     title: document.getElementById('t-title').value.trim(),
     branch: document.getElementById('t-branch').value.trim(),
@@ -1020,6 +1089,8 @@ function confirmTicket(){
     actual: document.getElementById('t-actual').value.trim(),
     evidence: document.getElementById('t-evidence').value.trim(),
     notes: document.getElementById('t-notes').value.trim(),
+    priority: document.getElementById('t-priority').value,
+    creator: creator,
     createdAt: new Date().toISOString(),
     runUrl: document.getElementById('t-title').dataset.runUrl || '',
     autoGenerated: false,
@@ -1063,6 +1134,11 @@ function pushToJira(id){
   alert('🚧 Jira integration coming soon!\n\nThis ticket is confirmed and ready.\nWhen Jira is connected, it will be pushed automatically.');
 }
 
+function priorityBadge(p){
+  const labels={critical:'🔴 Critical',high:'🟡 High',medium:'🔵 Medium',low:'⚪ Low'};
+  return `<span class="priority-badge ${p||'medium'}">${labels[p]||'🔵 Medium'}</span>`;
+}
+
 function renderTickets(){
   const pendingEl = document.getElementById('tickets-list');
   const confirmedEl = document.getElementById('confirmed-tickets-list');
@@ -1076,12 +1152,18 @@ function renderTickets(){
     pendingEl.innerHTML = pendingTickets.map((t,i) => `
       <div class="ticket-item" style="animation-delay:${i*.05}s">
         <div class="ticket-hd">
-          <div class="ticket-title">${t.title} ${t.autoGenerated ? '<span style="font-size:10px;background:var(--accent-glow);color:var(--accent);padding:2px 6px;border-radius:4px;font-weight:600;margin-left:6px">AUTO</span>' : ''}</div>
-          <span class="pill fail">pending</span>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1">
+            ${t.ticketRef?`<span class="ticket-id">${t.ticketRef}</span>`:''}
+            <div class="ticket-title">${t.title} ${t.autoGenerated?'<span style="font-size:10px;background:var(--accent-glow);color:var(--accent);padding:2px 6px;border-radius:4px;font-weight:600;margin-left:4px">AUTO</span>':''}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            ${priorityBadge(t.priority)}
+            <span class="pill fail">pending</span>
+          </div>
         </div>
-        <div class="ticket-meta">📅 ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span></div>
+        <div class="ticket-meta">📅 ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span>${t.creator?` &nbsp;·&nbsp; 👤 ${t.creator}`:''}</div>
         <div class="ticket-summary">${t.summary}</div>
-        ${t.evidence ? `<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>` : ''}
+        ${t.evidence?`<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>`:''}
         <div class="ticket-actions">
           <button class="ticket-btn confirm" onclick="approveTicket('${t.id}')">✅ Approve</button>
           <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','pending')">✏️ Edit</button>
@@ -1098,12 +1180,18 @@ function renderTickets(){
     confirmedEl.innerHTML = confirmedTickets.map((t,i) => `
       <div class="ticket-item" style="animation-delay:${i*.05}s;border-color:rgba(31,209,149,.2)">
         <div class="ticket-hd">
-          <div class="ticket-title">${t.title}</div>
-          <span class="pill pass">confirmed</span>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1">
+            ${t.ticketRef?`<span class="ticket-id">${t.ticketRef}</span>`:''}
+            <div class="ticket-title">${t.title}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            ${priorityBadge(t.priority)}
+            <span class="pill pass">confirmed</span>
+          </div>
         </div>
-        <div class="ticket-meta">✅ Confirmed ${new Date(t.confirmedAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span></div>
+        <div class="ticket-meta">✅ Confirmed ${new Date(t.confirmedAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span>${t.creator?` &nbsp;·&nbsp; 👤 ${t.creator}`:''}</div>
         <div class="ticket-summary">${t.summary}</div>
-        ${t.evidence ? `<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>` : ''}
+        ${t.evidence?`<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>`:''}
         <div class="ticket-actions">
           <button class="ticket-btn push" onclick="pushToJira('${t.id}')">🚀 Push to Jira</button>
           <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','confirmed')">✏️ Edit</button>
@@ -1120,10 +1208,16 @@ function renderTickets(){
     fixedEl.innerHTML = fixedTickets.map((t,i) => `
       <div class="ticket-item" style="animation-delay:${i*.05}s;border-color:rgba(31,209,149,.3)">
         <div class="ticket-hd">
-          <div class="ticket-title">${t.title}</div>
-          <span class="pill fixed">fixed</span>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1">
+            ${t.ticketRef?`<span class="ticket-id">${t.ticketRef}</span>`:''}
+            <div class="ticket-title">${t.title}</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            ${priorityBadge(t.priority)}
+            <span class="pill fixed">fixed</span>
+          </div>
         </div>
-        <div class="ticket-meta">📅 Originally found: ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span></div>
+        <div class="ticket-meta">📅 Originally: ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span>${t.creator?` &nbsp;·&nbsp; 👤 ${t.creator}`:''}</div>
         <div class="fixed-badge">✅ Fixed in Run #${t.fixedInRun} · ${t.fixedInBranch} &nbsp;<a href="${t.fixedRunUrl}" target="_blank" style="color:var(--green);text-decoration:none">↗</a></div>
         <div class="ticket-actions" style="margin-top:12px">
           <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','fixed')">✏️ View Details</button>
