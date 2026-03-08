@@ -278,6 +278,7 @@
             <div class="tab" onclick="setTimeRange('month',this)">Month</div>
             <div class="tab" onclick="setTimeRange('all',this)">All</div>
           </div>
+          <div id="sync-status" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);display:none;white-space:nowrap"></div>
           <div class="icon-btn" onclick="loadData()" title="Refresh">🔄</div>
         </div>
       </div>
@@ -509,8 +510,33 @@ function logout(){
   document.getElementById('token-input').value='';
 }
 
-function ghFetch(url){
-  return fetch(url,{headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}});
+async function ghFetch(url){
+  const res = await fetch(url,{headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}});
+  if(res.status === 401 || res.status === 403){
+    handleTokenExpiry();
+    throw new Error('Token expired or invalid');
+  }
+  return res;
+}
+
+function handleTokenExpiry(){
+  localStorage.removeItem('pw_token');
+  token = '';
+  // Show expiry message on auth screen
+  document.getElementById('auth-screen').style.display='flex';
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('error-msg').textContent='⚠️ Your token has expired or is invalid. Please generate a new one and reconnect.';
+  document.getElementById('error-msg').style.display='block';
+  document.getElementById('token-input').value='';
+}
+
+let lastSyncTime = null;
+
+function updateSyncStatus(){
+  const el = document.getElementById('sync-status');
+  if(!lastSyncTime){ el.style.display='none'; return; }
+  el.style.display='block';
+  el.textContent=`🕐 Synced ${timeAgo(lastSyncTime)}`;
 }
 
 const pageTitles={overview:['Dashboard','Test automation overview'],release:['Current Build','Latest release from GitHub'],future:['Future Build','Upcoming release planning'],runs:['Pipeline Runs','All GitHub Actions runs'],compare:['Month Comparison','Month-over-month analysis'],tickets:['Jira Tickets','Review and confirm bug tickets']};
@@ -547,8 +573,15 @@ async function loadData(){
     await autoGenerateTicketsFromLatestRun();
     const l=allRuns[0];
     document.getElementById('topbar-sub').textContent=l?`playwright.yml · Last run ${timeAgo(l.updated_at)}`:'playwright.yml · No runs yet';
+    lastSyncTime = new Date();
+    updateSyncStatus();
+    // Keep updating the "synced X ago" text every minute
+    if(window._syncInterval) clearInterval(window._syncInterval);
+    window._syncInterval = setInterval(updateSyncStatus, 60000);
   }catch(e){
-    document.getElementById('topbar-sub').textContent='⚠️ Failed to sync — check token';
+    if(e.message !== 'Token expired or invalid'){
+      document.getElementById('topbar-sub').textContent='⚠️ Failed to sync — check your connection';
+    }
   }
 }
 
