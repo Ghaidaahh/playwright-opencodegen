@@ -563,10 +563,54 @@ function logout(){
 async function ghFetch(url){
   const res = await fetch(url,{headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}});
   if(res.status === 401 || res.status === 403){
+    // Check if it's rate limit vs bad token
+    const remaining = res.headers.get('x-ratelimit-remaining');
+    const resetTime = res.headers.get('x-ratelimit-reset');
+    if(remaining === '0' && resetTime){
+      const resetIn = Math.ceil((parseInt(resetTime)*1000 - Date.now()) / 60000);
+      showRateLimitBanner(resetIn);
+      throw new Error('Rate limit reached');
+    }
     handleTokenExpiry();
     throw new Error('Token expired or invalid');
   }
+  // Check rate limit warning even on success
+  const remaining = res.headers.get('x-ratelimit-remaining');
+  if(remaining !== null && parseInt(remaining) < 50){
+    const resetTime = res.headers.get('x-ratelimit-reset');
+    const resetIn = resetTime ? Math.ceil((parseInt(resetTime)*1000 - Date.now()) / 60000) : '?';
+    showRateLimitBanner(resetIn, parseInt(remaining), true);
+  } else {
+    hideRateLimitBanner();
+  }
   return res;
+}
+
+function showRateLimitBanner(resetIn, remaining=0, isWarning=false){
+  let banner = document.getElementById('rate-limit-banner');
+  if(!banner){
+    banner = document.createElement('div');
+    banner.id = 'rate-limit-banner';
+    banner.style.cssText='position:fixed;bottom:20px;right:20px;z-index:999;padding:12px 18px;border-radius:10px;font-size:13px;font-family:Figtree,sans-serif;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.4);display:flex;align-items:center;gap:10px;';
+    document.body.appendChild(banner);
+  }
+  if(isWarning){
+    banner.style.background='var(--surface)';
+    banner.style.border='1px solid var(--yellow)';
+    banner.style.color='var(--yellow)';
+    banner.innerHTML=`⚠️ GitHub API: only <strong>${remaining}</strong> requests left. Resets in ~${resetIn} min. <button onclick="hideRateLimitBanner()" style="background:none;border:none;color:inherit;cursor:pointer;margin-left:auto;font-size:16px">✕</button>`;
+  } else {
+    banner.style.background='var(--surface)';
+    banner.style.border='1px solid var(--red)';
+    banner.style.color='var(--red)';
+    banner.innerHTML=`🚫 GitHub API rate limit reached. Resets in ~${resetIn} min. <button onclick="hideRateLimitBanner()" style="background:none;border:none;color:inherit;cursor:pointer;margin-left:auto;font-size:16px">✕</button>`;
+    document.getElementById('topbar-sub').textContent=`⚠️ Rate limit reached — resets in ~${resetIn} min`;
+  }
+}
+
+function hideRateLimitBanner(){
+  const b = document.getElementById('rate-limit-banner');
+  if(b) b.remove();
 }
 
 function handleTokenExpiry(){
@@ -640,22 +684,36 @@ function filteredRuns(){
   return allRuns.filter(r=>(now-new Date(r.created_at))/86400000<=cutoff);
 }
 
+function classifyRun(r){
+  if(r.status !== 'completed') return 'running';
+  const c = r.conclusion;
+  if(c === 'success') return 'pass';
+  if(c === 'failure' || c === 'timed_out' || c === 'action_required') return 'fail';
+  if(c === 'skipped' || c === 'neutral' || c === 'stale') return 'skip';
+  if(c === 'cancelled') return 'cancelled';
+  return 'other';
+}
+
 function renderOverview(){
-  const runs=filteredRuns(), completed=runs.filter(r=>r.status==='completed');
+  const runs=filteredRuns();
+  const completed=runs.filter(r=>r.status==='completed');
+  // Exclude skipped/neutral/stale from pass rate calculation
+  const countable=completed.filter(r=>!['skipped','neutral','stale','cancelled'].includes(r.conclusion));
   const passed=completed.filter(r=>r.conclusion==='success').length;
-  const failed=completed.filter(r=>r.conclusion==='failure').length;
-  const rate=completed.length?((passed/completed.length)*100).toFixed(1):'0';
+  const failed=completed.filter(r=>['failure','timed_out','action_required'].includes(r.conclusion)).length;
+  const skipped=completed.filter(r=>['skipped','neutral','stale'].includes(r.conclusion)).length;
+  const rate=countable.length?((passed/countable.length)*100).toFixed(1):'0';
   const durs=completed.map(r=>(new Date(r.updated_at)-new Date(r.created_at))/1000).filter(d=>d>0);
   const avg=durs.length?durs.reduce((a,b)=>a+b,0)/durs.length:0;
   document.getElementById('s-runs').textContent=runs.length;
   document.getElementById('s-runs-sub').textContent=`${completed.length} completed`;
   document.getElementById('s-rate').textContent=rate+'%';
-  document.getElementById('s-rate-sub').textContent=`${passed} successful`;
+  document.getElementById('s-rate-sub').textContent=`${passed} passed · excl. ${skipped} skipped`;
   document.getElementById('s-fail').textContent=failed;
-  document.getElementById('s-fail-sub').textContent=`${completed.length-passed-failed} other`;
+  document.getElementById('s-fail-sub').textContent=`incl. timed out & blocked`;
   document.getElementById('s-dur').textContent=fmtDur(avg);
   document.getElementById('s-dur-sub').textContent='per pipeline run';
-  renderTrend(runs); renderDonut(completed); renderPipelineList('pipeline-list-overview',allRuns.slice(0,6));
+  renderTrend(runs); renderDonut(completed,passed,failed,skipped); renderPipelineList('pipeline-list-overview',allRuns.slice(0,6));
 }
 
 function renderTrend(runs){
@@ -698,16 +756,15 @@ function renderTrend(runs){
   }
 }
 
-function renderDonut(completed){
-  const passed=completed.filter(r=>r.conclusion==='success').length;
-  const failed=completed.filter(r=>r.conclusion==='failure').length;
-  const other=completed.length-passed-failed;
+function renderDonut(completed,passed,failed,skipped){
+  const cancelled=completed.filter(r=>r.conclusion==='cancelled').length;
+  const other=completed.length-passed-failed-(skipped||0)-cancelled;
   document.getElementById('donut-loading').style.display='none';
   const canvas=document.getElementById('donutChart'); canvas.style.display='block';
   const leg=document.getElementById('donut-legend'); leg.style.display='flex';
-  leg.innerHTML=`<span style="color:var(--green)">● ${passed} Pass</span><span style="color:var(--red)">● ${failed} Fail</span><span style="color:var(--muted)">● ${other} Other</span>`;
+  leg.innerHTML=`<span style="color:var(--green)">● ${passed} Pass</span><span style="color:var(--red)">● ${failed} Fail</span><span style="color:var(--yellow)">● ${skipped||0} Skip</span><span style="color:var(--muted)">● ${cancelled} Cancel</span>`;
   if(donutChart)donutChart.destroy();
-  donutChart=new Chart(canvas.getContext('2d'),{type:'doughnut',data:{datasets:[{data:[passed,failed,other],backgroundColor:['rgba(31,209,149,.8)','rgba(240,91,122,.8)','rgba(86,93,128,.4)'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,cutout:'72%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d0f1a',borderColor:'#22263d',borderWidth:1}}}});
+  donutChart=new Chart(canvas.getContext('2d'),{type:'doughnut',data:{datasets:[{data:[passed,failed,skipped||0,cancelled],backgroundColor:['rgba(31,209,149,.8)','rgba(240,91,122,.8)','rgba(240,200,74,.6)','rgba(86,93,128,.4)'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,cutout:'72%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d0f1a',borderColor:'#22263d',borderWidth:1,callbacks:{label:ctx=>{const labels=['Passed','Failed','Skipped','Cancelled'];return ` ${labels[ctx.dataIndex]}: ${ctx.raw}`;}}}}}});
 }
 
 function renderPipelineList(id,runs){
@@ -842,8 +899,9 @@ function renderCompare(){
   const getMRuns=(y,m)=>allRuns.filter(r=>{const d=new Date(r.created_at);return d.getFullYear()===y&&d.getMonth()===m&&r.status==='completed';});
   const stats=runs=>{
     const p=runs.filter(r=>r.conclusion==='success').length;
-    const f=runs.filter(r=>r.conclusion==='failure').length;
-    const rate=runs.length?((p/runs.length)*100).toFixed(1):'0';
+    const f=runs.filter(r=>['failure','timed_out','action_required'].includes(r.conclusion)).length;
+    const countable=runs.filter(r=>!['skipped','neutral','stale','cancelled'].includes(r.conclusion));
+    const rate=countable.length?((p/countable.length)*100).toFixed(1):'0';
     const d=runs.map(r=>(new Date(r.updated_at)-new Date(r.created_at))/1000).filter(d=>d>0);
     const avg=d.length?d.reduce((a,b)=>a+b,0)/d.length:0;
     return{total:runs.length,passed:p,failed:f,rate,avg};
