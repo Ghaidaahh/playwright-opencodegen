@@ -864,7 +864,7 @@ function renderPipelineList(id,runs){
   el.innerHTML=runs.map(r=>{
     const cls=r.status==='in_progress'?'running':r.conclusion==='success'?'pass':r.conclusion==='failure'?'fail':'cancelled';
     const data=encodeURIComponent(JSON.stringify(r));
-    const ticketBtn = r.conclusion==='failure' && userRole==='qa' ? `<button...>🐛 Create Ticket</button>` : '';
+    const ticketBtn = r.conclusion==='failure' && userRole==='qa' ? `<button class="create-ticket-btn" onclick="event.stopPropagation();openCreateTicketModal(JSON.parse(decodeURIComponent('${data}')))">🐛 Create Ticket</button>` : '';
     return `<div class="pipeline-item" onclick="openRunModal(decodeURIComponent('${data}'))">
       <div class="p-dot ${cls}"></div>
       <div class="p-info">
@@ -972,8 +972,7 @@ function renderPipelineList2(el, runs){
   el.innerHTML=runs.map(r=>{
     const cls=r.status==='in_progress'?'running':r.conclusion==='success'?'pass':r.conclusion==='failure'?'fail':'cancelled';
     const data=encodeURIComponent(JSON.stringify(r));
-const ticketBtn=r.conclusion==='failure' && userRole==='qa' ?`<button...>🐛 Create Ticket</button>`:''
-    return `<div class="pipeline-item" onclick="openRunModal(decodeURIComponent('${data}'))">
+const ticketBtn=r.conclusion==='failure' && userRole==='qa' ?`<button class="create-ticket-btn" onclick="event.stopPropagation();openCreateTicketModal(JSON.parse(decodeURIComponent('${data}')))">🐛 Create Ticket</button>`:'';    return `<div class="pipeline-item" onclick="openRunModal(decodeURIComponent('${data}'))">
       <div class="p-dot ${cls}"></div>
       <div class="p-info">
         <div class="p-name">${(r.display_title||r.head_commit?.message||'Run').slice(0,50)}</div>
