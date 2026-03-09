@@ -249,15 +249,20 @@
   <div class="auth-card">
     <div class="auth-logo">🎭</div>
     <h1>Playwright Dashboard</h1>
-    <p>Connect to <strong>Ghaidaahh/playwright-opencodegen</strong> using a GitHub Personal Access Token.<br><br>
-    <a href="https://github.com/settings/tokens/new?scopes=repo,actions&description=Playwright+Dashboard" target="_blank">→ Generate a token here</a> — enable <strong>repo</strong> and <strong>actions</strong> scopes.</p>
-    <div class="error-msg" id="error-msg">❌ Invalid token or repo not accessible.</div>
+    <p>Sign in with your <strong>GitHub token</strong> (QA team) or <strong>manager password</strong> set by your QA lead.</p>
+    <div class="error-msg" id="error-msg">❌ Invalid credentials. Check your token or password.</div>
     <div class="form-group">
-      <label>GitHub Personal Access Token</label>
-      <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
+      <label id="input-label">GitHub Token or Manager Password</label>
+      <input type="password" id="token-input" placeholder="ghp_xxx... or manager password" />
     </div>
-    <button class="btn-primary" id="connect-btn" onclick="connect()">Connect →</button>
-    <div class="auth-note">🔒 Token stored only in your browser. Never sent anywhere except GitHub's API.</div>
+    <button class="btn-primary" id="connect-btn" onclick="connect()">Sign In →</button>
+    <div class="auth-note" style="margin-top:12px;display:flex;gap:16px;justify-content:center;font-size:11px">
+      <span>👩‍💻 QA Team: use GitHub token</span>
+      <span>👔 Managers: use password from QA lead</span>
+    </div>
+    <div class="auth-note" style="margin-top:8px">
+      <a href="https://github.com/settings/tokens/new?scopes=repo,actions&description=Playwright+Dashboard" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px">→ Generate a GitHub token</a>
+    </div>
   </div>
 </div>
 
@@ -286,12 +291,17 @@
         <div class="nav-item" onclick="showPage('compare',this)"><span class="icon">📅</span> Month Comparison</div>
         <div class="nav-section">Bugs</div>
         <div class="nav-item" onclick="showPage('tickets',this)"><span class="icon">🐛</span> Jira Tickets <span id="ticket-count-badge" style="margin-left:auto;background:var(--red-glow);color:var(--red);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;display:none"></span></div>
-        <div class="nav-section">Links</div>
-        <div class="nav-item" onclick="window.open('https://github.com/Ghaidaahh/playwright-opencodegen/actions','_blank')"><span class="icon">⚡</span> GitHub Actions ↗</div>
-        <div class="nav-item" onclick="window.open('https://github.com/Ghaidaahh/playwright-opencodegen/releases','_blank')"><span class="icon">🏷️</span> Releases ↗</div>
+        <div class="nav-section gh-only">Links</div>
+        <div class="nav-item gh-only" onclick="window.open('https://github.com/Ghaidaahh/playwright-opencodegen/actions','_blank')"><span class="icon">⚡</span> GitHub Actions ↗</div>
+        <div class="nav-item gh-only" onclick="window.open('https://github.com/Ghaidaahh/playwright-opencodegen/releases','_blank')"><span class="icon">🏷️</span> Releases ↗</div>
+        <div class="nav-section">Account</div>
+        <div class="nav-item" onclick="showPage('settings',this)"><span class="icon">⚙️</span> Settings</div>
       </nav>
       <div class="sidebar-footer">
-        <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+          <div id="role-badge" style="font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;"></div>
+        </div>
         <button class="logout-btn" onclick="logout()">Sign out</button>
       </div>
     </aside>
@@ -426,6 +436,18 @@
         </div>
       </div>
 
+      <!-- SETTINGS -->
+      <div class="page" id="page-settings">
+        <div style="margin-top:28px">
+          <div class="card" style="margin-bottom:16px">
+            <div class="card-hd"><div class="card-title">⚙️ Settings</div><div class="card-badge" id="settings-role-badge">LOADING...</div></div>
+            <div id="settings-body">
+              <div class="loading"><div class="spinner"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </div>
 </div>
@@ -514,9 +536,26 @@
 
 <script>
 const REPO='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
+const SUPABASE_URL='https://cjlpufjzioozlfslklyr.supabase.co';
+const SUPABASE_KEY='sb_publishable_zdHiM7mpdoC4b2vlIOMXHw_frgLHCjq';
 let token='', allRuns=[], releases=[], timeRange='month', trendMode='day';
 let trendChart=null, donutChart=null, compareChart=null;
 let runsFilter='all';
+let userRole=''; // 'qa' or 'manager'
+
+async function sbFetch(path, options={}){
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    headers:{
+      'apikey': SUPABASE_KEY,
+      'Authorization': `Bearer ${SUPABASE_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || 'return=representation',
+      ...options.headers
+    },
+    ...options
+  });
+  return res;
+}
 
 function goToRunsFiltered(filter){
   runsFilter=filter;
@@ -535,26 +574,79 @@ function setTrendMode(mode,el){
 }
 
 async function connect(){
-  token=document.getElementById('token-input').value.trim();
-  if(!token)return;
-  const btn=document.getElementById('connect-btn');
-  btn.disabled=true; btn.textContent='Connecting...';
+  const input = document.getElementById('token-input').value.trim();
+  if(!input) return;
+  const btn = document.getElementById('connect-btn');
+  btn.disabled=true; btn.textContent='Signing in...';
   document.getElementById('error-msg').style.display='none';
-  try{
-    const r=await ghFetch(`https://api.github.com/repos/${REPO}`);
-    if(!r.ok)throw new Error();
-    localStorage.setItem('pw_token',token);
-    document.getElementById('auth-screen').style.display='none';
-    document.getElementById('dashboard').style.display='block';
-    loadData();
-  }catch{
-    document.getElementById('error-msg').style.display='block';
-    btn.disabled=false; btn.textContent='Connect →';
+
+  // Check if it looks like a GitHub token
+  if(input.startsWith('ghp_') || input.startsWith('github_pat_') || input.startsWith('gho_')){
+    // QA login via GitHub token
+    token = input;
+    try{
+      const r = await ghFetch(`https://api.github.com/repos/${REPO}`);
+      if(!r.ok) throw new Error();
+      userRole = 'qa';
+      localStorage.setItem('pw_token', token);
+      localStorage.setItem('pw_role', 'qa');
+      enterDashboard();
+    } catch {
+      document.getElementById('error-msg').textContent='❌ Invalid GitHub token or repo not accessible.';
+      document.getElementById('error-msg').style.display='block';
+      btn.disabled=false; btn.textContent='Sign In →';
+    }
+  } else {
+    // Manager login — check password against Supabase
+    try{
+      const res = await sbFetch(`settings?key=eq.manager_password&select=value`);
+      const data = await res.json();
+      if(data.length && data[0].value === input){
+        userRole = 'manager';
+        localStorage.setItem('pw_role', 'manager');
+        localStorage.setItem('pw_manager_auth', 'true');
+        enterDashboard();
+      } else {
+        document.getElementById('error-msg').textContent='❌ Incorrect password. Ask your QA lead.';
+        document.getElementById('error-msg').style.display='block';
+        btn.disabled=false; btn.textContent='Sign In →';
+      }
+    } catch {
+      document.getElementById('error-msg').textContent='❌ Could not connect to database. Try again.';
+      document.getElementById('error-msg').style.display='block';
+      btn.disabled=false; btn.textContent='Sign In →';
+    }
   }
 }
 
+function enterDashboard(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('dashboard').style.display='block';
+  applyRoleUI();
+  loadData();
+}
+
+function applyRoleUI(){
+  const isManager = userRole === 'manager';
+  // Show role badge in sidebar footer
+  const roleBadge = document.getElementById('role-badge');
+  if(roleBadge){
+    roleBadge.textContent = isManager ? '👔 Manager' : '👩‍💻 QA';
+    roleBadge.style.color = isManager ? 'var(--purple)' : 'var(--green)';
+  }
+  // Hide QA-only nav items for managers
+  const qaOnly = document.querySelectorAll('.qa-only');
+  qaOnly.forEach(el => el.style.display = isManager ? 'none' : '');
+  // Hide GitHub links for managers (they don't have tokens)
+  const ghLinks = document.querySelectorAll('.gh-only');
+  ghLinks.forEach(el => el.style.display = isManager ? 'none' : '');
+}
+
 function logout(){
-  localStorage.removeItem('pw_token'); token='';
+  localStorage.removeItem('pw_token');
+  localStorage.removeItem('pw_role');
+  localStorage.removeItem('pw_manager_auth');
+  token=''; userRole='';
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('dashboard').style.display='none';
   document.getElementById('token-input').value='';
@@ -633,16 +725,17 @@ function updateSyncStatus(){
   el.textContent=`🕐 Synced ${timeAgo(lastSyncTime)}`;
 }
 
-const pageTitles={overview:['Dashboard','Test automation overview'],release:['Current Build','Latest release from GitHub'],future:['Future Build','Upcoming release planning'],runs:['Pipeline Runs','All GitHub Actions runs'],compare:['Month Comparison','Month-over-month analysis'],tickets:['Jira Tickets','Review and confirm bug tickets']};
+const pageTitles={overview:['Dashboard','Test automation overview'],release:['Current Build','Latest release from GitHub'],future:['Future Build','Upcoming release planning'],runs:['Pipeline Runs','All GitHub Actions runs'],compare:['Month Comparison','Month-over-month analysis'],tickets:['Jira Tickets','Review and confirm bug tickets'],settings:['Settings','Manage password, profile & database']};
 
 function showPage(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   el.classList.add('active');
-  const[t,s]=pageTitles[id];
+  const[t,s]=pageTitles[id]||[id,id];
   document.getElementById('topbar-title').textContent=t;
   document.getElementById('topbar-sub').textContent=s;
+  if(id==='settings') renderSettings();
 }
 
 function setTimeRange(r,el){
@@ -653,6 +746,17 @@ function setTimeRange(r,el){
 }
 
 async function loadData(){
+  // Always load tickets from Supabase for all roles
+  await loadTicketsFromSupabase();
+
+  // Managers don't have GitHub tokens — show limited data
+  if(userRole === 'manager'){
+    document.getElementById('topbar-sub').textContent='Manager view · tickets from database';
+    lastSyncTime = new Date();
+    updateSyncStatus();
+    return;
+  }
+
   document.getElementById('topbar-sub').textContent='Syncing with GitHub...';
   try{
     const[rr,relR,prR]=await Promise.all([
@@ -669,7 +773,6 @@ async function loadData(){
     document.getElementById('topbar-sub').textContent=l?`playwright.yml · Last run ${timeAgo(l.updated_at)}`:'playwright.yml · No runs yet';
     lastSyncTime = new Date();
     updateSyncStatus();
-    // Keep updating the "synced X ago" text every minute
     if(window._syncInterval) clearInterval(window._syncInterval);
     window._syncInterval = setInterval(updateSyncStatus, 60000);
   }catch(e){
@@ -960,18 +1063,76 @@ function closeModal(e){
 }
 
 // ── TICKETS ───────────────────────────────────────────────────
-let pendingTickets = JSON.parse(localStorage.getItem('pw_pending_tickets') || '[]');
-let confirmedTickets = JSON.parse(localStorage.getItem('pw_confirmed_tickets') || '[]');
-let fixedTickets = JSON.parse(localStorage.getItem('pw_fixed_tickets') || '[]');
+let pendingTickets = [];
+let confirmedTickets = [];
+let fixedTickets = [];
 let currentEditTicket = null;
 let lastProcessedRunId = localStorage.getItem('pw_last_processed_run') || '';
 
-function saveTickets(){
-  localStorage.setItem('pw_pending_tickets', JSON.stringify(pendingTickets));
-  localStorage.setItem('pw_confirmed_tickets', JSON.stringify(confirmedTickets));
-  localStorage.setItem('pw_fixed_tickets', JSON.stringify(fixedTickets));
-  updateTicketBadge();
+async function loadTicketsFromSupabase(){
+  try{
+    const res = await sbFetch('tickets?select=*&order=created_at.desc');
+    const all = await res.json();
+    pendingTickets = all.filter(t=>t.status==='pending').map(dbToTicket);
+    confirmedTickets = all.filter(t=>t.status==='confirmed').map(dbToTicket);
+    fixedTickets = all.filter(t=>t.status==='fixed').map(dbToTicket);
+    renderTickets();
+  } catch(e){ console.error('Failed to load tickets:', e); }
 }
+
+function dbToTicket(t){
+  return {
+    id: t.id, ticketRef: t.ticket_ref, status: t.status,
+    title: t.title, branch: t.branch, summary: t.summary,
+    steps: t.steps, expected: t.expected, actual: t.actual,
+    evidence: t.evidence, notes: t.notes, priority: t.priority,
+    creator: t.creator, runUrl: t.run_url, testKey: t.test_key,
+    autoGenerated: t.auto_generated, createdAt: t.created_at,
+    confirmedAt: t.confirmed_at, fixedAt: t.fixed_at,
+    fixedInRun: t.fixed_in_run, fixedInBranch: t.fixed_in_branch,
+    fixedRunUrl: t.fixed_run_url, runId: t.run_id, runNumber: t.run_number
+  };
+}
+
+function ticketToDb(t, status){
+  return {
+    id: t.id, ticket_ref: t.ticketRef, status: status||t.status||'pending',
+    title: t.title, branch: t.branch, summary: t.summary,
+    steps: t.steps, expected: t.expected, actual: t.actual,
+    evidence: t.evidence, notes: t.notes, priority: t.priority,
+    creator: t.creator, run_url: t.runUrl, test_key: t.testKey,
+    auto_generated: t.autoGenerated||false, created_at: t.createdAt||new Date().toISOString(),
+    confirmed_at: t.confirmedAt||null, fixed_at: t.fixedAt||null,
+    fixed_in_run: t.fixedInRun||null, fixed_in_branch: t.fixedInBranch||null,
+    fixed_run_url: t.fixedRunUrl||null, run_id: t.runId||null, run_number: t.runNumber||null
+  };
+}
+
+async function saveTicketToSupabase(ticket, status){
+  const body = ticketToDb(ticket, status);
+  const res = await sbFetch('tickets', {
+    method: 'POST',
+    prefer: 'resolution=merge-duplicates',
+    headers: {'Prefer': 'resolution=merge-duplicates,return=representation'},
+    body: JSON.stringify(body)
+  });
+  return res.ok;
+}
+
+async function updateTicketInSupabase(id, updates){
+  const res = await sbFetch(`tickets?id=eq.${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify(updates)
+  });
+  return res.ok;
+}
+
+async function deleteTicketFromSupabase(id){
+  const res = await sbFetch(`tickets?id=eq.${id}`, { method: 'DELETE' });
+  return res.ok;
+}
+
+
 
 function updateTicketBadge(){
   const badge = document.getElementById('ticket-count-badge');
@@ -1049,39 +1210,32 @@ function autoCreateRunTicket(run){
     autoGenerated: true,
   };
 
+  await saveTicketToSupabase(ticket, 'pending');
   pendingTickets.push(ticket);
-  saveTickets();
+  updateTicketBadge();
   renderTickets();
 }
 
-function checkIfPreviouslyFailedTestsNowPass(latestRun, passedTests){
+async function checkIfPreviouslyFailedTestsNowPass(latestRun, passedTests){
   if(latestRun.conclusion !== 'success') return;
-
-  // Find any pending/confirmed tickets from previous runs that are now fixed
-  const nowFixed = [...pendingTickets, ...confirmedTickets].filter(t => {
-    // If ticket was auto-generated from a run, and latest run passed — mark as fixed
-    return t.autoGenerated && t.runId && t.runId !== latestRun.id;
-  });
-
+  const nowFixed = [...pendingTickets, ...confirmedTickets].filter(t =>
+    t.autoGenerated && t.runId && t.runId !== latestRun.id
+  );
   if(!nowFixed.length) return;
-
-  nowFixed.forEach(t => {
-    const fixedTicket = {
-      ...t,
-      fixedAt: new Date().toISOString(),
-      fixedInRun: latestRun.run_number,
-      fixedInBranch: latestRun.head_branch,
-      fixedRunUrl: latestRun.html_url,
-    };
-    fixedTickets.push(fixedTicket);
-    pendingTickets = pendingTickets.filter(p => p.id !== t.id);
-    confirmedTickets = confirmedTickets.filter(c => c.id !== t.id);
-  });
-
-  if(nowFixed.length) {
-    saveTickets();
-    renderTickets();
+  for(const t of nowFixed){
+    const fixedAt = new Date().toISOString();
+    await updateTicketInSupabase(t.id, {
+      status:'fixed', fixed_at: fixedAt,
+      fixed_in_run: latestRun.run_number,
+      fixed_in_branch: latestRun.head_branch,
+      fixed_run_url: latestRun.html_url,
+    });
+    fixedTickets.push({...t, status:'fixed', fixedAt, fixedInRun:latestRun.run_number, fixedInBranch:latestRun.head_branch, fixedRunUrl:latestRun.html_url});
+    pendingTickets = pendingTickets.filter(p=>p.id!==t.id);
+    confirmedTickets = confirmedTickets.filter(c=>c.id!==t.id);
   }
+  updateTicketBadge();
+  renderTickets();
 }
 
 function markRunAsProcessed(runId){
@@ -1132,13 +1286,15 @@ function openEditTicketModal(ticketId, fromList){
   document.getElementById('ticket-modal-overlay').classList.add('open');
 }
 
-function confirmTicket(){
+async function confirmTicket(){
   const creator = document.getElementById('t-creator').value.trim();
   if(creator) localStorage.setItem('pw_creator_name', creator);
+  const existingTicket = currentEditTicket ?
+    ([...pendingTickets,...confirmedTickets,...fixedTickets].find(t=>t.id===currentEditTicket.ticketId)||{}) : {};
   const ticket = {
     id: currentEditTicket ? currentEditTicket.ticketId : Date.now().toString(),
     ticketRef: document.getElementById('t-ticket-id').value.trim(),
-    testKey: currentEditTicket ? (pendingTickets.find(t=>t.id===currentEditTicket.ticketId)||confirmedTickets.find(t=>t.id===currentEditTicket.ticketId)||{}).testKey : null,
+    testKey: existingTicket.testKey || null,
     title: document.getElementById('t-title').value.trim(),
     branch: document.getElementById('t-branch').value.trim(),
     summary: document.getElementById('t-summary').value.trim(),
@@ -1149,43 +1305,45 @@ function confirmTicket(){
     notes: document.getElementById('t-notes').value.trim(),
     priority: document.getElementById('t-priority').value,
     creator: creator,
-    createdAt: new Date().toISOString(),
+    createdAt: existingTicket.createdAt || new Date().toISOString(),
     runUrl: document.getElementById('t-title').dataset.runUrl || '',
     autoGenerated: false,
+    status: currentEditTicket ? (existingTicket.status||'pending') : 'pending',
   };
   if(!ticket.title){ alert('Please add a bug title.'); return; }
-
+  await saveTicketToSupabase(ticket, ticket.status);
   if(currentEditTicket){
     const {ticketId, fromList} = currentEditTicket;
-    if(fromList === 'pending'){ const idx=pendingTickets.findIndex(t=>t.id===ticketId); if(idx>-1) pendingTickets[idx]={...pendingTickets[idx],...ticket}; }
-    else if(fromList === 'confirmed'){ const idx=confirmedTickets.findIndex(t=>t.id===ticketId); if(idx>-1) confirmedTickets[idx]={...confirmedTickets[idx],...ticket}; }
-    else if(fromList === 'fixed'){ const idx=fixedTickets.findIndex(t=>t.id===ticketId); if(idx>-1) fixedTickets[idx]={...fixedTickets[idx],...ticket}; }
+    if(fromList==='pending'){ const idx=pendingTickets.findIndex(t=>t.id===ticketId); if(idx>-1) pendingTickets[idx]={...pendingTickets[idx],...ticket}; }
+    else if(fromList==='confirmed'){ const idx=confirmedTickets.findIndex(t=>t.id===ticketId); if(idx>-1) confirmedTickets[idx]={...confirmedTickets[idx],...ticket}; }
+    else if(fromList==='fixed'){ const idx=fixedTickets.findIndex(t=>t.id===ticketId); if(idx>-1) fixedTickets[idx]={...fixedTickets[idx],...ticket}; }
   } else {
     pendingTickets.push(ticket);
   }
-
-  saveTickets();
+  updateTicketBadge();
   closeTicketModal();
   renderTickets();
   const ticketNav = document.querySelector('[onclick="showPage(\'tickets\',this)"]');
   if(ticketNav) showPage('tickets', ticketNav);
 }
 
-function approveTicket(id){
-  const idx = pendingTickets.findIndex(t => t.id === id);
-  if(idx > -1){
-    confirmedTickets.push({...pendingTickets[idx], confirmedAt: new Date().toISOString()});
-    pendingTickets.splice(idx, 1);
-    saveTickets(); renderTickets();
-  }
+
+  const ticket = pendingTickets.find(t=>t.id===id);
+  if(!ticket) return;
+  const confirmedAt = new Date().toISOString();
+  await updateTicketInSupabase(id, {status:'confirmed', confirmed_at: confirmedAt});
+  pendingTickets = pendingTickets.filter(t=>t.id!==id);
+  confirmedTickets.push({...ticket, status:'confirmed', confirmedAt});
+  updateTicketBadge(); renderTickets();
 }
 
-function deleteTicket(id, fromList){
+async function deleteTicket(id, fromList){
   if(!confirm('Delete this ticket?')) return;
+  await deleteTicketFromSupabase(id);
   if(fromList==='pending') pendingTickets = pendingTickets.filter(t=>t.id!==id);
   else if(fromList==='confirmed') confirmedTickets = confirmedTickets.filter(t=>t.id!==id);
   else if(fromList==='fixed') fixedTickets = fixedTickets.filter(t=>t.id!==id);
-  saveTickets(); renderTickets();
+  renderTickets();
 }
 
 function pushToJira(id){
@@ -1223,9 +1381,10 @@ function renderTickets(){
         <div class="ticket-summary">${t.summary}</div>
         ${t.evidence?`<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>`:''}
         <div class="ticket-actions">
-          <button class="ticket-btn confirm" onclick="approveTicket('${t.id}')">✅ Approve</button>
-          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','pending')">✏️ Edit</button>
-          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}','pending')">🗑️ Delete</button>
+          ${userRole==='manager' ? '' : `<button class="ticket-btn confirm" onclick="approveTicket('${t.id}')">✅ Approve</button>`}
+          ${userRole==='manager' ? '' : `<button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','pending')">✏️ Edit</button>`}
+          ${userRole==='manager' ? '' : `<button class="ticket-btn delete" onclick="deleteTicket('${t.id}','pending')">🗑️ Delete</button>`}
+          ${userRole==='manager' ? '<span style="font-size:12px;color:var(--muted)">👔 Read-only view</span>' : ''}
         </div>
       </div>`).join('');
   }
@@ -1251,9 +1410,9 @@ function renderTickets(){
         <div class="ticket-summary">${t.summary}</div>
         ${t.evidence?`<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>`:''}
         <div class="ticket-actions">
-          <button class="ticket-btn push" onclick="pushToJira('${t.id}')">🚀 Push to Jira</button>
-          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','confirmed')">✏️ Edit</button>
-          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}','confirmed')">🗑️ Delete</button>
+          ${userRole==='manager' ? '<span style="font-size:12px;color:var(--muted)">👔 Read-only view</span>' : `<button class="ticket-btn push" onclick="pushToJira('${t.id}')">🚀 Push to Jira</button>`}
+          ${userRole==='manager' ? '' : `<button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','confirmed')">✏️ Edit</button>`}
+          ${userRole==='manager' ? '' : `<button class="ticket-btn delete" onclick="deleteTicket('${t.id}','confirmed')">🗑️ Delete</button>`}
         </div>
       </div>`).join('');
   }
@@ -1292,16 +1451,118 @@ function closeTicketModal(e){
     document.getElementById('ticket-modal-overlay').classList.remove('open');
 }
 // ── END TICKETS ────────────────────────────────────────────────
+
+function updateTicketBadge(){
+  const badge = document.getElementById('ticket-count-badge');
+  if(!badge) return;
+  if(pendingTickets.length > 0){
+    badge.style.display='inline-block';
+    badge.textContent=pendingTickets.length;
+  } else {
+    badge.style.display='none';
+  }
+}
+
+async function renderSettings(){
+  const body = document.getElementById('settings-body');
+  const badge = document.getElementById('settings-role-badge');
+  if(!body) return;
+  if(badge) badge.textContent = userRole === 'manager' ? '👔 MANAGER VIEW' : '👩‍💻 QA VIEW';
+
+  if(userRole === 'manager'){
+    body.innerHTML=`
+      <div style="padding:12px 0;color:var(--muted);font-size:13px;line-height:1.8">
+        You are logged in as a <strong style="color:var(--purple)">Manager</strong>.<br>
+        You have read-only access to the dashboard.<br>
+        Contact your QA lead to make changes.
+      </div>`;
+    return;
+  }
+
+  // QA settings
+  body.innerHTML=`<div class="loading"><div class="spinner"></div></div>`;
+  try{
+    const res = await sbFetch('settings?key=eq.manager_password&select=value');
+    const data = await res.json();
+    const currentPw = data[0]?.value || '';
+    body.innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:8px 0">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">🔑 Manager Password</div>
+          <div class="form-group">
+            <label>Current Password</label>
+            <input type="text" value="${currentPw}" id="current-pw-display" readonly style="opacity:.6;font-family:'JetBrains Mono',monospace;font-size:12px;" />
+          </div>
+          <div class="form-group">
+            <label>New Password</label>
+            <input type="password" id="new-manager-pw" placeholder="Enter new manager password" />
+          </div>
+          <button class="save-btn" onclick="updateManagerPassword()">🔒 Update Password</button>
+          <div id="pw-msg" style="font-size:12px;margin-top:8px;display:none"></div>
+        </div>
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">👤 Your Profile</div>
+          <div class="form-group">
+            <label>Your Name (for tickets)</label>
+            <input type="text" id="settings-creator" value="${localStorage.getItem('pw_creator_name')||''}" placeholder="Your name" />
+          </div>
+          <button class="save-btn" onclick="saveCreatorName()">💾 Save Name</button>
+          <div style="margin-top:24px">
+            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">🗄️ Database</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.8">
+              <div>Supabase: <span style="color:var(--green);font-family:'JetBrains Mono',monospace">connected</span></div>
+              <div>Pending tickets: <strong>${pendingTickets.length}</strong></div>
+              <div>Confirmed tickets: <strong>${confirmedTickets.length}</strong></div>
+              <div>Fixed tickets: <strong>${fixedTickets.length}</strong></div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+  } catch(e){
+    body.innerHTML='<div class="empty">⚠️ Could not load settings.</div>';
+  }
+}
+
+async function updateManagerPassword(){
+  const newPw = document.getElementById('new-manager-pw').value.trim();
+  const msg = document.getElementById('pw-msg');
+  if(!newPw){ msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='Please enter a new password.'; return; }
+  const res = await sbFetch('settings?key=eq.manager_password', {
+    method:'PATCH', body: JSON.stringify({value: newPw})
+  });
+  if(res.ok){
+    msg.style.display='block'; msg.style.color='var(--green)';
+    msg.textContent='✅ Password updated! Share the new password with your managers.';
+    document.getElementById('current-pw-display').value = newPw;
+    document.getElementById('new-manager-pw').value = '';
+  } else {
+    msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='❌ Failed to update. Try again.';
+  }
+}
+
+function saveCreatorName(){
+  const name = document.getElementById('settings-creator').value.trim();
+  localStorage.setItem('pw_creator_name', name);
+  const btn = event.target; btn.textContent='✅ Saved!';
+  setTimeout(()=>btn.textContent='💾 Save Name', 2000);
+}
+
+
 function fmtDur(s){if(!s||s<0)return'—';const m=Math.floor(s/60),sec=Math.round(s%60);return m>0?`${m}m ${sec}s`:`${sec}s`;}
 function timeAgo(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'just now';if(s<3600)return`${Math.floor(s/60)}m ago`;if(s<86400)return`${Math.floor(s/3600)}h ago`;return`${Math.floor(s/86400)}d ago`;}
 
+</script>
+</body>
+</html>
 window.addEventListener('load',()=>{
-  const saved=localStorage.getItem('pw_token');
-  if(saved){token=saved;document.getElementById('auth-screen').style.display='none';document.getElementById('dashboard').style.display='block';loadData();}
+  const savedRole = localStorage.getItem('pw_role');
+  const savedToken = localStorage.getItem('pw_token');
+  const managerAuth = localStorage.getItem('pw_manager_auth');
+  if(savedRole==='qa'&&savedToken){ token=savedToken; userRole='qa'; enterDashboard(); }
+  else if(savedRole==='manager'&&managerAuth==='true'){ userRole='manager'; enterDashboard(); }
   document.getElementById('token-input').addEventListener('keydown',e=>{if(e.key==='Enter')connect();});
-  renderTickets();
 });
-setInterval(loadData,120000);
+setInterval(()=>{ if(userRole==='qa') loadData(); }, 120000);
 </script>
 </body>
 </html>
