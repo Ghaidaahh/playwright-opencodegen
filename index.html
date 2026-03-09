@@ -582,42 +582,37 @@ async function connect(){
   btn.disabled=true; btn.textContent='Signing in...';
   document.getElementById('error-msg').style.display='none';
 
-  // Check if it looks like a GitHub token
-  if(input.startsWith('ghp_') || input.startsWith('github_pat_') || input.startsWith('gho_')){
-    // QA login via GitHub token
-    token = input;
-    try{
-      const r = await ghFetch(`https://api.github.com/repos/${REPO}`, true);
-      if(!r.ok) throw new Error();
-      userRole = 'qa';
-      localStorage.setItem('pw_token', token);
-      localStorage.setItem('pw_role', 'qa');
+  // First try as manager password against Supabase
+  try{
+    const res = await sbFetch(`settings?key=eq.manager_password&select=value`);
+    const data = await res.json();
+    if(data.length && data[0].value === input){
+      userRole = 'manager';
+      localStorage.setItem('pw_role', 'manager');
+      localStorage.setItem('pw_manager_auth', 'true');
       enterDashboard();
-    } catch {
-      document.getElementById('error-msg').textContent='❌ Invalid GitHub token or repo not accessible.';
-      document.getElementById('error-msg').style.display='block';
-      btn.disabled=false; btn.textContent='Sign In →';
+      return;
     }
-  } else {
-    // Manager login — check password against Supabase
-    try{
-      const res = await sbFetch(`settings?key=eq.manager_password&select=value`);
-      const data = await res.json();
-      if(data.length && data[0].value === input){
-        userRole = 'manager';
-        localStorage.setItem('pw_role', 'manager');
-        localStorage.setItem('pw_manager_auth', 'true');
-        enterDashboard();
-      } else {
-        document.getElementById('error-msg').textContent='❌ Incorrect password. Ask your QA lead.';
-        document.getElementById('error-msg').style.display='block';
-        btn.disabled=false; btn.textContent='Sign In →';
-      }
-    } catch {
-      document.getElementById('error-msg').textContent='❌ Could not connect to database. Try again.';
-      document.getElementById('error-msg').style.display='block';
-      btn.disabled=false; btn.textContent='Sign In →';
-    }
+  } catch(e){
+    // Supabase unreachable — continue to try as GitHub token
+  }
+
+  // Try as GitHub token
+  token = input;
+  try{
+    const r = await fetch(`https://api.github.com/repos/${REPO}`, {
+      headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json'}
+    });
+    if(!r.ok) throw new Error(`GitHub returned ${r.status}`);
+    userRole = 'qa';
+    localStorage.setItem('pw_token', token);
+    localStorage.setItem('pw_role', 'qa');
+    enterDashboard();
+  } catch(e) {
+    token = '';
+    document.getElementById('error-msg').textContent='❌ Invalid credentials. Check your GitHub token or manager password.';
+    document.getElementById('error-msg').style.display='block';
+    btn.disabled=false; btn.textContent='Sign In →';
   }
 }
 
@@ -749,11 +744,28 @@ async function loadData(){
   // Always load tickets from Supabase for all roles
   await loadTicketsFromSupabase();
 
-  // Managers don't have GitHub tokens — show limited data
+  // Managers don't have GitHub tokens — show empty states
   if(userRole === 'manager'){
-    document.getElementById('topbar-sub').textContent='Manager view · tickets from database';
+    document.getElementById('topbar-sub').textContent='Manager view · read-only';
     lastSyncTime = new Date();
     updateSyncStatus();
+    // Show empty states for all GitHub-dependent sections
+    const emptyHtml = '<div class="empty"><div class="e-icon">👔</div>Not available in manager view.</div>';
+    ['pipeline-list-overview','all-runs-list','pr-list','release-hero-wrap'].forEach(id=>{
+      const el = document.getElementById(id);
+      if(el) el.innerHTML = emptyHtml;
+    });
+    document.getElementById('s-runs').textContent='—';
+    document.getElementById('s-rate').textContent='—';
+    document.getElementById('s-fail').textContent='—';
+    document.getElementById('s-dur').textContent='—';
+    document.getElementById('s-runs-sub').textContent='no github access';
+    document.getElementById('s-rate-sub').textContent='no github access';
+    document.getElementById('s-fail-sub').textContent='no github access';
+    document.getElementById('s-dur-sub').textContent='no github access';
+    document.getElementById('trend-loading').style.display='none';
+    document.getElementById('donut-loading').style.display='none';
+    document.getElementById('release-summary').innerHTML=emptyHtml;
     return;
   }
 
