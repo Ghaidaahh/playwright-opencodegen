@@ -1538,13 +1538,31 @@ function saveCreatorName(){
 function fmtDur(s){if(!s||s<0)return'—';const m=Math.floor(s/60),sec=Math.round(s%60);return m>0?`${m}m ${sec}s`:`${sec}s`;}
 function timeAgo(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'just now';if(s<3600)return`${Math.floor(s/60)}m ago`;if(s<86400)return`${Math.floor(s/3600)}h ago`;return`${Math.floor(s/86400)}d ago`;}
 
-window.addEventListener('load',()=>{
+window.addEventListener('load', async ()=>{
   const savedRole = localStorage.getItem('pw_role');
   const savedToken = localStorage.getItem('pw_token');
-  const managerAuth = localStorage.getItem('pw_stakeholder_auth');
-  if(savedRole==='qa'&&savedToken){ token=savedToken; userRole='qa'; enterDashboard(); }
-  else if(savedRole==='stakeholder'&&managerAuth==='true'){ token=STAKEHOLDER_TOKEN; userRole='stakeholder'; enterDashboard(); }
+  const stakeholderAuth = localStorage.getItem('pw_stakeholder_auth');
   document.getElementById('token-input').addEventListener('keydown',e=>{if(e.key==='Enter')connect();});
+  if(savedRole==='stakeholder' && stakeholderAuth==='true'){
+    token = STAKEHOLDER_TOKEN;
+    userRole = 'stakeholder';
+    enterDashboard();
+  } else if(savedRole==='qa' && savedToken){
+    // Validate saved token before restoring session
+    try{
+      const r = await fetch(`https://api.github.com/repos/${REPO}`, {
+        headers:{'Authorization':`Bearer ${savedToken}`,'Accept':'application/vnd.github+json'}
+      });
+      if(!r.ok) throw new Error('expired');
+      token = savedToken;
+      userRole = 'qa';
+      enterDashboard();
+    } catch(e){
+      // Token expired — clear and show clean login
+      localStorage.removeItem('pw_token');
+      localStorage.removeItem('pw_role');
+    }
+  }
 });
 setInterval(()=>{ if(userRole==='qa') loadData(); }, 120000);
 </script>
