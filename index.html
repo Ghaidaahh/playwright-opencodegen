@@ -1326,7 +1326,7 @@ async function confirmTicket(){
   if(ticketNav) showPage('tickets', ticketNav);
 }
 
-
+async function approveTicket(id){
   const ticket = pendingTickets.find(t=>t.id===id);
   if(!ticket) return;
   const confirmedAt = new Date().toISOString();
@@ -1334,7 +1334,7 @@ async function confirmTicket(){
   pendingTickets = pendingTickets.filter(t=>t.id!==id);
   confirmedTickets.push({...ticket, status:'confirmed', confirmedAt});
   updateTicketBadge(); renderTickets();
-
+}
 
 async function deleteTicket(id, fromList){
   if(!confirm('Delete this ticket?')) return;
@@ -1550,9 +1550,6 @@ function saveCreatorName(){
 function fmtDur(s){if(!s||s<0)return'—';const m=Math.floor(s/60),sec=Math.round(s%60);return m>0?`${m}m ${sec}s`:`${sec}s`;}
 function timeAgo(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'just now';if(s<3600)return`${Math.floor(s/60)}m ago`;if(s<86400)return`${Math.floor(s/3600)}h ago`;return`${Math.floor(s/86400)}d ago`;}
 
-</script>
-</body>
-</html>
 window.addEventListener('load',()=>{
   const savedRole = localStorage.getItem('pw_role');
   const savedToken = localStorage.getItem('pw_token');
