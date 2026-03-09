@@ -253,7 +253,7 @@
     <div class="error-msg" id="error-msg">❌ Invalid credentials. Check your token or password.</div>
     <div class="form-group">
       <label id="input-label">GitHub Token or Stakeholder Password</label>
-      <input type="password" id="token-input" placeholder="ghp_xxx... or stakeholder password" />
+      <input type="password" id="token-input" placeholder="GitHub token or stakeholder password" />
     </div>
     <button class="btn-primary" id="connect-btn" onclick="connect()">Sign In →</button>
     <div class="auth-note" style="margin-top:12px;display:flex;gap:16px;justify-content:center;font-size:11px">
@@ -537,9 +537,9 @@
 <script>
 const REPO='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
 const SUPABASE_URL='https://cjlpufjzioozlfslklyr.supabase.co';
-const STAKEHOLDER_TOKEN='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';
+const STAKEHOLDER_TOKEN='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';
 const SUPABASE_KEY='sb_publishable_zdHiM7mpdoC4b2vlIOMXHw_frgLHCjq';
-let token='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', allRuns=[], releases=[], timeRange='month', trendMode='day';
+let token='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', allRuns=[], releases=[], timeRange='month', trendMode='day';
 let trendChart=null, donutChart=null, compareChart=null;
 let runsFilter='all';
 let userRole=''; // 'qa' or 'stakeholder'
