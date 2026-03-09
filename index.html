@@ -538,7 +538,7 @@
 const REPO='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
 const SUPABASE_URL='https://cjlpufjzioozlfslklyr.supabase.co';
 const SUPABASE_KEY='sb_publishable_zdHiM7mpdoC4b2vlIOMXHw_frgLHCjq';
-let token='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', allRuns=[], releases=[], timeRange='month', trendMode='day';
+let token='', allRuns=[], releases=[], timeRange='month', trendMode='day';
 let trendChart=null, donutChart=null, compareChart=null;
 let runsFilter='all';
 let userRole=''; // 'qa' or 'manager'
@@ -1187,7 +1187,7 @@ async function autoGenerateTicketsFromLatestRun(){
   }
 }
 
-function autoCreateRunTicket(run){
+async function autoCreateRunTicket(run){
   const testKey = `run-${run.id}`;
   // No duplicate — check if ticket already exists for this run
   const alreadyExists = [...pendingTickets, ...confirmedTickets, ...fixedTickets]
@@ -1336,7 +1336,6 @@ async function confirmTicket(){
   pendingTickets = pendingTickets.filter(t=>t.id!==id);
   confirmedTickets.push({...ticket, status:'confirmed', confirmedAt});
   updateTicketBadge(); renderTickets();
-}
 
 async function deleteTicket(id, fromList){
   if(!confirm('Delete this ticket?')) return;
