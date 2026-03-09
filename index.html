@@ -249,16 +249,16 @@
   <div class="auth-card">
     <div class="auth-logo">🎭</div>
     <h1>Playwright Dashboard</h1>
-    <p>Sign in with your <strong>GitHub token</strong> (QA team) or <strong>manager password</strong> set by your QA lead.</p>
+    <p>Sign in with your <strong>GitHub token</strong> (QA team) or <strong>stakeholder password</strong> set by your QA lead.</p>
     <div class="error-msg" id="error-msg">❌ Invalid credentials. Check your token or password.</div>
     <div class="form-group">
-      <label id="input-label">GitHub Token or Manager Password</label>
-      <input type="password" id="token-input" placeholder="ghp_xxx... or manager password" />
+      <label id="input-label">GitHub Token or Stakeholder Password</label>
+      <input type="password" id="token-input" placeholder="ghp_xxx... or stakeholder password" />
     </div>
     <button class="btn-primary" id="connect-btn" onclick="connect()">Sign In →</button>
     <div class="auth-note" style="margin-top:12px;display:flex;gap:16px;justify-content:center;font-size:11px">
       <span>👩‍💻 QA Team: use GitHub token</span>
-      <span>👔 Managers: use password from QA lead</span>
+      <span>👔 Stakeholders: use password from QA lead</span>
     </div>
     <div class="auth-note" style="margin-top:8px">
       <a href="https://github.com/settings/tokens/new?scopes=repo,actions&description=Playwright+Dashboard" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px">→ Generate a GitHub token</a>
@@ -537,11 +537,12 @@
 <script>
 const REPO='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
 const SUPABASE_URL='https://cjlpufjzioozlfslklyr.supabase.co';
+const STAKEHOLDER_TOKEN='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';
 const SUPABASE_KEY='sb_publishable_zdHiM7mpdoC4b2vlIOMXHw_frgLHCjq';
-let token='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', allRuns=[], releases=[], timeRange='month', trendMode='day';
+let token='', allRuns=[], releases=[], timeRange='month', trendMode='day';
 let trendChart=null, donutChart=null, compareChart=null;
 let runsFilter='all';
-let userRole=''; // 'qa' or 'manager'
+let userRole=''; // 'qa' or 'stakeholder'
 
 async function sbFetch(path, options={}){
   const {prefer, headers:extraHeaders, method, body} = options;
@@ -582,14 +583,15 @@ async function connect(){
   btn.disabled=true; btn.textContent='Signing in...';
   document.getElementById('error-msg').style.display='none';
 
-  // First try as manager password against Supabase
+  // First try as stakeholder password against Supabase
   try{
     const res = await sbFetch(`settings?key=eq.manager_password&select=value`);
     const data = await res.json();
     if(data.length && data[0].value === input){
-      userRole = 'manager';
-      localStorage.setItem('pw_role', 'manager');
-      localStorage.setItem('pw_manager_auth', 'true');
+      userRole = 'stakeholder';
+      token = STAKEHOLDER_TOKEN;
+      localStorage.setItem('pw_role', 'stakeholder');
+      localStorage.setItem('pw_stakeholder_auth', 'true');
       enterDashboard();
       return;
     }
@@ -624,25 +626,22 @@ function enterDashboard(){
 }
 
 function applyRoleUI(){
-  const isManager = userRole === 'manager';
+  const isManager = userRole === 'stakeholder';
   // Show role badge in sidebar footer
   const roleBadge = document.getElementById('role-badge');
   if(roleBadge){
-    roleBadge.textContent = isManager ? '👔 Manager' : '👩‍💻 QA';
+    roleBadge.textContent = isManager ? '👔 Stakeholder' : '👩‍💻 QA';
     roleBadge.style.color = isManager ? 'var(--purple)' : 'var(--green)';
   }
-  // Hide QA-only nav items for managers
+  // Hide QA-only action items for stakeholders
   const qaOnly = document.querySelectorAll('.qa-only');
   qaOnly.forEach(el => el.style.display = isManager ? 'none' : '');
-  // Hide GitHub links for managers (they don't have tokens)
-  const ghLinks = document.querySelectorAll('.gh-only');
-  ghLinks.forEach(el => el.style.display = isManager ? 'none' : '');
 }
 
 function logout(){
   localStorage.removeItem('pw_token');
   localStorage.removeItem('pw_role');
-  localStorage.removeItem('pw_manager_auth');
+  localStorage.removeItem('pw_stakeholder_auth');
   token=''; userRole='';
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('dashboard').style.display='none';
@@ -744,30 +743,7 @@ async function loadData(){
   // Always load tickets from Supabase for all roles
   await loadTicketsFromSupabase();
 
-  // Managers don't have GitHub tokens — show empty states
-  if(userRole === 'manager'){
-    document.getElementById('topbar-sub').textContent='Manager view · read-only';
-    lastSyncTime = new Date();
-    updateSyncStatus();
-    // Show empty states for all GitHub-dependent sections
-    const emptyHtml = '<div class="empty"><div class="e-icon">👔</div>Not available in manager view.</div>';
-    ['pipeline-list-overview','all-runs-list','pr-list','release-hero-wrap'].forEach(id=>{
-      const el = document.getElementById(id);
-      if(el) el.innerHTML = emptyHtml;
-    });
-    document.getElementById('s-runs').textContent='—';
-    document.getElementById('s-rate').textContent='—';
-    document.getElementById('s-fail').textContent='—';
-    document.getElementById('s-dur').textContent='—';
-    document.getElementById('s-runs-sub').textContent='no github access';
-    document.getElementById('s-rate-sub').textContent='no github access';
-    document.getElementById('s-fail-sub').textContent='no github access';
-    document.getElementById('s-dur-sub').textContent='no github access';
-    document.getElementById('trend-loading').style.display='none';
-    document.getElementById('donut-loading').style.display='none';
-    document.getElementById('release-summary').innerHTML=emptyHtml;
-    return;
-  }
+  // Stakeholder has a read-only token — loads all GitHub data but no actions
 
   document.getElementById('topbar-sub').textContent='Syncing with GitHub...';
   try{
@@ -780,7 +756,7 @@ async function loadData(){
     releases=relR.ok?await relR.json():[];
     const prs=prR.ok?await prR.json():[];
     renderOverview(); renderRelease(releases); renderFuture(prs); renderAllRuns(); renderCompare();
-    await autoGenerateTicketsFromLatestRun();
+    if(userRole === 'qa') await autoGenerateTicketsFromLatestRun();
     const l=allRuns[0];
     document.getElementById('topbar-sub').textContent=l?`playwright.yml · Last run ${timeAgo(l.updated_at)}`:'playwright.yml · No runs yet';
     lastSyncTime = new Date();
@@ -1392,10 +1368,10 @@ function renderTickets(){
         <div class="ticket-summary">${t.summary}</div>
         ${t.evidence?`<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>`:''}
         <div class="ticket-actions">
-          ${userRole==='manager' ? '' : `<button class="ticket-btn confirm" onclick="approveTicket('${t.id}')">✅ Approve</button>`}
-          ${userRole==='manager' ? '' : `<button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','pending')">✏️ Edit</button>`}
-          ${userRole==='manager' ? '' : `<button class="ticket-btn delete" onclick="deleteTicket('${t.id}','pending')">🗑️ Delete</button>`}
-          ${userRole==='manager' ? '<span style="font-size:12px;color:var(--muted)">👔 Read-only view</span>' : ''}
+          ${userRole==='stakeholder' ? '' : `<button class="ticket-btn confirm" onclick="approveTicket('${t.id}')">✅ Approve</button>`}
+          ${userRole==='stakeholder' ? '' : `<button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','pending')">✏️ Edit</button>`}
+          ${userRole==='stakeholder' ? '' : `<button class="ticket-btn delete" onclick="deleteTicket('${t.id}','pending')">🗑️ Delete</button>`}
+          ${userRole==='stakeholder' ? '<span style="font-size:12px;color:var(--muted)">👁️ Read-only</span>' : ''}
         </div>
       </div>`).join('');
   }
@@ -1421,9 +1397,9 @@ function renderTickets(){
         <div class="ticket-summary">${t.summary}</div>
         ${t.evidence?`<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>`:''}
         <div class="ticket-actions">
-          ${userRole==='manager' ? '<span style="font-size:12px;color:var(--muted)">👔 Read-only view</span>' : `<button class="ticket-btn push" onclick="pushToJira('${t.id}')">🚀 Push to Jira</button>`}
-          ${userRole==='manager' ? '' : `<button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','confirmed')">✏️ Edit</button>`}
-          ${userRole==='manager' ? '' : `<button class="ticket-btn delete" onclick="deleteTicket('${t.id}','confirmed')">🗑️ Delete</button>`}
+          ${userRole==='stakeholder' ? '<span style="font-size:12px;color:var(--muted)">👁️ Read-only</span>' : `<button class="ticket-btn push" onclick="pushToJira('${t.id}')">🚀 Push to Jira</button>`}
+          ${userRole==='stakeholder' ? '' : `<button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','confirmed')">✏️ Edit</button>`}
+          ${userRole==='stakeholder' ? '' : `<button class="ticket-btn delete" onclick="deleteTicket('${t.id}','confirmed')">🗑️ Delete</button>`}
         </div>
       </div>`).join('');
   }
@@ -1478,12 +1454,12 @@ async function renderSettings(){
   const body = document.getElementById('settings-body');
   const badge = document.getElementById('settings-role-badge');
   if(!body) return;
-  if(badge) badge.textContent = userRole === 'manager' ? '👔 MANAGER VIEW' : '👩‍💻 QA VIEW';
+  if(badge) badge.textContent = userRole === 'stakeholder' ? '👔 STAKEHOLDER VIEW' : '👩‍💻 QA VIEW';
 
-  if(userRole === 'manager'){
+  if(userRole === 'stakeholder'){
     body.innerHTML=`
       <div style="padding:12px 0;color:var(--muted);font-size:13px;line-height:1.8">
-        You are logged in as a <strong style="color:var(--purple)">Manager</strong>.<br>
+        You are logged in as a <strong style="color:var(--purple)">Stakeholder</strong>.<br>
         You have read-only access to the dashboard.<br>
         Contact your QA lead to make changes.
       </div>`;
@@ -1499,14 +1475,14 @@ async function renderSettings(){
     body.innerHTML=`
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:8px 0">
         <div>
-          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">🔑 Manager Password</div>
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">🔑 Stakeholder Password</div>
           <div class="form-group">
             <label>Current Password</label>
             <input type="text" value="${currentPw}" id="current-pw-display" readonly style="opacity:.6;font-family:'JetBrains Mono',monospace;font-size:12px;" />
           </div>
           <div class="form-group">
             <label>New Password</label>
-            <input type="password" id="new-manager-pw" placeholder="Enter new manager password" />
+            <input type="password" id="new-stakeholder-pw" placeholder="Enter new stakeholder password" />
           </div>
           <button class="save-btn" onclick="updateManagerPassword()">🔒 Update Password</button>
           <div id="pw-msg" style="font-size:12px;margin-top:8px;display:none"></div>
@@ -1535,7 +1511,7 @@ async function renderSettings(){
 }
 
 async function updateManagerPassword(){
-  const newPw = document.getElementById('new-manager-pw').value.trim();
+  const newPw = document.getElementById('new-stakeholder-pw').value.trim();
   const msg = document.getElementById('pw-msg');
   if(!newPw){ msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='Please enter a new password.'; return; }
   const res = await sbFetch('settings?key=eq.manager_password', {
@@ -1543,9 +1519,9 @@ async function updateManagerPassword(){
   });
   if(res.ok){
     msg.style.display='block'; msg.style.color='var(--green)';
-    msg.textContent='✅ Password updated! Share the new password with your managers.';
+    msg.textContent='✅ Password updated! Share the new password with your stakeholders.';
     document.getElementById('current-pw-display').value = newPw;
-    document.getElementById('new-manager-pw').value = '';
+    document.getElementById('new-stakeholder-pw').value = '';
   } else {
     msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='❌ Failed to update. Try again.';
   }
@@ -1565,9 +1541,9 @@ function timeAgo(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'just no
 window.addEventListener('load',()=>{
   const savedRole = localStorage.getItem('pw_role');
   const savedToken = localStorage.getItem('pw_token');
-  const managerAuth = localStorage.getItem('pw_manager_auth');
+  const managerAuth = localStorage.getItem('pw_stakeholder_auth');
   if(savedRole==='qa'&&savedToken){ token=savedToken; userRole='qa'; enterDashboard(); }
-  else if(savedRole==='manager'&&managerAuth==='true'){ userRole='manager'; enterDashboard(); }
+  else if(savedRole==='stakeholder'&&managerAuth==='true'){ token=STAKEHOLDER_TOKEN; userRole='stakeholder'; enterDashboard(); }
   document.getElementById('token-input').addEventListener('keydown',e=>{if(e.key==='Enter')connect();});
 });
 setInterval(()=>{ if(userRole==='qa') loadData(); }, 120000);
