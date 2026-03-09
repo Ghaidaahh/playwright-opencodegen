@@ -537,8 +537,7 @@
 <script>
 const REPO='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
 const SUPABASE_URL='https://cjlpufjzioozlfslklyr.supabase.co';
-const STAKEHOLDER_TOKEN='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';
-
+const STAKEHOLDER_TOKEN='STAKEHOLDER_TOKEN_PLACEHOLDER';
 const SUPABASE_KEY='sb_publishable_zdHiM7mpdoC4b2vlIOMXHw_frgLHCjq';
 let token='', allRuns=[], releases=[], timeRange='month', trendMode='day';
 let trendChart=null, donutChart=null, compareChart=null;
@@ -973,7 +972,8 @@ function renderPipelineList2(el, runs){
   el.innerHTML=runs.map(r=>{
     const cls=r.status==='in_progress'?'running':r.conclusion==='success'?'pass':r.conclusion==='failure'?'fail':'cancelled';
     const data=encodeURIComponent(JSON.stringify(r));
-const ticketBtn=r.conclusion==='failure' && userRole==='qa' ?`<button class="create-ticket-btn" onclick="event.stopPropagation();openCreateTicketModal(JSON.parse(decodeURIComponent('${data}')))">🐛 Create Ticket</button>`:'';    return `<div class="pipeline-item" onclick="openRunModal(decodeURIComponent('${data}'))">
+    const ticketBtn=r.conclusion==='failure'?`<button class="create-ticket-btn" onclick="event.stopPropagation();openCreateTicketModal(JSON.parse(decodeURIComponent('${data}')))">🐛 Create Ticket</button>`:'';
+    return `<div class="pipeline-item" onclick="openRunModal(decodeURIComponent('${data}'))">
       <div class="p-dot ${cls}"></div>
       <div class="p-info">
         <div class="p-name">${(r.display_title||r.head_commit?.message||'Run').slice(0,50)}</div>
