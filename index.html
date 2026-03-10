@@ -51,6 +51,8 @@
     .sidebar-repo{padding:14px 20px;border-bottom:1px solid var(--border);}
     .repo-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
     .repo-name{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);}
+    .repo-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 8px;cursor:pointer;outline:none;margin-top:4px;}
+    .repo-select:hover{border-color:var(--accent);}
     .sidebar-nav{padding:16px 12px;flex:1;overflow-y:auto;}
     .nav-section{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:0 8px;margin:16px 0 6px;}
     .nav-section:first-child{margin-top:0;}
@@ -278,7 +280,9 @@
       </div>
       <div class="sidebar-repo">
         <div class="repo-label">Repository</div>
-        <div class="repo-name">playwright-opencodegen</div>
+        <select class="repo-select" id="repo-select" onchange="switchRepo(this.value)">
+          <option value="Ghaidaahh/playwright-opencodegen">playwright-opencodegen</option>
+        </select>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">Overview</div>
@@ -292,8 +296,8 @@
         <div class="nav-section">Bugs</div>
         <div class="nav-item" onclick="showPage('tickets',this)"><span class="icon">🐛</span> Jira Tickets <span id="ticket-count-badge" style="margin-left:auto;background:var(--red-glow);color:var(--red);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;display:none"></span></div>
         <div class="nav-section gh-only">Links</div>
-        <div class="nav-item gh-only" onclick="window.open('https://github.com/Ghaidaahh/playwright-opencodegen/actions','_blank')"><span class="icon">⚡</span> GitHub Actions ↗</div>
-        <div class="nav-item gh-only" onclick="window.open('https://github.com/Ghaidaahh/playwright-opencodegen/releases','_blank')"><span class="icon">🏷️</span> Releases ↗</div>
+        <div class="nav-item gh-only" id="gh-actions-link" onclick="window.open(`https://github.com/${currentRepo}/actions`,'_blank')"><span class="icon">⚡</span> GitHub Actions ↗</div>
+        <div class="nav-item gh-only" id="gh-releases-link" onclick="window.open(`https://github.com/${currentRepo}/releases`,'_blank')"><span class="icon">🏷️</span> Releases ↗</div>
         <div class="nav-section">Account</div>
         <div class="nav-item" onclick="showPage('settings',this)"><span class="icon">⚙️</span> Settings</div>
       </nav>
@@ -535,7 +539,8 @@
 </div>
 
 <script>
-const REPO='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
+let currentRepo='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
+let repos=[];
 const SUPABASE_URL='https://cjlpufjzioozlfslklyr.supabase.co';
 const STAKEHOLDER_TOKEN='STAKEHOLDER_TOKEN_PLACEHOLDER';
 const SUPABASE_KEY='sb_publishable_zdHiM7mpdoC4b2vlIOMXHw_frgLHCjq';
@@ -602,7 +607,7 @@ async function connect(){
   // Try as GitHub token
   token = input;
   try{
-    const r = await fetch(`https://api.github.com/repos/${REPO}`, {
+    const r = await fetch(`https://api.github.com/repos/${currentRepo}`, {
       headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json'}
     });
     if(!r.ok) throw new Error(`GitHub returned ${r.status}`);
@@ -622,6 +627,36 @@ function enterDashboard(){
   document.getElementById('auth-screen').style.display='none';
   document.getElementById('dashboard').style.display='block';
   applyRoleUI();
+  if(userRole === 'qa') fetchUserRepos();
+  loadData();
+}
+
+async function fetchUserRepos(){
+  try{
+    // Fetch all repos the token has access to
+    const r = await ghFetch('https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member');
+    if(!r.ok) return;
+    const data = await r.json();
+    repos = data.filter(repo => !repo.archived).map(repo => repo.full_name);
+    const select = document.getElementById('repo-select');
+    if(!select) return;
+    select.innerHTML = repos.map(r => 
+      `<option value="${r}" ${r === currentRepo ? 'selected' : ''}>${r.split('/')[1]}</option>`
+    ).join('');
+  } catch(e){
+    // Silently fail — keep current repo
+  }
+}
+
+async function switchRepo(repo){
+  if(repo === currentRepo) return;
+  currentRepo = repo;
+  // Reset state
+  allRuns = []; releases = [];
+  pendingTickets = []; confirmedTickets = []; fixedTickets = [];
+  // Update topbar title
+  document.getElementById('topbar-title').textContent = currentRepo.split('/')[1];
+  // Reload data for new repo
   loadData();
 }
 
@@ -748,9 +783,9 @@ async function loadData(){
   document.getElementById('topbar-sub').textContent='Syncing with GitHub...';
   try{
     const[rr,relR,prR]=await Promise.all([
-      ghFetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=100`),
-      ghFetch(`https://api.github.com/repos/${REPO}/releases?per_page=10`),
-      ghFetch(`https://api.github.com/repos/${REPO}/pulls?state=open&per_page=20`)
+      ghFetch(`https://api.github.com/repos/${currentRepo}/actions/workflows/${WORKFLOW}/runs?per_page=100`),
+      ghFetch(`https://api.github.com/repos/${currentRepo}/releases?per_page=10`),
+      ghFetch(`https://api.github.com/repos/${currentRepo}/pulls?state=open&per_page=20`)
     ]);
     allRuns=(await rr.json()).workflow_runs||[];
     releases=relR.ok?await relR.json():[];
@@ -1059,7 +1094,8 @@ let lastProcessedRunId = localStorage.getItem('pw_last_processed_run') || '';
 
 async function loadTicketsFromSupabase(){
   try{
-    const res = await sbFetch('tickets?select=*&order=created_at.desc');
+    const repoEncoded = encodeURIComponent(currentRepo);
+    const res = await sbFetch(`tickets?select=*&repo=eq.${repoEncoded}&order=created_at.desc`);
     const all = await res.json();
     pendingTickets = all.filter(t=>t.status==='pending').map(dbToTicket);
     confirmedTickets = all.filter(t=>t.status==='confirmed').map(dbToTicket);
@@ -1078,7 +1114,8 @@ function dbToTicket(t){
     autoGenerated: t.auto_generated, createdAt: t.created_at,
     confirmedAt: t.confirmed_at, fixedAt: t.fixed_at,
     fixedInRun: t.fixed_in_run, fixedInBranch: t.fixed_in_branch,
-    fixedRunUrl: t.fixed_run_url, runId: t.run_id, runNumber: t.run_number
+    fixedRunUrl: t.fixed_run_url, runId: t.run_id, runNumber: t.run_number,
+    repo: t.repo||currentRepo
   };
 }
 
@@ -1142,7 +1179,7 @@ async function autoGenerateTicketsFromLatestRun(){
 
   try {
     // Get artifacts for latest run
-    const artRes = await ghFetch(`https://api.github.com/repos/${REPO}/actions/runs/${latestRun.id}/artifacts`);
+    const artRes = await ghFetch(`https://api.github.com/repos/${currentRepo}/actions/runs/${latestRun.id}/artifacts`);
     const artData = await artRes.json();
     const artifacts = artData.artifacts || [];
     const resultsArtifact = artifacts.find(a => a.name === 'playwright-results');
@@ -1159,7 +1196,7 @@ async function autoGenerateTicketsFromLatestRun(){
     }
 
     // Download the artifact zip — GitHub API requires redirect
-    const zipRes = await ghFetch(`https://api.github.com/repos/${REPO}/actions/artifacts/${resultsArtifact.id}/zip`);
+    const zipRes = await ghFetch(`https://api.github.com/repos/${currentRepo}/actions/artifacts/${resultsArtifact.id}/zip`);
     // We can't unzip in browser easily, so fall back to run-level ticket if failed
     if(latestRun.conclusion === 'failure'){
       autoCreateRunTicket(latestRun);
@@ -1550,7 +1587,7 @@ window.addEventListener('load', async ()=>{
   } else if(savedRole==='qa' && savedToken){
     // Validate saved token before restoring session
     try{
-      const r = await fetch(`https://api.github.com/repos/${REPO}`, {
+      const r = await fetch(`https://api.github.com/repos/${currentRepo}`, {
         headers:{'Authorization':`Bearer ${savedToken}`,'Accept':'application/vnd.github+json'}
       });
       if(!r.ok) throw new Error('expired');
