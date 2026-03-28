@@ -262,16 +262,16 @@
   <div class="auth-card">
     <div class="auth-logo">🎭</div>
     <h1>Playwright Dashboard</h1>
-    <p>Sign in with your <strong>GitHub token</strong> (QA team) or <strong>stakeholder password</strong> set by your QA lead.</p>
-    <div class="error-msg" id="error-msg">❌ Invalid credentials. Check your token or password.</div>
+    <p>Sign in with a <strong>GitHub token</strong>. Read-only repo access opens the stakeholder view, and write access opens the QA view.</p>
+    <div class="error-msg" id="error-msg">❌ Invalid token. Check your access and try again.</div>
     <div class="form-group">
-      <label id="input-label">GitHub Token or Stakeholder Password</label>
-      <input type="password" id="token-input" placeholder="GitHub token or stakeholder password" />
+      <label id="input-label">GitHub Token</label>
+      <input type="password" id="token-input" placeholder="GitHub token" />
     </div>
     <button class="btn-primary" id="connect-btn" onclick="connect()">Sign In →</button>
     <div class="auth-note" style="margin-top:12px;display:flex;gap:16px;justify-content:center;font-size:11px">
-      <span>👩‍💻 QA Team: use GitHub token</span>
-      <span>👔 Stakeholders: use password from QA lead</span>
+      <span>👩‍💻 QA: token with repo write access</span>
+      <span>👔 Stakeholders: token with read-only repo access</span>
     </div>
     <div class="auth-note" style="margin-top:8px">
       <a href="https://github.com/settings/tokens/new?scopes=repo,actions&description=Playwright+Dashboard" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px">→ Generate a GitHub token</a>
@@ -535,7 +535,8 @@
         <button class="save-btn" style="background:var(--red-glow);border-color:var(--red);color:var(--red);padding:12px 20px" onclick="closeTicketModal()">Cancel</button>
       </div>
     </div>
-  </div>
+</div>
+</div>
 
 <!-- STAKEHOLDER DASHBOARD -->
 <div id="stakeholder-dashboard" style="display:none;min-height:100vh;background:var(--bg)">
@@ -700,8 +701,6 @@
   <div id="sh-info-popup" style="position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--text);max-width:220px;pointer-events:none;display:none;z-index:999;line-height:1.6"></div>
 </div>
 
-</div>
-
 <!-- MODAL -->
 <div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
   <div class="modal">
@@ -717,12 +716,16 @@
 let currentRepo='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
 let repos=[];
 const SUPABASE_URL='https://cjlpufjzioozlfslklyr.supabase.co';
-const STAKEHOLDER_TOKEN='STAKEHOLDER_TOKEN_PLACEHOLDER';
 const SUPABASE_KEY='sb_publishable_zdHiM7mpdoC4b2vlIOMXHw_frgLHCjq';
 let token='', allRuns=[], releases=[], timeRange='month', trendMode='day';
 let trendChart=null, donutChart=null, compareChart=null;
 let runsFilter='all';
 let userRole=''; // 'qa' or 'stakeholder'
+
+function inferUserRole(repoInfo){
+  const permissions = repoInfo?.permissions || {};
+  return (permissions.push || permissions.admin || permissions.maintain) ? 'qa' : 'stakeholder';
+}
 
 async function sbFetch(path, options={}){
   const {prefer, headers:extraHeaders, method, body} = options;
@@ -763,22 +766,6 @@ async function connect(){
   btn.disabled=true; btn.textContent='Signing in...';
   document.getElementById('error-msg').style.display='none';
 
-  // First try as stakeholder password against Supabase
-  try{
-    const res = await sbFetch(`settings?key=eq.manager_password&select=value`);
-    const data = await res.json();
-    if(data.length && data[0].value === input){
-      userRole = 'stakeholder';
-      token = STAKEHOLDER_TOKEN;
-      localStorage.setItem('pw_role', 'stakeholder');
-      localStorage.setItem('pw_stakeholder_auth', 'true');
-      enterDashboard();
-      return;
-    }
-  } catch(e){
-    // Supabase unreachable — continue to try as GitHub token
-  }
-
   // Try as GitHub token
   token = input;
   try{
@@ -786,9 +773,10 @@ async function connect(){
       headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json'}
     });
     if(!r.ok) throw new Error(`GitHub returned ${r.status}`);
-    userRole = 'qa';
+    const repoInfo = await r.json();
+    userRole = inferUserRole(repoInfo);
     localStorage.setItem('pw_token', token);
-    localStorage.setItem('pw_role', 'qa');
+    localStorage.setItem('pw_role', userRole);
     enterDashboard();
   } catch(e) {
     token = '';
@@ -855,7 +843,6 @@ function applyRoleUI(){
 function logout(){
   localStorage.removeItem('pw_token');
   localStorage.removeItem('pw_role');
-  localStorage.removeItem('pw_stakeholder_auth');
   token=''; userRole='';
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('dashboard').style.display='none';
@@ -1677,71 +1664,42 @@ async function renderSettings(){
     body.innerHTML=`
       <div style="padding:12px 0;color:var(--muted);font-size:13px;line-height:1.8">
         You are logged in as a <strong style="color:var(--purple)">Stakeholder</strong>.<br>
-        You have read-only access to the dashboard.<br>
-        Contact your QA lead to make changes.
+        Your GitHub token has read-only repo access, so edit actions stay disabled.<br>
+        Ask your QA lead for a token with write access if you need to manage tickets or settings.
       </div>`;
     return;
   }
 
   // QA settings
-  body.innerHTML=`<div class="loading"><div class="spinner"></div></div>`;
-  try{
-    const res = await sbFetch('settings?key=eq.manager_password&select=value');
-    const data = await res.json();
-    const currentPw = data[0]?.value || '';
-    body.innerHTML=`
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:8px 0">
-        <div>
-          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">🔑 Stakeholder Password</div>
-          <div class="form-group">
-            <label>Current Password</label>
-            <input type="text" value="${currentPw}" id="current-pw-display" readonly style="opacity:.6;font-family:'JetBrains Mono',monospace;font-size:12px;" />
-          </div>
-          <div class="form-group">
-            <label>New Password</label>
-            <input type="password" id="new-stakeholder-pw" placeholder="Enter new stakeholder password" />
-          </div>
-          <button class="save-btn" onclick="updateManagerPassword()">🔒 Update Password</button>
-          <div id="pw-msg" style="font-size:12px;margin-top:8px;display:none"></div>
+  body.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:8px 0">
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">🔐 Access Model</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.8">
+          <div>Authentication is GitHub-token only.</div>
+          <div>Read-only tokens open stakeholder mode.</div>
+          <div>Write-capable tokens open QA mode.</div>
+          <div>Client-side stakeholder passwords have been removed for safety.</div>
         </div>
-        <div>
-          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">👤 Your Profile</div>
-          <div class="form-group">
-            <label>Your Name (for tickets)</label>
-            <input type="text" id="settings-creator" value="${localStorage.getItem('pw_creator_name')||''}" placeholder="Your name" />
-          </div>
-          <button class="save-btn" onclick="saveCreatorName()">💾 Save Name</button>
-          <div style="margin-top:24px">
-            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">🗄️ Database</div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.8">
-              <div>Supabase: <span style="color:var(--green);font-family:'JetBrains Mono',monospace">connected</span></div>
-              <div>Pending tickets: <strong>${pendingTickets.length}</strong></div>
-              <div>Confirmed tickets: <strong>${confirmedTickets.length}</strong></div>
-              <div>Fixed tickets: <strong>${fixedTickets.length}</strong></div>
-            </div>
+      </div>
+      <div>
+        <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">👤 Your Profile</div>
+        <div class="form-group">
+          <label>Your Name (for tickets)</label>
+          <input type="text" id="settings-creator" value="${localStorage.getItem('pw_creator_name')||''}" placeholder="Your name" />
+        </div>
+        <button class="save-btn" onclick="saveCreatorName()">💾 Save Name</button>
+        <div style="margin-top:24px">
+          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">🗄️ Database</div>
+          <div style="font-size:12px;color:var(--muted);line-height:1.8">
+            <div>Supabase: <span style="color:var(--green);font-family:'JetBrains Mono',monospace">connected</span></div>
+            <div>Pending tickets: <strong>${pendingTickets.length}</strong></div>
+            <div>Confirmed tickets: <strong>${confirmedTickets.length}</strong></div>
+            <div>Fixed tickets: <strong>${fixedTickets.length}</strong></div>
           </div>
         </div>
-      </div>`;
-  } catch(e){
-    body.innerHTML='<div class="empty">⚠️ Could not load settings.</div>';
-  }
-}
-
-async function updateManagerPassword(){
-  const newPw = document.getElementById('new-stakeholder-pw').value.trim();
-  const msg = document.getElementById('pw-msg');
-  if(!newPw){ msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='Please enter a new password.'; return; }
-  const res = await sbFetch('settings?key=eq.manager_password', {
-    method:'PATCH', body: JSON.stringify({value: newPw})
-  });
-  if(res.ok){
-    msg.style.display='block'; msg.style.color='var(--green)';
-    msg.textContent='✅ Password updated! Share the new password with your stakeholders.';
-    document.getElementById('current-pw-display').value = newPw;
-    document.getElementById('new-stakeholder-pw').value = '';
-  } else {
-    msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='❌ Failed to update. Try again.';
-  }
+      </div>
+    </div>`;
 }
 
 function saveCreatorName(){
@@ -1801,7 +1759,7 @@ function shSwitchRepo(repo){
 }
 
 async function shFetch(url){
-  return fetch(url, {headers:{'Authorization':`Bearer ${STAKEHOLDER_TOKEN}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}});
+  return fetch(url, {headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}});
 }
 
 async function loadStakeholderData(){
@@ -2030,21 +1988,18 @@ function timeAgo(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'just no
 window.addEventListener('load', async ()=>{
   const savedRole = localStorage.getItem('pw_role');
   const savedToken = localStorage.getItem('pw_token');
-  const stakeholderAuth = localStorage.getItem('pw_stakeholder_auth');
   document.getElementById('token-input').addEventListener('keydown',e=>{if(e.key==='Enter')connect();});
-  if(savedRole==='stakeholder' && stakeholderAuth==='true'){
-    token = STAKEHOLDER_TOKEN;
-    userRole = 'stakeholder';
-    enterDashboard();
-  } else if(savedRole==='qa' && savedToken){
+  if((savedRole==='stakeholder' || savedRole==='qa') && savedToken){
     // Validate saved token before restoring session
     try{
       const r = await fetch(`https://api.github.com/repos/${currentRepo}`, {
         headers:{'Authorization':`Bearer ${savedToken}`,'Accept':'application/vnd.github+json'}
       });
       if(!r.ok) throw new Error('expired');
+      const repoInfo = await r.json();
       token = savedToken;
-      userRole = 'qa';
+      userRole = inferUserRole(repoInfo);
+      localStorage.setItem('pw_role', userRole);
       enterDashboard();
     } catch(e){
       // Token expired — clear and show clean login
