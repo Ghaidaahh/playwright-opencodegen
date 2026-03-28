@@ -15,11 +15,21 @@
       --yellow:#f0c84a;--yellow-glow:rgba(240,200,74,0.12);
       --purple:#a78bfa;--purple-glow:rgba(167,139,250,0.12);
       --text:#dde1f5;--muted:#565d80;--muted2:#363c5a;
-      
     }
     *{box-sizing:border-box;margin:0;padding:0;}
     body{background:var(--bg);color:var(--text);font-family:'Figtree',sans-serif;min-height:100vh;overflow-x:hidden;}
     ::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--muted2);border-radius:3px;}
+
+
+    .sh-date-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;padding:6px 14px;cursor:pointer;font-family:'Figtree',sans-serif;transition:all .15s;}
+    .sh-date-btn:hover{color:var(--text);border-color:var(--accent);}
+    .active-date{background:var(--accent-glow)!important;color:var(--accent)!important;border-color:var(--accent)!important;}
+    .sh-info{cursor:pointer;color:var(--muted);font-size:13px;user-select:none;}
+    .sh-info:hover{color:var(--accent);}
+    .sh-run-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:var(--surface2);transition:background .15s;cursor:pointer;}
+    .sh-run-row:hover{background:var(--surface3);}
+    .sh-repo-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+    .sh-repo-row:last-child{border-bottom:none;}
 
     /* AUTH */
     #auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(91,138,240,0.07) 0%,transparent 70%);}
@@ -526,6 +536,170 @@
       </div>
     </div>
   </div>
+
+<!-- STAKEHOLDER DASHBOARD -->
+<div id="stakeholder-dashboard" style="display:none;min-height:100vh;background:var(--bg)">
+
+  <!-- TOPBAR -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border);background:rgba(7,8,15,.9);backdrop-filter:blur(12px);position:sticky;top:0;z-index:40">
+    <div style="display:flex;align-items:center;gap:16px">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--green));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">🎭</div>
+        <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text)">Play<span style="color:var(--accent)">watch</span></span>
+      </div>
+      <span style="color:var(--muted);font-size:13px" id="sh-topbar-sub">Loading...</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <!-- Env dropdown -->
+      <select id="sh-env-select" onchange="shSetEnv(this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:6px 10px;cursor:pointer;font-family:'Figtree',sans-serif">
+        <option value="all">All Environments</option>
+        <option value="staging">Staging</option>
+        <option value="production">Production</option>
+        <option value="qa">QA</option>
+      </select>
+      <!-- Test type -->
+      <select id="sh-type-select" onchange="shSetType(this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:6px 10px;cursor:pointer;font-family:'Figtree',sans-serif">
+        <option value="all">All Test Types</option>
+        <option value="smoke">Smoke</option>
+        <option value="sanity">Sanity</option>
+        <option value="regression">Regression</option>
+      </select>
+      <!-- Repo dropdown -->
+      <select id="sh-repo-select" onchange="shSwitchRepo(this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--accent);font-size:12px;padding:6px 10px;cursor:pointer;font-family:'JetBrains Mono',monospace">
+        <option value="Ghaidaahh/playwright-opencodegen">playwright-opencodegen</option>
+      </select>
+      <span style="background:rgba(167,139,250,.12);color:var(--purple);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px">👔 Stakeholder</span>
+      <button onclick="logout()" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;padding:6px 12px;cursor:pointer;font-family:'Figtree',sans-serif">Sign out</button>
+    </div>
+  </div>
+
+  <div style="padding:32px;max-width:1400px;margin:0 auto">
+
+    <!-- DATE FILTER -->
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px">
+      <span style="font-size:12px;color:var(--muted);margin-right:4px">Period:</span>
+      <button onclick="shSetDate('day')" id="sh-btn-day" class="sh-date-btn active-date">Today</button>
+      <button onclick="shSetDate('week')" id="sh-btn-week" class="sh-date-btn">Week</button>
+      <button onclick="shSetDate('month')" id="sh-btn-month" class="sh-date-btn">Month</button>
+      <button onclick="shSetDate('year')" id="sh-btn-year" class="sh-date-btn">Year</button>
+    </div>
+
+    <!-- STAT CARDS -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Pass Rate</span>
+          <span class="sh-info" data-tip="Percentage of test runs that passed in the selected period">ⓘ</span>
+        </div>
+        <div style="font-size:28px;font-weight:700;color:var(--green)" id="sh-pass-rate">—</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px" id="sh-pass-rate-sub">loading...</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Failed Runs</span>
+          <span class="sh-info" data-tip="Total number of failed test runs in the selected period">ⓘ</span>
+        </div>
+        <div style="font-size:28px;font-weight:700;color:var(--red)" id="sh-fail-count">—</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px" id="sh-fail-sub">loading...</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Total Runs</span>
+          <span class="sh-info" data-tip="Total number of test runs executed in the selected period">ⓘ</span>
+        </div>
+        <div style="font-size:28px;font-weight:700;color:var(--text)" id="sh-total-runs">—</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px" id="sh-total-sub">loading...</div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Avg Duration</span>
+          <span class="sh-info" data-tip="Average time a test run takes to complete">ⓘ</span>
+        </div>
+        <div style="font-size:28px;font-weight:700;color:var(--accent)" id="sh-avg-dur">—</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px" id="sh-dur-sub">loading...</div>
+      </div>
+    </div>
+
+    <!-- TREND + DONUT ROW -->
+    <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:28px">
+
+      <!-- TREND CHART -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:13px;font-weight:600;color:var(--text)">Pass / Fail Trend</span>
+            <span class="sh-info" data-tip="Number of passing and failing runs over time. Green = pass, Red = fail">ⓘ</span>
+          </div>
+          <div style="display:flex;gap:12px;font-size:11px">
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--green);display:inline-block"></span><span style="color:var(--muted)">Pass</span></span>
+            <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--red);display:inline-block"></span><span style="color:var(--muted)">Fail</span></span>
+          </div>
+        </div>
+        <div style="position:relative;height:220px">
+          <canvas id="sh-trend-chart"></canvas>
+          <div id="sh-tooltip" style="position:absolute;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--text);pointer-events:none;display:none;min-width:120px;z-index:10"></div>
+        </div>
+      </div>
+
+      <!-- DONUT CHART -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
+          <span style="font-size:13px;font-weight:600;color:var(--text)">Result Breakdown</span>
+          <span class="sh-info" data-tip="Overall distribution of test results in the selected period">ⓘ</span>
+        </div>
+        <div style="position:relative;height:160px;margin-bottom:12px">
+          <canvas id="sh-donut-chart"></canvas>
+        </div>
+        <div id="sh-donut-legend" style="display:flex;flex-direction:column;gap:6px;font-size:11px"></div>
+      </div>
+    </div>
+
+    <!-- REPO BREAKDOWN + CURRENT BUILD ROW -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px">
+
+      <!-- REPO BREAKDOWN -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
+          <span style="font-size:13px;font-weight:600;color:var(--text)">Breakdown by Repo</span>
+          <span class="sh-info" data-tip="Pass rate and test run count per repository">ⓘ</span>
+        </div>
+        <div id="sh-repo-breakdown">
+          <div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Loading repos...</div>
+        </div>
+      </div>
+
+      <!-- CURRENT BUILD -->
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:13px;font-weight:600;color:var(--text)">Current Build</span>
+            <span class="sh-info" data-tip="Latest release version and notes">ⓘ</span>
+          </div>
+          <span id="sh-release-tag" style="background:var(--green-glow);color:var(--green);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px">—</span>
+        </div>
+        <div id="sh-release-name" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">—</div>
+        <div id="sh-release-date" style="font-size:11px;color:var(--muted);margin-bottom:12px">—</div>
+        <div id="sh-release-body" style="font-size:12px;color:var(--muted);line-height:1.7;max-height:120px;overflow-y:auto">—</div>
+      </div>
+    </div>
+
+    <!-- RECENT RUNS TABLE -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
+        <span style="font-size:13px;font-weight:600;color:var(--text)">Recent Test Runs</span>
+        <span class="sh-info" data-tip="Latest pipeline runs — click a failed run to see the failure reason">ⓘ</span>
+      </div>
+      <div id="sh-runs-list">
+        <div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Loading runs...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- INFO TOOLTIP POPUP -->
+  <div id="sh-info-popup" style="position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--text);max-width:220px;pointer-events:none;display:none;z-index:999;line-height:1.6"></div>
+</div>
+
 </div>
 
 <!-- MODAL -->
@@ -626,9 +800,13 @@ async function connect(){
 
 function enterDashboard(){
   document.getElementById('auth-screen').style.display='none';
+  if(userRole === 'stakeholder'){
+    enterStakeholderDashboard();
+    return;
+  }
   document.getElementById('dashboard').style.display='block';
   applyRoleUI();
-  if(userRole === 'qa') fetchUserRepos();
+  fetchUserRepos();
   loadData();
 }
 
@@ -681,6 +859,7 @@ function logout(){
   token=''; userRole='';
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('dashboard').style.display='none';
+  document.getElementById('stakeholder-dashboard').style.display='none';
   document.getElementById('token-input').value='';
 }
 
@@ -1572,6 +1751,273 @@ function saveCreatorName(){
   setTimeout(()=>btn.textContent='💾 Save Name', 2000);
 }
 
+
+
+// ─── STAKEHOLDER DASHBOARD ────────────────────────────────────────────────
+let shDateRange = 'day';
+let shEnv = 'all';
+let shType = 'all';
+let shTrendChart = null;
+let shDonutChart = null;
+let shAllRuns = [];
+let shReleases = [];
+
+function enterStakeholderDashboard(){
+  document.getElementById('auth-screen').style.display='none';
+  document.getElementById('dashboard').style.display='none';
+  document.getElementById('stakeholder-dashboard').style.display='block';
+  loadStakeholderData();
+  initShInfoIcons();
+}
+
+function initShInfoIcons(){
+  document.querySelectorAll('.sh-info').forEach(el=>{
+    el.addEventListener('mouseenter', e=>{
+      const pop = document.getElementById('sh-info-popup');
+      pop.textContent = el.dataset.tip;
+      pop.style.display='block';
+      pop.style.left = (e.clientX+12)+'px';
+      pop.style.top = (e.clientY-10)+'px';
+    });
+    el.addEventListener('mouseleave', ()=>{
+      document.getElementById('sh-info-popup').style.display='none';
+    });
+  });
+}
+
+function shSetDate(range){
+  shDateRange = range;
+  document.querySelectorAll('.sh-date-btn').forEach(b=>b.classList.remove('active-date'));
+  document.getElementById('sh-btn-'+range).classList.add('active-date');
+  renderStakeholderDashboard();
+}
+
+function shSetEnv(env){ shEnv=env; renderStakeholderDashboard(); }
+function shSetType(type){ shType=type; renderStakeholderDashboard(); }
+
+function shSwitchRepo(repo){
+  currentRepo = repo;
+  loadStakeholderData();
+}
+
+async function loadStakeholderData(){
+  document.getElementById('sh-topbar-sub').textContent = 'Syncing...';
+  try{
+    const [rr, relR] = await Promise.all([
+      ghFetch(`https://api.github.com/repos/${currentRepo}/actions/workflows/${WORKFLOW}/runs?per_page=100`),
+      ghFetch(`https://api.github.com/repos/${currentRepo}/releases?per_page=5`)
+    ]);
+    shAllRuns = (await rr.json()).workflow_runs||[];
+    shReleases = relR.ok ? await relR.json() : [];
+
+    // Fetch all repos for dropdown + breakdown
+    const repoR = await ghFetch('https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member');
+    if(repoR.ok){
+      const allRepos = (await repoR.json()).filter(r=>!r.archived);
+      const sel = document.getElementById('sh-repo-select');
+      sel.innerHTML = allRepos.map(r=>`<option value="${r.full_name}" ${r.full_name===currentRepo?'selected':''}>${r.name}</option>`).join('');
+      renderRepoBreakdown(allRepos);
+    }
+
+    const l = shAllRuns[0];
+    document.getElementById('sh-topbar-sub').textContent = l ? `Last run ${timeAgo(l.updated_at)}` : 'No runs yet';
+    renderStakeholderDashboard();
+  } catch(e){
+    document.getElementById('sh-topbar-sub').textContent = '⚠️ Failed to sync';
+  }
+}
+
+function shFilteredRuns(){
+  const now = Date.now();
+  const cutoffs = { day: 1, week: 7, month: 30, year: 365 };
+  const days = cutoffs[shDateRange] || 1;
+  return shAllRuns.filter(r => {
+    const age = (now - new Date(r.created_at)) / 86400000;
+    if(age > days) return false;
+    if(shEnv !== 'all' && !r.display_title?.toLowerCase().includes(shEnv) && !r.head_branch?.toLowerCase().includes(shEnv)) return false;
+    if(shType !== 'all' && !r.display_title?.toLowerCase().includes(shType) && !r.name?.toLowerCase().includes(shType)) return false;
+    return true;
+  });
+}
+
+function renderStakeholderDashboard(){
+  const runs = shFilteredRuns();
+  renderShStats(runs);
+  renderShTrend(runs);
+  renderShDonut(runs);
+  renderShRuns(runs);
+  renderShRelease();
+}
+
+function renderShStats(runs){
+  const total = runs.length;
+  const passed = runs.filter(r=>r.conclusion==='success').length;
+  const failed = runs.filter(r=>r.conclusion==='failure').length;
+  const rate = total ? Math.round((passed/total)*100) : 0;
+  const durations = runs.filter(r=>r.created_at&&r.updated_at).map(r=>(new Date(r.updated_at)-new Date(r.created_at))/1000);
+  const avgDur = durations.length ? Math.round(durations.reduce((a,b)=>a+b,0)/durations.length) : 0;
+
+  document.getElementById('sh-pass-rate').textContent = total ? rate+'%' : '—';
+  document.getElementById('sh-pass-rate').style.color = rate>=80?'var(--green)':rate>=60?'var(--yellow)':'var(--red)';
+  document.getElementById('sh-pass-rate-sub').textContent = `${passed} of ${total} runs passed`;
+  document.getElementById('sh-fail-count').textContent = total ? failed : '—';
+  document.getElementById('sh-fail-sub').textContent = total ? `${Math.round((failed/total)*100)}% failure rate` : 'no data';
+  document.getElementById('sh-total-runs').textContent = total || '—';
+  document.getElementById('sh-total-sub').textContent = total ? `in selected period` : 'no data';
+  document.getElementById('sh-avg-dur').textContent = avgDur ? fmtDur(avgDur) : '—';
+  document.getElementById('sh-dur-sub').textContent = avgDur ? 'average per run' : 'no data';
+}
+
+function renderShTrend(runs){
+  const groups = {};
+  const fmt = r => {
+    const d = new Date(r.created_at);
+    if(shDateRange==='day') return d.getHours()+':00';
+    if(shDateRange==='year') return d.toLocaleString('default',{month:'short'});
+    return d.toLocaleDateString('default',{month:'short',day:'numeric'});
+  };
+  runs.forEach(r=>{
+    const k = fmt(r);
+    if(!groups[k]) groups[k]={pass:0,fail:0};
+    if(r.conclusion==='success') groups[k].pass++;
+    else if(r.conclusion==='failure') groups[k].fail++;
+  });
+  const labels = Object.keys(groups).reverse();
+  const passData = labels.map(l=>groups[l].pass);
+  const failData = labels.map(l=>groups[l].fail);
+
+  if(shTrendChart) shTrendChart.destroy();
+  const ctx = document.getElementById('sh-trend-chart').getContext('2d');
+  shTrendChart = new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {label:'Pass',data:passData,backgroundColor:'#1fd195',borderRadius:4,barPercentage:.6,categoryPercentage:.7},
+        {label:'Fail',data:failData,backgroundColor:'#f05b7a',borderRadius:4,barPercentage:.6,categoryPercentage:.7}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          enabled:false,
+          external(ctx2){
+            const tip=document.getElementById('sh-tooltip');
+            if(ctx2.tooltip.opacity===0){tip.style.display='none';return;}
+            const i=ctx2.tooltip.dataPoints[0].dataIndex;
+            const total=(passData[i]||0)+(failData[i]||0);
+            const rate=total?Math.round((passData[i]/total)*100):0;
+            tip.innerHTML=`<div style="font-weight:600;margin-bottom:4px">${labels[i]}</div><div style="color:var(--green)">Pass: ${passData[i]}</div><div style="color:var(--red)">Fail: ${failData[i]}</div><div style="color:var(--muted);font-size:10px;margin-top:4px">Pass rate: ${rate}%</div>`;
+            tip.style.display='block';
+            const x=ctx2.tooltip.caretX;
+            const w=document.getElementById('sh-trend-chart').getBoundingClientRect().width;
+            tip.style.left=(x>w/2?x-140:x+12)+'px';
+            tip.style.top='20px';
+          }
+        }
+      },
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#565d80',font:{size:10},maxTicksLimit:8}},
+        y:{grid:{color:'rgba(86,93,128,.15)'},ticks:{color:'#565d80',font:{size:10},stepSize:1},beginAtZero:true}
+      }
+    }
+  });
+}
+
+function renderShDonut(runs){
+  const passed = runs.filter(r=>r.conclusion==='success').length;
+  const failed = runs.filter(r=>r.conclusion==='failure').length;
+  const skipped = runs.filter(r=>r.conclusion==='skipped'||r.conclusion==='neutral').length;
+  const cancelled = runs.filter(r=>r.conclusion==='cancelled').length;
+  const total = passed+failed+skipped+cancelled;
+
+  if(shDonutChart) shDonutChart.destroy();
+  const ctx = document.getElementById('sh-donut-chart').getContext('2d');
+  shDonutChart = new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:['Pass','Fail','Skip','Cancel'],
+      datasets:[{data:[passed,failed,skipped,cancelled],backgroundColor:['#1fd195','#f05b7a','#5b8af0','#565d80'],borderWidth:0,hoverOffset:4}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw} (${total?Math.round(c.raw/total*100):0}%)`}}},cutout:'70%'}
+  });
+
+  document.getElementById('sh-donut-legend').innerHTML=[
+    ['Pass','#1fd195',passed],['Fail','#f05b7a',failed],['Skip','#5b8af0',skipped],['Cancel','#565d80',cancelled]
+  ].map(([l,c,v])=>`<div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:${c};display:inline-block"></span><span style="color:var(--muted)">${l}</span></div><span style="color:var(--text);font-weight:500">${v} <span style="color:var(--muted);font-size:10px">(${total?Math.round(v/total*100):0}%)</span></span></div>`).join('');
+}
+
+function renderShRuns(runs){
+  const el = document.getElementById('sh-runs-list');
+  if(!runs.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No runs in selected period</div>';return;}
+  el.innerHTML = runs.slice(0,10).map(r=>{
+    const cls = r.conclusion==='success'?'pass':r.conclusion==='failure'?'fail':'cancelled';
+    const color = cls==='pass'?'var(--green)':cls==='fail'?'var(--red)':'var(--muted)';
+    const icon = cls==='pass'?'✓':cls==='fail'?'✗':'—';
+    const type = r.display_title?.match(/\[(smoke|sanity|regression)\]/i)?.[1] || r.name?.match(/(smoke|sanity|regression)/i)?.[1] || '';
+    const typeBadge = type ? `<span style="background:var(--accent-glow);color:var(--accent);font-size:10px;padding:2px 8px;border-radius:10px;text-transform:capitalize">${type}</span>` : '';
+    return `<div class="sh-run-row">
+      <span style="color:${color};font-size:14px;font-weight:700;width:16px">${icon}</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(r.display_title||r.head_commit?.message||'Run').slice(0,60)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${timeAgo(r.updated_at)} · ${r.head_branch}</div>
+      </div>
+      ${typeBadge}
+      <span style="font-size:11px;color:var(--muted)">${fmtDur((new Date(r.updated_at)-new Date(r.created_at))/1000)}</span>
+      <span style="font-size:11px;font-weight:600;color:${color};min-width:40px;text-align:right">${cls}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderShRelease(){
+  const rel = shReleases[0];
+  if(!rel){
+    document.getElementById('sh-release-tag').textContent='No release';
+    document.getElementById('sh-release-name').textContent='No releases found';
+    document.getElementById('sh-release-date').textContent='—';
+    document.getElementById('sh-release-body').textContent='—';
+    return;
+  }
+  document.getElementById('sh-release-tag').textContent=rel.tag_name||'—';
+  document.getElementById('sh-release-name').textContent=rel.name||rel.tag_name||'—';
+  document.getElementById('sh-release-date').textContent='Released '+new Date(rel.published_at).toLocaleDateString('default',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('sh-release-body').textContent=rel.body||'No release notes provided.';
+}
+
+async function renderRepoBreakdown(allRepos){
+  const el = document.getElementById('sh-repo-breakdown');
+  const topRepos = allRepos.slice(0,5);
+  el.innerHTML='<div style="color:var(--muted);font-size:12px">Fetching repo stats...</div>';
+  const results = await Promise.all(topRepos.map(async repo=>{
+    try{
+      const r = await ghFetch(`https://api.github.com/repos/${repo.full_name}/actions/workflows/${WORKFLOW}/runs?per_page=20`);
+      if(!r.ok) return null;
+      const runs = (await r.json()).workflow_runs||[];
+      const total=runs.length, passed=runs.filter(r=>r.conclusion==='success').length;
+      const rate=total?Math.round(passed/total*100):0;
+      return {name:repo.name,total,rate};
+    }catch(e){return null;}
+  }));
+  const valid = results.filter(Boolean);
+  if(!valid.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">No test data found</div>';return;}
+  el.innerHTML = valid.map(r=>{
+    const color=r.rate>=80?'var(--green)':r.rate>=60?'var(--yellow)':'var(--red)';
+    return `<div class="sh-repo-row">
+      <div style="flex:1">
+        <div style="font-size:12px;font-weight:500;color:var(--text);font-family:'JetBrains Mono',monospace">${r.name}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px">${r.total} runs</div>
+      </div>
+      <div style="width:80px;height:4px;background:var(--surface3);border-radius:4px;overflow:hidden">
+        <div style="width:${r.rate}%;height:100%;background:${color};border-radius:4px"></div>
+      </div>
+      <span style="font-size:13px;font-weight:600;color:${color};min-width:36px;text-align:right">${r.rate}%</span>
+    </div>`;
+  }).join('');
+}
+// ─── END STAKEHOLDER ──────────────────────────────────────────────────────
 
 function fmtDur(s){if(!s||s<0)return'—';const m=Math.floor(s/60),sec=Math.round(s%60);return m>0?`${m}m ${sec}s`:`${sec}s`;}
 function timeAgo(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'just now';if(s<3600)return`${Math.floor(s/60)}m ago`;if(s<86400)return`${Math.floor(s/3600)}h ago`;return`${Math.floor(s/86400)}d ago`;}
