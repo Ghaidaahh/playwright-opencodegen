@@ -1800,18 +1800,22 @@ function shSwitchRepo(repo){
   loadStakeholderData();
 }
 
+async function shFetch(url){
+  return fetch(url, {headers:{'Authorization':`Bearer ${STAKEHOLDER_TOKEN}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}});
+}
+
 async function loadStakeholderData(){
   document.getElementById('sh-topbar-sub').textContent = 'Syncing...';
   try{
     const [rr, relR] = await Promise.all([
-      ghFetch(`https://api.github.com/repos/${currentRepo}/actions/workflows/${WORKFLOW}/runs?per_page=100`),
-      ghFetch(`https://api.github.com/repos/${currentRepo}/releases?per_page=5`)
+      shFetch(`https://api.github.com/repos/${currentRepo}/actions/workflows/${WORKFLOW}/runs?per_page=100`),
+      shFetch(`https://api.github.com/repos/${currentRepo}/releases?per_page=5`)
     ]);
+    if(!rr.ok) throw new Error('GitHub API returned '+rr.status);
     shAllRuns = (await rr.json()).workflow_runs||[];
     shReleases = relR.ok ? await relR.json() : [];
 
-    // Fetch all repos for dropdown + breakdown
-    const repoR = await ghFetch('https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member');
+    const repoR = await shFetch('https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member');
     if(repoR.ok){
       const allRepos = (await repoR.json()).filter(r=>!r.archived);
       const sel = document.getElementById('sh-repo-select');
@@ -1823,7 +1827,8 @@ async function loadStakeholderData(){
     document.getElementById('sh-topbar-sub').textContent = l ? `Last run ${timeAgo(l.updated_at)}` : 'No runs yet';
     renderStakeholderDashboard();
   } catch(e){
-    document.getElementById('sh-topbar-sub').textContent = '⚠️ Failed to sync';
+    document.getElementById('sh-topbar-sub').textContent = '⚠️ Failed to sync: '+e.message;
+    console.error('Stakeholder load error:', e);
   }
 }
 
@@ -1993,7 +1998,7 @@ async function renderRepoBreakdown(allRepos){
   el.innerHTML='<div style="color:var(--muted);font-size:12px">Fetching repo stats...</div>';
   const results = await Promise.all(topRepos.map(async repo=>{
     try{
-      const r = await ghFetch(`https://api.github.com/repos/${repo.full_name}/actions/workflows/${WORKFLOW}/runs?per_page=20`);
+      const r = await shFetch(`https://api.github.com/repos/${repo.full_name}/actions/workflows/${WORKFLOW}/runs?per_page=20`);
       if(!r.ok) return null;
       const runs = (await r.json()).workflow_runs||[];
       const total=runs.length, passed=runs.filter(r=>r.conclusion==='success').length;
