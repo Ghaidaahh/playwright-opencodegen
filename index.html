@@ -20,17 +20,6 @@
     body{background:var(--bg);color:var(--text);font-family:'Figtree',sans-serif;min-height:100vh;overflow-x:hidden;}
     ::-webkit-scrollbar{width:5px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:var(--muted2);border-radius:3px;}
 
-
-    .sh-date-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;padding:6px 14px;cursor:pointer;font-family:'Figtree',sans-serif;transition:all .15s;}
-    .sh-date-btn:hover{color:var(--text);border-color:var(--accent);}
-    .active-date{background:var(--accent-glow)!important;color:var(--accent)!important;border-color:var(--accent)!important;}
-    .sh-info{cursor:pointer;color:var(--muted);font-size:13px;user-select:none;}
-    .sh-info:hover{color:var(--accent);}
-    .sh-run-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;margin-bottom:6px;background:var(--surface2);transition:background .15s;cursor:pointer;}
-    .sh-run-row:hover{background:var(--surface3);}
-    .sh-repo-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
-    .sh-repo-row:last-child{border-bottom:none;}
-
     /* AUTH */
     #auth-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:24px;background:radial-gradient(ellipse at 50% 0%,rgba(91,138,240,0.07) 0%,transparent 70%);}
     .auth-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:48px;width:100%;max-width:460px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,0.5);}
@@ -62,8 +51,6 @@
     .sidebar-repo{padding:14px 20px;border-bottom:1px solid var(--border);}
     .repo-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px;}
     .repo-name{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--accent);}
-    .repo-select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--accent);font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 8px;cursor:pointer;outline:none;margin-top:4px;}
-    .repo-select:hover{border-color:var(--accent);}
     .sidebar-nav{padding:16px 12px;flex:1;overflow-y:auto;}
     .nav-section{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;padding:0 8px;margin:16px 0 6px;}
     .nav-section:first-child{margin-top:0;}
@@ -106,10 +93,8 @@
     .card-badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:4px;background:var(--surface3);color:var(--muted);border:1px solid var(--border);}
 
     /* STAT CARDS */
-    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;animation:fadeUp .35s ease both;transition:border-color .2s,transform .15s;cursor:pointer;}
-    .stat-card:hover{border-color:var(--muted2);transform:translateY(-2px);}
-    .stat-card.no-click{cursor:default;}
-    .stat-card.no-click:hover{transform:none;}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;animation:fadeUp .35s ease both;transition:border-color .2s;}
+    .stat-card:hover{border-color:var(--muted2);}
     .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
     .stat-card.green::before{background:var(--green);}
     .stat-card.red::before{background:var(--red);}
@@ -221,37 +206,7 @@
     .ticket-btn.push{background:linear-gradient(135deg,#0052cc,#0065ff);border-color:#0052ff;color:white;}
     .create-ticket-btn{padding:5px 10px;background:var(--red-glow);border:1px solid var(--red);border-radius:6px;color:var(--red);font-size:11px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;transition:background .15s;white-space:nowrap;}
     .create-ticket-btn:hover{background:rgba(240,91,122,.2);}
-    .priority-badge{display:inline-flex;align-items:center;font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;font-family:'JetBrains Mono',monospace;letter-spacing:.3px;}
-    .priority-badge.critical{background:rgba(240,91,122,.2);color:var(--red);border:1px solid rgba(240,91,122,.4);}
-    .priority-badge.high{background:rgba(240,200,74,.15);color:var(--yellow);border:1px solid rgba(240,200,74,.3);}
-    .priority-badge.medium{background:var(--accent-glow);color:var(--accent);border:1px solid rgba(91,138,240,.3);}
-    .priority-badge.low{background:var(--surface3);color:var(--muted);border:1px solid var(--border);}
-    .ticket-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:2px 7px;}
-    .search-wrap{position:relative;margin-bottom:14px;}
-    .search-wrap::before{content:'🔍';position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none;}
-    .search-bar{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:10px 14px 10px 36px;color:var(--text);font-family:'Figtree',sans-serif;font-size:13px;outline:none;transition:border-color .2s;}
-    .search-bar:focus{border-color:var(--accent);}
     .pill.fixed{background:var(--green-glow);color:var(--green);}
-    @media(max-width:768px){
-      .sidebar{width:100%;height:auto;position:relative;}
-      .sidebar-nav{display:flex;flex-direction:row;flex-wrap:wrap;padding:8px;gap:4px;overflow-x:auto;}
-      .nav-section{display:none;}
-      .nav-item{padding:6px 10px;font-size:12px;white-space:nowrap;}
-      .main{margin-left:0;}
-      .topbar{padding:14px 16px;flex-wrap:wrap;gap:8px;}
-      .page{padding:16px;}
-      .grid-4{grid-template-columns:1fr 1fr;}
-      .grid-2,.grid-3{grid-template-columns:1fr;}
-      .compare-grid{grid-template-columns:1fr;}
-      .feature-grid{grid-template-columns:1fr 1fr;}
-      .tab-group{display:none;}
-      #sync-status{display:none!important;}
-      .layout{flex-direction:column;}
-    }
-    @media(max-width:480px){
-      .grid-4{grid-template-columns:1fr;}
-      .feature-grid{grid-template-columns:1fr;}
-    }
     .fixed-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;padding:3px 10px;background:var(--green-glow);border:1px solid rgba(31,209,149,.3);border-radius:6px;color:var(--green);margin-top:8px;}
   </style>
 </head>
@@ -262,20 +217,15 @@
   <div class="auth-card">
     <div class="auth-logo">🎭</div>
     <h1>Playwright Dashboard</h1>
-    <p>Sign in with your <strong>GitHub token</strong> (QA team) or <strong>stakeholder password</strong> set by your QA lead.</p>
-    <div class="error-msg" id="error-msg">❌ Invalid credentials. Check your token or password.</div>
+    <p>Connect to <strong>Ghaidaahh/playwright-opencodegen</strong> using a GitHub Personal Access Token.<br><br>
+    <a href="https://github.com/settings/tokens/new?scopes=repo,actions&description=Playwright+Dashboard" target="_blank">→ Generate a token here</a> — enable <strong>repo</strong> and <strong>actions</strong> scopes.</p>
+    <div class="error-msg" id="error-msg">❌ Invalid token or repo not accessible.</div>
     <div class="form-group">
-      <label id="input-label">GitHub Token or Stakeholder Password</label>
-      <input type="password" id="token-input" placeholder="GitHub token or stakeholder password" />
+      <label>GitHub Personal Access Token</label>
+      <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" />
     </div>
-    <button class="btn-primary" id="connect-btn" onclick="connect()">Sign In →</button>
-    <div class="auth-note" style="margin-top:12px;display:flex;gap:16px;justify-content:center;font-size:11px">
-      <span>👩‍💻 QA Team: use GitHub token</span>
-      <span>👔 Stakeholders: use password from QA lead</span>
-    </div>
-    <div class="auth-note" style="margin-top:8px">
-      <a href="https://github.com/settings/tokens/new?scopes=repo,actions&description=Playwright+Dashboard" target="_blank" style="color:var(--accent);text-decoration:none;font-size:11px">→ Generate a GitHub token</a>
-    </div>
+    <button class="btn-primary" id="connect-btn" onclick="connect()">Connect →</button>
+    <div class="auth-note">🔒 Token stored only in your browser. Never sent anywhere except GitHub's API.</div>
   </div>
 </div>
 
@@ -291,9 +241,7 @@
       </div>
       <div class="sidebar-repo">
         <div class="repo-label">Repository</div>
-        <select class="repo-select" id="repo-select" onchange="switchRepo(this.value)">
-          <option value="Ghaidaahh/playwright-opencodegen">playwright-opencodegen</option>
-        </select>
+        <div class="repo-name">playwright-opencodegen</div>
       </div>
       <nav class="sidebar-nav">
         <div class="nav-section">Overview</div>
@@ -306,17 +254,12 @@
         <div class="nav-item" onclick="showPage('compare',this)"><span class="icon">📅</span> Month Comparison</div>
         <div class="nav-section">Bugs</div>
         <div class="nav-item" onclick="showPage('tickets',this)"><span class="icon">🐛</span> Jira Tickets <span id="ticket-count-badge" style="margin-left:auto;background:var(--red-glow);color:var(--red);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;display:none"></span></div>
-        <div class="nav-section gh-only">Links</div>
-        <div class="nav-item gh-only" id="gh-actions-link" onclick="window.open(`https://github.com/${currentRepo}/actions`,'_blank')"><span class="icon">⚡</span> GitHub Actions ↗</div>
-        <div class="nav-item gh-only" id="gh-releases-link" onclick="window.open(`https://github.com/${currentRepo}/releases`,'_blank')"><span class="icon">🏷️</span> Releases ↗</div>
-        <div class="nav-section">Account</div>
-        <div class="nav-item" onclick="showPage('settings',this)"><span class="icon">⚙️</span> Settings</div>
+        <div class="nav-section">Links</div>
+        <div class="nav-item" onclick="window.open('https://github.com/Ghaidaahh/playwright-opencodegen/actions','_blank')"><span class="icon">⚡</span> GitHub Actions ↗</div>
+        <div class="nav-item" onclick="window.open('https://github.com/Ghaidaahh/playwright-opencodegen/releases','_blank')"><span class="icon">🏷️</span> Releases ↗</div>
       </nav>
       <div class="sidebar-footer">
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <div class="live-badge"><div class="live-dot"></div> LIVE</div>
-          <div id="role-badge" style="font-size:11px;font-weight:600;font-family:'JetBrains Mono',monospace;"></div>
-        </div>
+        <div class="live-badge"><div class="live-dot"></div> LIVE</div>
         <button class="logout-btn" onclick="logout()">Sign out</button>
       </div>
     </aside>
@@ -333,7 +276,6 @@
             <div class="tab" onclick="setTimeRange('month',this)">Month</div>
             <div class="tab" onclick="setTimeRange('all',this)">All</div>
           </div>
-          <div id="sync-status" style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);display:none;white-space:nowrap"></div>
           <div class="icon-btn" onclick="loadData()" title="Refresh">🔄</div>
         </div>
       </div>
@@ -341,14 +283,14 @@
       <!-- OVERVIEW -->
       <div class="page active" id="page-overview">
         <div class="grid-4" style="margin-top:28px">
-          <div class="stat-card blue" style="animation-delay:.05s" onclick="goToRunsFiltered('all')"><div class="stat-icon">🔁</div><div class="stat-label">Total Runs</div><div class="stat-value" id="s-runs">—</div><div class="stat-sub" id="s-runs-sub">loading...</div></div>
-          <div class="stat-card green" style="animation-delay:.1s" onclick="goToRunsFiltered('pass')"><div class="stat-icon">✅</div><div class="stat-label">Pass Rate</div><div class="stat-value" id="s-rate">—</div><div class="stat-sub" id="s-rate-sub">loading...</div></div>
-          <div class="stat-card red" style="animation-delay:.15s" onclick="goToRunsFiltered('fail')"><div class="stat-icon">❌</div><div class="stat-label">Failed Runs</div><div class="stat-value" id="s-fail">—</div><div class="stat-sub" id="s-fail-sub">loading...</div></div>
-          <div class="stat-card yellow no-click" style="animation-delay:.2s"><div class="stat-icon">⏱️</div><div class="stat-label">Avg Duration</div><div class="stat-value" id="s-dur">—</div><div class="stat-sub" id="s-dur-sub">loading...</div></div>
+          <div class="stat-card blue" style="animation-delay:.05s"><div class="stat-icon">🔁</div><div class="stat-label">Total Runs</div><div class="stat-value" id="s-runs">—</div><div class="stat-sub" id="s-runs-sub">loading...</div></div>
+          <div class="stat-card green" style="animation-delay:.1s"><div class="stat-icon">✅</div><div class="stat-label">Pass Rate</div><div class="stat-value" id="s-rate">—</div><div class="stat-sub" id="s-rate-sub">loading...</div></div>
+          <div class="stat-card red" style="animation-delay:.15s"><div class="stat-icon">❌</div><div class="stat-label">Failed Runs</div><div class="stat-value" id="s-fail">—</div><div class="stat-sub" id="s-fail-sub">loading...</div></div>
+          <div class="stat-card yellow" style="animation-delay:.2s"><div class="stat-icon">⏱️</div><div class="stat-label">Avg Duration</div><div class="stat-value" id="s-dur">—</div><div class="stat-sub" id="s-dur-sub">loading...</div></div>
         </div>
         <div class="grid-3">
           <div class="card" style="animation-delay:.2s">
-            <div class="card-hd"><div class="card-title">Pass / Fail Trend</div><div style="display:flex;align-items:center;gap:8px"><div class="tab-group" style="padding:2px"><div class="tab active" id="trend-tab-day" onclick="setTrendMode('day',this)">Day</div><div class="tab" id="trend-tab-week" onclick="setTrendMode('week',this)">Week</div><div class="tab" id="trend-tab-month" onclick="setTrendMode('month',this)">Month</div></div><div class="card-badge" id="trend-label">DAILY</div></div></div>
+            <div class="card-hd"><div class="card-title">Pass / Fail Trend</div><div class="card-badge" id="trend-label">LAST 40 RUNS</div></div>
             <div class="chart-wrap"><div class="loading" id="trend-loading"><div class="spinner"></div><div class="loading-text">Fetching runs...</div></div><canvas id="trendChart" style="display:none"></canvas></div>
           </div>
           <div class="card" style="animation-delay:.25s">
@@ -406,8 +348,7 @@
       <div class="page" id="page-runs">
         <div style="margin-top:28px">
           <div class="card">
-            <div class="card-hd"><div class="card-title">All Pipeline Runs</div><div class="card-badge" id="runs-filter-badge">playwright.yml · CLICK TO INSPECT</div></div>
-            <div class="search-wrap"><input class="search-bar" id="runs-search" placeholder="Search by branch, commit, title..." oninput="renderAllRuns()"></div>
+            <div class="card-hd"><div class="card-title">All Pipeline Runs</div><div class="card-badge">playwright.yml · CLICK TO INSPECT</div></div>
             <div id="all-runs-list"><div class="loading"><div class="spinner"></div></div></div>
           </div>
         </div>
@@ -451,18 +392,6 @@
         </div>
       </div>
 
-      <!-- SETTINGS -->
-      <div class="page" id="page-settings">
-        <div style="margin-top:28px">
-          <div class="card" style="margin-bottom:16px">
-            <div class="card-hd"><div class="card-title">⚙️ Settings</div><div class="card-badge" id="settings-role-badge">LOADING...</div></div>
-            <div id="settings-body">
-              <div class="loading"><div class="spinner"></div></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
     </div>
   </div>
 </div>
@@ -483,25 +412,6 @@
         <div class="form-group" style="margin:0">
           <label>Branch / Pipeline Run</label>
           <input type="text" id="t-branch" readonly style="opacity:.7" />
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px">
-        <div class="form-group" style="margin:0">
-          <label>Priority</label>
-          <select id="t-priority" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-family:'Figtree',sans-serif;font-size:13px;outline:none;">
-            <option value="critical">🔴 Critical</option>
-            <option value="high">🟡 High</option>
-            <option value="medium" selected>🔵 Medium</option>
-            <option value="low">⚪ Low</option>
-          </select>
-        </div>
-        <div class="form-group" style="margin:0">
-          <label>Created By</label>
-          <input type="text" id="t-creator" placeholder="Your name" />
-        </div>
-        <div class="form-group" style="margin:0">
-          <label>Ticket ID</label>
-          <input type="text" id="t-ticket-id" readonly style="opacity:.7;font-family:'JetBrains Mono',monospace;font-size:12px;" />
         </div>
       </div>
       <div class="form-group">
@@ -536,170 +446,6 @@
       </div>
     </div>
   </div>
-
-<!-- STAKEHOLDER DASHBOARD -->
-<div id="stakeholder-dashboard" style="display:none;min-height:100vh;background:var(--bg)">
-
-  <!-- TOPBAR -->
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 32px;border-bottom:1px solid var(--border);background:rgba(7,8,15,.9);backdrop-filter:blur(12px);position:sticky;top:0;z-index:40">
-    <div style="display:flex;align-items:center;gap:16px">
-      <div style="display:flex;align-items:center;gap:10px">
-        <div style="width:32px;height:32px;background:linear-gradient(135deg,var(--accent),var(--green));border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">🎭</div>
-        <span style="font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--text)">Play<span style="color:var(--accent)">watch</span></span>
-      </div>
-      <span style="color:var(--muted);font-size:13px" id="sh-topbar-sub">Loading...</span>
-    </div>
-    <div style="display:flex;align-items:center;gap:12px">
-      <!-- Env dropdown -->
-      <select id="sh-env-select" onchange="shSetEnv(this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:6px 10px;cursor:pointer;font-family:'Figtree',sans-serif">
-        <option value="all">All Environments</option>
-        <option value="staging">Staging</option>
-        <option value="production">Production</option>
-        <option value="qa">QA</option>
-      </select>
-      <!-- Test type -->
-      <select id="sh-type-select" onchange="shSetType(this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;padding:6px 10px;cursor:pointer;font-family:'Figtree',sans-serif">
-        <option value="all">All Test Types</option>
-        <option value="smoke">Smoke</option>
-        <option value="sanity">Sanity</option>
-        <option value="regression">Regression</option>
-      </select>
-      <!-- Repo dropdown -->
-      <select id="sh-repo-select" onchange="shSwitchRepo(this.value)" style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--accent);font-size:12px;padding:6px 10px;cursor:pointer;font-family:'JetBrains Mono',monospace">
-        <option value="Ghaidaahh/playwright-opencodegen">playwright-opencodegen</option>
-      </select>
-      <span style="background:rgba(167,139,250,.12);color:var(--purple);font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px">👔 Stakeholder</span>
-      <button onclick="logout()" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-size:12px;padding:6px 12px;cursor:pointer;font-family:'Figtree',sans-serif">Sign out</button>
-    </div>
-  </div>
-
-  <div style="padding:32px;max-width:1400px;margin:0 auto">
-
-    <!-- DATE FILTER -->
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:28px">
-      <span style="font-size:12px;color:var(--muted);margin-right:4px">Period:</span>
-      <button onclick="shSetDate('day')" id="sh-btn-day" class="sh-date-btn active-date">Today</button>
-      <button onclick="shSetDate('week')" id="sh-btn-week" class="sh-date-btn">Week</button>
-      <button onclick="shSetDate('month')" id="sh-btn-month" class="sh-date-btn">Month</button>
-      <button onclick="shSetDate('year')" id="sh-btn-year" class="sh-date-btn">Year</button>
-    </div>
-
-    <!-- STAT CARDS -->
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px">
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Pass Rate</span>
-          <span class="sh-info" data-tip="Percentage of test runs that passed in the selected period">ⓘ</span>
-        </div>
-        <div style="font-size:28px;font-weight:700;color:var(--green)" id="sh-pass-rate">—</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px" id="sh-pass-rate-sub">loading...</div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Failed Runs</span>
-          <span class="sh-info" data-tip="Total number of failed test runs in the selected period">ⓘ</span>
-        </div>
-        <div style="font-size:28px;font-weight:700;color:var(--red)" id="sh-fail-count">—</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px" id="sh-fail-sub">loading...</div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Total Runs</span>
-          <span class="sh-info" data-tip="Total number of test runs executed in the selected period">ⓘ</span>
-        </div>
-        <div style="font-size:28px;font-weight:700;color:var(--text)" id="sh-total-runs">—</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px" id="sh-total-sub">loading...</div>
-      </div>
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px 22px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
-          <span style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Avg Duration</span>
-          <span class="sh-info" data-tip="Average time a test run takes to complete">ⓘ</span>
-        </div>
-        <div style="font-size:28px;font-weight:700;color:var(--accent)" id="sh-avg-dur">—</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:4px" id="sh-dur-sub">loading...</div>
-      </div>
-    </div>
-
-    <!-- TREND + DONUT ROW -->
-    <div style="display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:28px">
-
-      <!-- TREND CHART -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:13px;font-weight:600;color:var(--text)">Pass / Fail Trend</span>
-            <span class="sh-info" data-tip="Number of passing and failing runs over time. Green = pass, Red = fail">ⓘ</span>
-          </div>
-          <div style="display:flex;gap:12px;font-size:11px">
-            <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--green);display:inline-block"></span><span style="color:var(--muted)">Pass</span></span>
-            <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:var(--red);display:inline-block"></span><span style="color:var(--muted)">Fail</span></span>
-          </div>
-        </div>
-        <div style="position:relative;height:220px">
-          <canvas id="sh-trend-chart"></canvas>
-          <div id="sh-tooltip" style="position:absolute;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--text);pointer-events:none;display:none;min-width:120px;z-index:10"></div>
-        </div>
-      </div>
-
-      <!-- DONUT CHART -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
-          <span style="font-size:13px;font-weight:600;color:var(--text)">Result Breakdown</span>
-          <span class="sh-info" data-tip="Overall distribution of test results in the selected period">ⓘ</span>
-        </div>
-        <div style="position:relative;height:160px;margin-bottom:12px">
-          <canvas id="sh-donut-chart"></canvas>
-        </div>
-        <div id="sh-donut-legend" style="display:flex;flex-direction:column;gap:6px;font-size:11px"></div>
-      </div>
-    </div>
-
-    <!-- REPO BREAKDOWN + CURRENT BUILD ROW -->
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:28px">
-
-      <!-- REPO BREAKDOWN -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
-          <span style="font-size:13px;font-weight:600;color:var(--text)">Breakdown by Repo</span>
-          <span class="sh-info" data-tip="Pass rate and test run count per repository">ⓘ</span>
-        </div>
-        <div id="sh-repo-breakdown">
-          <div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Loading repos...</div>
-        </div>
-      </div>
-
-      <!-- CURRENT BUILD -->
-      <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:13px;font-weight:600;color:var(--text)">Current Build</span>
-            <span class="sh-info" data-tip="Latest release version and notes">ⓘ</span>
-          </div>
-          <span id="sh-release-tag" style="background:var(--green-glow);color:var(--green);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px">—</span>
-        </div>
-        <div id="sh-release-name" style="font-family:'Syne',sans-serif;font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">—</div>
-        <div id="sh-release-date" style="font-size:11px;color:var(--muted);margin-bottom:12px">—</div>
-        <div id="sh-release-body" style="font-size:12px;color:var(--muted);line-height:1.7;max-height:120px;overflow-y:auto">—</div>
-      </div>
-    </div>
-
-    <!-- RECENT RUNS TABLE -->
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:22px">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:18px">
-        <span style="font-size:13px;font-weight:600;color:var(--text)">Recent Test Runs</span>
-        <span class="sh-info" data-tip="Latest pipeline runs — click a failed run to see the failure reason">ⓘ</span>
-      </div>
-      <div id="sh-runs-list">
-        <div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">Loading runs...</div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- INFO TOOLTIP POPUP -->
-  <div id="sh-info-popup" style="position:fixed;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:12px;color:var(--text);max-width:220px;pointer-events:none;display:none;z-index:999;line-height:1.6"></div>
-</div>
-
 </div>
 
 <!-- MODAL -->
@@ -714,237 +460,50 @@
 </div>
 
 <script>
-let currentRepo='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
-let repos=[];
-const SUPABASE_URL='https://cjlpufjzioozlfslklyr.supabase.co';
-const STAKEHOLDER_TOKEN='STAKEHOLDER_TOKEN_PLACEHOLDER';
-const SUPABASE_KEY='sb_publishable_zdHiM7mpdoC4b2vlIOMXHw_frgLHCjq';
-let token='', allRuns=[], releases=[], timeRange='month', trendMode='day';
+const REPO='Ghaidaahh/playwright-opencodegen', WORKFLOW='playwright.yml';
+let token='', allRuns=[], releases=[], timeRange='month';
 let trendChart=null, donutChart=null, compareChart=null;
-let runsFilter='all';
-let userRole=''; // 'qa' or 'stakeholder'
-
-async function sbFetch(path, options={}){
-  const {prefer, headers:extraHeaders, method, body} = options;
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
-    method: method || 'GET',
-    headers:{
-      'apikey': SUPABASE_KEY,
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-      'Content-Type': 'application/json',
-      'Prefer': prefer || 'return=representation',
-      ...(extraHeaders||{})
-    },
-    ...(body ? {body} : {})
-  });
-  return res;
-}
-
-function goToRunsFiltered(filter){
-  runsFilter=filter;
-  const nav=document.querySelector('[onclick="showPage(\'runs\',this)"]');
-  if(nav) showPage('runs',nav);
-  renderAllRuns();
-}
-
-function setTrendMode(mode,el){
-  trendMode=mode;
-  document.querySelectorAll('[id^="trend-tab-"]').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  const labels={day:'DAILY',week:'WEEKLY',month:'MONTHLY'};
-  document.getElementById('trend-label').textContent=labels[mode];
-  renderTrend(filteredRuns());
-}
 
 async function connect(){
-  const input = document.getElementById('token-input').value.trim();
-  if(!input) return;
-  const btn = document.getElementById('connect-btn');
-  btn.disabled=true; btn.textContent='Signing in...';
+  token=document.getElementById('token-input').value.trim();
+  if(!token)return;
+  const btn=document.getElementById('connect-btn');
+  btn.disabled=true; btn.textContent='Connecting...';
   document.getElementById('error-msg').style.display='none';
-
-  // First try as stakeholder password against Supabase
   try{
-    const res = await sbFetch(`settings?key=eq.manager_password&select=value`);
-    const data = await res.json();
-    if(data.length && data[0].value === input){
-      userRole = 'stakeholder';
-      token = STAKEHOLDER_TOKEN;
-      localStorage.setItem('pw_role', 'stakeholder');
-      localStorage.setItem('pw_stakeholder_auth', 'true');
-      enterDashboard();
-      return;
-    }
-  } catch(e){
-    // Supabase unreachable — continue to try as GitHub token
-  }
-
-  // Try as GitHub token
-  token = input;
-  try{
-    const r = await fetch(`https://api.github.com/repos/${currentRepo}`, {
-      headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json'}
-    });
-    if(!r.ok) throw new Error(`GitHub returned ${r.status}`);
-    userRole = 'qa';
-    localStorage.setItem('pw_token', token);
-    localStorage.setItem('pw_role', 'qa');
-    enterDashboard();
-  } catch(e) {
-    token = '';
-    document.getElementById('error-msg').textContent=`❌ ${e.message}`;
+    const r=await ghFetch(`https://api.github.com/repos/${REPO}`);
+    if(!r.ok)throw new Error();
+    localStorage.setItem('pw_token',token);
+    document.getElementById('auth-screen').style.display='none';
+    document.getElementById('dashboard').style.display='block';
+    loadData();
+  }catch{
     document.getElementById('error-msg').style.display='block';
-    btn.disabled=false; btn.textContent='Sign In →';
+    btn.disabled=false; btn.textContent='Connect →';
   }
-}
-
-function enterDashboard(){
-  document.getElementById('auth-screen').style.display='none';
-  if(userRole === 'stakeholder'){
-    enterStakeholderDashboard();
-    return;
-  }
-  document.getElementById('dashboard').style.display='block';
-  applyRoleUI();
-  fetchUserRepos();
-  loadData();
-}
-
-async function fetchUserRepos(){
-  try{
-    // Fetch all repos the token has access to
-    const r = await ghFetch('https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member');
-    if(!r.ok) return;
-    const data = await r.json();
-    repos = data.filter(repo => !repo.archived).map(repo => repo.full_name);
-    const select = document.getElementById('repo-select');
-    if(!select) return;
-    select.innerHTML = repos.map(r => 
-      `<option value="${r}" ${r === currentRepo ? 'selected' : ''}>${r.split('/')[1]}</option>`
-    ).join('');
-  } catch(e){
-    // Silently fail — keep current repo
-  }
-}
-
-async function switchRepo(repo){
-  if(repo === currentRepo) return;
-  currentRepo = repo;
-  // Reset state
-  allRuns = []; releases = [];
-  pendingTickets = []; confirmedTickets = []; fixedTickets = [];
-  // Update topbar title
-  document.getElementById('topbar-title').textContent = currentRepo.split('/')[1];
-  // Reload data for new repo
-  loadData();
-}
-
-function applyRoleUI(){
-  const isManager = userRole === 'stakeholder';
-  // Show role badge in sidebar footer
-  const roleBadge = document.getElementById('role-badge');
-  if(roleBadge){
-    roleBadge.textContent = isManager ? '👔 Stakeholder' : '👩‍💻 QA';
-    roleBadge.style.color = isManager ? 'var(--purple)' : 'var(--green)';
-  }
-  // Hide QA-only action items for stakeholders
-  const qaOnly = document.querySelectorAll('.qa-only');
-  qaOnly.forEach(el => el.style.display = isManager ? 'none' : '');
 }
 
 function logout(){
-  localStorage.removeItem('pw_token');
-  localStorage.removeItem('pw_role');
-  localStorage.removeItem('pw_stakeholder_auth');
-  token=''; userRole='';
+  localStorage.removeItem('pw_token'); token='';
   document.getElementById('auth-screen').style.display='flex';
   document.getElementById('dashboard').style.display='none';
-  document.getElementById('stakeholder-dashboard').style.display='none';
   document.getElementById('token-input').value='';
 }
 
-async function ghFetch(url, skipExpiry=false){
-  const res = await fetch(url,{headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}});
-  if(res.status === 401 || res.status === 403){
-    const remaining = res.headers.get('x-ratelimit-remaining');
-    const resetTime = res.headers.get('x-ratelimit-reset');
-    if(remaining === '0' && resetTime){
-      const resetIn = Math.ceil((parseInt(resetTime)*1000 - Date.now()) / 60000);
-      showRateLimitBanner(resetIn);
-      throw new Error('Rate limit reached');
-    }
-    if(!skipExpiry) handleTokenExpiry();
-    throw new Error('Token expired or invalid');
-  }
-  const remaining = res.headers.get('x-ratelimit-remaining');
-  if(remaining !== null && parseInt(remaining) < 50){
-    const resetTime = res.headers.get('x-ratelimit-reset');
-    const resetIn = resetTime ? Math.ceil((parseInt(resetTime)*1000 - Date.now()) / 60000) : '?';
-    showRateLimitBanner(resetIn, parseInt(remaining), true);
-  } else {
-    hideRateLimitBanner();
-  }
-  return res;
+function ghFetch(url){
+  return fetch(url,{headers:{'Authorization':`Bearer ${token}`,'Accept':'application/vnd.github+json','X-GitHub-Api-Version':'2022-11-28'}});
 }
 
-function showRateLimitBanner(resetIn, remaining=0, isWarning=false){
-  let banner = document.getElementById('rate-limit-banner');
-  if(!banner){
-    banner = document.createElement('div');
-    banner.id = 'rate-limit-banner';
-    banner.style.cssText='position:fixed;bottom:20px;right:20px;z-index:999;padding:12px 18px;border-radius:10px;font-size:13px;font-family:Figtree,sans-serif;max-width:320px;box-shadow:0 8px 32px rgba(0,0,0,.4);display:flex;align-items:center;gap:10px;';
-    document.body.appendChild(banner);
-  }
-  if(isWarning){
-    banner.style.background='var(--surface)';
-    banner.style.border='1px solid var(--yellow)';
-    banner.style.color='var(--yellow)';
-    banner.innerHTML=`⚠️ GitHub API: only <strong>${remaining}</strong> requests left. Resets in ~${resetIn} min. <button onclick="hideRateLimitBanner()" style="background:none;border:none;color:inherit;cursor:pointer;margin-left:auto;font-size:16px">✕</button>`;
-  } else {
-    banner.style.background='var(--surface)';
-    banner.style.border='1px solid var(--red)';
-    banner.style.color='var(--red)';
-    banner.innerHTML=`🚫 GitHub API rate limit reached. Resets in ~${resetIn} min. <button onclick="hideRateLimitBanner()" style="background:none;border:none;color:inherit;cursor:pointer;margin-left:auto;font-size:16px">✕</button>`;
-    document.getElementById('topbar-sub').textContent=`⚠️ Rate limit reached — resets in ~${resetIn} min`;
-  }
-}
-
-function hideRateLimitBanner(){
-  const b = document.getElementById('rate-limit-banner');
-  if(b) b.remove();
-}
-
-function handleTokenExpiry(){
-  localStorage.removeItem('pw_token');
-  token = '';
-  // Show expiry message on auth screen
-  document.getElementById('auth-screen').style.display='flex';
-  document.getElementById('dashboard').style.display='none';
-  document.getElementById('error-msg').textContent='⚠️ Your token has expired or is invalid. Please generate a new one and reconnect.';
-  document.getElementById('error-msg').style.display='block';
-  document.getElementById('token-input').value='';
-}
-
-let lastSyncTime = null;
-
-function updateSyncStatus(){
-  const el = document.getElementById('sync-status');
-  if(!lastSyncTime){ el.style.display='none'; return; }
-  el.style.display='block';
-  el.textContent=`🕐 Synced ${timeAgo(lastSyncTime)}`;
-}
-
-const pageTitles={overview:['Dashboard','Test automation overview'],release:['Current Build','Latest release from GitHub'],future:['Future Build','Upcoming release planning'],runs:['Pipeline Runs','All GitHub Actions runs'],compare:['Month Comparison','Month-over-month analysis'],tickets:['Jira Tickets','Review and confirm bug tickets'],settings:['Settings','Manage password, profile & database']};
+const pageTitles={overview:['Dashboard','Test automation overview'],release:['Current Build','Latest release from GitHub'],future:['Future Build','Upcoming release planning'],runs:['Pipeline Runs','All GitHub Actions runs'],compare:['Month Comparison','Month-over-month analysis'],tickets:['Jira Tickets','Review and confirm bug tickets']};
 
 function showPage(id,el){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   el.classList.add('active');
-  const[t,s]=pageTitles[id]||[id,id];
+  const[t,s]=pageTitles[id];
   document.getElementById('topbar-title').textContent=t;
   document.getElementById('topbar-sub').textContent=s;
-  if(id==='settings') renderSettings();
 }
 
 function setTimeRange(r,el){
@@ -955,33 +514,22 @@ function setTimeRange(r,el){
 }
 
 async function loadData(){
-  // Always load tickets from Supabase for all roles
-  await loadTicketsFromSupabase();
-
-  // Stakeholder has a read-only token — loads all GitHub data but no actions
-
   document.getElementById('topbar-sub').textContent='Syncing with GitHub...';
   try{
     const[rr,relR,prR]=await Promise.all([
-      ghFetch(`https://api.github.com/repos/${currentRepo}/actions/workflows/${WORKFLOW}/runs?per_page=100`),
-      ghFetch(`https://api.github.com/repos/${currentRepo}/releases?per_page=10`),
-      ghFetch(`https://api.github.com/repos/${currentRepo}/pulls?state=open&per_page=20`)
+      ghFetch(`https://api.github.com/repos/${REPO}/actions/workflows/${WORKFLOW}/runs?per_page=100`),
+      ghFetch(`https://api.github.com/repos/${REPO}/releases?per_page=10`),
+      ghFetch(`https://api.github.com/repos/${REPO}/pulls?state=open&per_page=20`)
     ]);
     allRuns=(await rr.json()).workflow_runs||[];
     releases=relR.ok?await relR.json():[];
     const prs=prR.ok?await prR.json():[];
     renderOverview(); renderRelease(releases); renderFuture(prs); renderAllRuns(); renderCompare();
-    if(userRole === 'qa') await autoGenerateTicketsFromLatestRun();
+    await autoGenerateTicketsFromLatestRun();
     const l=allRuns[0];
     document.getElementById('topbar-sub').textContent=l?`playwright.yml · Last run ${timeAgo(l.updated_at)}`:'playwright.yml · No runs yet';
-    lastSyncTime = new Date();
-    updateSyncStatus();
-    if(window._syncInterval) clearInterval(window._syncInterval);
-    window._syncInterval = setInterval(updateSyncStatus, 60000);
   }catch(e){
-    if(e.message !== 'Token expired or invalid'){
-      document.getElementById('topbar-sub').textContent='⚠️ Failed to sync — check your connection';
-    }
+    document.getElementById('topbar-sub').textContent='⚠️ Failed to sync — check token';
   }
 }
 
@@ -990,87 +538,45 @@ function filteredRuns(){
   return allRuns.filter(r=>(now-new Date(r.created_at))/86400000<=cutoff);
 }
 
-function classifyRun(r){
-  if(r.status !== 'completed') return 'running';
-  const c = r.conclusion;
-  if(c === 'success') return 'pass';
-  if(c === 'failure' || c === 'timed_out' || c === 'action_required') return 'fail';
-  if(c === 'skipped' || c === 'neutral' || c === 'stale') return 'skip';
-  if(c === 'cancelled') return 'cancelled';
-  return 'other';
-}
-
 function renderOverview(){
-  const runs=filteredRuns();
-  const completed=runs.filter(r=>r.status==='completed');
-  // Exclude skipped/neutral/stale from pass rate calculation
-  const countable=completed.filter(r=>!['skipped','neutral','stale','cancelled'].includes(r.conclusion));
+  const runs=filteredRuns(), completed=runs.filter(r=>r.status==='completed');
   const passed=completed.filter(r=>r.conclusion==='success').length;
-  const failed=completed.filter(r=>['failure','timed_out','action_required'].includes(r.conclusion)).length;
-  const skipped=completed.filter(r=>['skipped','neutral','stale'].includes(r.conclusion)).length;
-  const rate=countable.length?((passed/countable.length)*100).toFixed(1):'0';
+  const failed=completed.filter(r=>r.conclusion==='failure').length;
+  const rate=completed.length?((passed/completed.length)*100).toFixed(1):'0';
   const durs=completed.map(r=>(new Date(r.updated_at)-new Date(r.created_at))/1000).filter(d=>d>0);
   const avg=durs.length?durs.reduce((a,b)=>a+b,0)/durs.length:0;
   document.getElementById('s-runs').textContent=runs.length;
   document.getElementById('s-runs-sub').textContent=`${completed.length} completed`;
   document.getElementById('s-rate').textContent=rate+'%';
-  document.getElementById('s-rate-sub').textContent=`${passed} passed · excl. ${skipped} skipped`;
+  document.getElementById('s-rate-sub').textContent=`${passed} successful`;
   document.getElementById('s-fail').textContent=failed;
-  document.getElementById('s-fail-sub').textContent=`incl. timed out & blocked`;
+  document.getElementById('s-fail-sub').textContent=`${completed.length-passed-failed} other`;
   document.getElementById('s-dur').textContent=fmtDur(avg);
   document.getElementById('s-dur-sub').textContent='per pipeline run';
-  renderTrend(runs); renderDonut(completed,passed,failed,skipped); renderPipelineList('pipeline-list-overview',allRuns.slice(0,6));
+  renderTrend(runs); renderDonut(completed); renderPipelineList('pipeline-list-overview',allRuns.slice(0,6));
 }
 
 function renderTrend(runs){
+  const recent=runs.slice(0,40).reverse();
   document.getElementById('trend-loading').style.display='none';
   const canvas=document.getElementById('trendChart'); canvas.style.display='block';
   if(trendChart)trendChart.destroy();
-
-  const completed=runs.filter(r=>r.status==='completed');
-
-  if(trendMode==='day'||trendMode==='week'||trendMode==='month'){
-    // Group runs by period
-    const groups={};
-    completed.forEach(r=>{
-      const d=new Date(r.created_at);
-      let key;
-      if(trendMode==='day') key=d.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-      else if(trendMode==='week'){
-        // Get Monday of the week
-        const day=d.getDay(), diff=d.getDate()-day+(day===0?-6:1);
-        const mon=new Date(d.setDate(diff));
-        key=mon.toLocaleDateString('en-US',{month:'short',day:'numeric'});
-      } else {
-        key=d.toLocaleDateString('en-US',{month:'short',year:'2-digit'});
-      }
-      if(!groups[key]) groups[key]={pass:0,fail:0};
-      if(r.conclusion==='success') groups[key].pass++;
-      else if(r.conclusion==='failure') groups[key].fail++;
-    });
-
-    // Sort keys chronologically by taking last N periods
-    const keys=Object.keys(groups).slice(-20);
-    const passData=keys.map(k=>groups[k].pass);
-    const failData=keys.map(k=>groups[k].fail);
-    const maxVal=Math.max(...keys.map(k=>groups[k].pass+groups[k].fail),1);
-
-    trendChart=new Chart(canvas.getContext('2d'),{type:'bar',data:{labels:keys,datasets:[
-      {label:'Passed',data:passData,backgroundColor:'rgba(31,209,149,.7)',borderRadius:4,borderSkipped:false},
-      {label:'Failed',data:failData,backgroundColor:'rgba(240,91,122,.7)',borderRadius:4,borderSkipped:false}
-    ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#565d80',font:{family:'JetBrains Mono',size:10},boxWidth:10}},tooltip:{backgroundColor:'#0d0f1a',borderColor:'#22263d',borderWidth:1,titleColor:'#dde1f5',bodyColor:'#565d80',padding:10}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#565d80',font:{family:'JetBrains Mono',size:9}},border:{display:false}},y:{stacked:true,max:maxVal+1,grid:{color:'rgba(255,255,255,.03)'},ticks:{color:'#565d80',font:{family:'JetBrains Mono',size:9},stepSize:1},border:{display:false}}}}});
-  }
+  trendChart=new Chart(canvas.getContext('2d'),{type:'bar',data:{labels:recent.map((_,i)=>`#${i+1}`),datasets:[
+    {label:'Passed',data:recent.map(r=>r.conclusion==='success'?1:0),backgroundColor:'rgba(31,209,149,.7)',borderRadius:3,borderSkipped:false},
+    {label:'Failed',data:recent.map(r=>r.conclusion==='failure'?1:0),backgroundColor:'rgba(240,91,122,.7)',borderRadius:3,borderSkipped:false}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d0f1a',borderColor:'#22263d',borderWidth:1,titleColor:'#dde1f5',bodyColor:'#565d80',padding:10,callbacks:{title:items=>recent[items[0].dataIndex]?.display_title?.slice(0,40)||''}}},scales:{x:{stacked:true,grid:{display:false},ticks:{color:'#565d80',font:{family:'JetBrains Mono',size:9}},border:{display:false}},y:{stacked:true,max:1,grid:{color:'rgba(255,255,255,.03)'},ticks:{display:false},border:{display:false}}},onClick:(_,els)=>{if(els.length)openRunModal(recent[els[0].index]);}}});
 }
 
-function renderDonut(completed,passed,failed,skipped){
-  const cancelled=completed.filter(r=>r.conclusion==='cancelled').length;
-  const other=completed.length-passed-failed-(skipped||0)-cancelled;
+function renderDonut(completed){
+  const passed=completed.filter(r=>r.conclusion==='success').length;
+  const failed=completed.filter(r=>r.conclusion==='failure').length;
+  const other=completed.length-passed-failed;
   document.getElementById('donut-loading').style.display='none';
   const canvas=document.getElementById('donutChart'); canvas.style.display='block';
   const leg=document.getElementById('donut-legend'); leg.style.display='flex';
-  leg.innerHTML=`<span style="color:var(--green)">● ${passed} Pass</span><span style="color:var(--red)">● ${failed} Fail</span><span style="color:var(--yellow)">● ${skipped||0} Skip</span><span style="color:var(--muted)">● ${cancelled} Cancel</span>`;
+  leg.innerHTML=`<span style="color:var(--green)">● ${passed} Pass</span><span style="color:var(--red)">● ${failed} Fail</span><span style="color:var(--muted)">● ${other} Other</span>`;
   if(donutChart)donutChart.destroy();
-  donutChart=new Chart(canvas.getContext('2d'),{type:'doughnut',data:{datasets:[{data:[passed,failed,skipped||0,cancelled],backgroundColor:['rgba(31,209,149,.8)','rgba(240,91,122,.8)','rgba(240,200,74,.6)','rgba(86,93,128,.4)'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,cutout:'72%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d0f1a',borderColor:'#22263d',borderWidth:1,callbacks:{label:ctx=>{const labels=['Passed','Failed','Skipped','Cancelled'];return ` ${labels[ctx.dataIndex]}: ${ctx.raw}`;}}}}}});
+  donutChart=new Chart(canvas.getContext('2d'),{type:'doughnut',data:{datasets:[{data:[passed,failed,other],backgroundColor:['rgba(31,209,149,.8)','rgba(240,91,122,.8)','rgba(86,93,128,.4)'],borderWidth:0,hoverOffset:4}]},options:{responsive:true,cutout:'72%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#0d0f1a',borderColor:'#22263d',borderWidth:1}}}});
 }
 
 function renderPipelineList(id,runs){
@@ -1079,7 +585,7 @@ function renderPipelineList(id,runs){
   el.innerHTML=runs.map(r=>{
     const cls=r.status==='in_progress'?'running':r.conclusion==='success'?'pass':r.conclusion==='failure'?'fail':'cancelled';
     const data=encodeURIComponent(JSON.stringify(r));
-    const ticketBtn = r.conclusion==='failure' && userRole==='qa' ? `<button class="create-ticket-btn" onclick="event.stopPropagation();openCreateTicketModal(JSON.parse(decodeURIComponent('${data}')))">🐛 Create Ticket</button>` : '';
+    const ticketBtn = r.conclusion==='failure' ? `<button class="create-ticket-btn" onclick="event.stopPropagation();openCreateTicketModal(JSON.parse(decodeURIComponent('${data}')))">🐛 Create Ticket</button>` : '';
     return `<div class="pipeline-item" onclick="openRunModal(decodeURIComponent('${data}'))">
       <div class="p-dot ${cls}"></div>
       <div class="p-info">
@@ -1157,47 +663,7 @@ function saveFutureNotes(){
   setTimeout(()=>btn.textContent='💾 Save Notes',2000);
 }
 
-function renderAllRuns(){
-  const searchQuery = (document.getElementById('runs-search')?.value || '').toLowerCase();
-  let runs = allRuns.slice(0,100);
-  if(runsFilter==='pass') runs=runs.filter(r=>r.conclusion==='success');
-  else if(runsFilter==='fail') runs=runs.filter(r=>r.conclusion==='failure');
-  if(searchQuery) runs=runs.filter(r=>{
-    const title=(r.display_title||r.head_commit?.message||'').toLowerCase();
-    const branch=(r.head_branch||'').toLowerCase();
-    const sha=(r.head_sha||'').toLowerCase();
-    return title.includes(searchQuery)||branch.includes(searchQuery)||sha.includes(searchQuery);
-  });
-  const badge=document.getElementById('runs-filter-badge');
-  if(badge){const filterLabel={all:'All runs',pass:'✓ Passed only',fail:'✗ Failed only'};badge.textContent=filterLabel[runsFilter]||'CLICK TO INSPECT';}
-  const listEl=document.getElementById('all-runs-list');
-  const filterBar=`<div style="display:flex;gap:8px;margin-bottom:14px">
-    <button onclick="runsFilter='all';renderAllRuns()" style="padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;border:1px solid;background:${runsFilter==='all'?'var(--accent-glow)':'var(--surface3)'};border-color:${runsFilter==='all'?'var(--accent)':'var(--border)'};color:${runsFilter==='all'?'var(--accent)':'var(--muted)'}">All (${allRuns.length})</button>
-    <button onclick="runsFilter='pass';renderAllRuns()" style="padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;border:1px solid;background:${runsFilter==='pass'?'var(--green-glow)':'var(--surface3)'};border-color:${runsFilter==='pass'?'var(--green)':'var(--border)'};color:${runsFilter==='pass'?'var(--green)':'var(--muted)'}">✓ Passed (${allRuns.filter(r=>r.conclusion==='success').length})</button>
-    <button onclick="runsFilter='fail';renderAllRuns()" style="padding:5px 12px;border-radius:6px;font-size:12px;font-weight:600;cursor:pointer;font-family:'Figtree',sans-serif;border:1px solid;background:${runsFilter==='fail'?'var(--red-glow)':'var(--surface3)'};border-color:${runsFilter==='fail'?'var(--red)':'var(--border)'};color:${runsFilter==='fail'?'var(--red)':'var(--muted)'}">✗ Failed (${allRuns.filter(r=>r.conclusion==='failure').length})</button>
-  </div>`;
-  listEl.innerHTML=filterBar;
-  const tempEl=document.createElement('div');
-  listEl.appendChild(tempEl);
-  renderPipelineList2(tempEl, runs);
-}
-
-function renderPipelineList2(el, runs){
-  if(!runs.length){el.innerHTML='<div class="empty"><div class="e-icon">🎭</div>No runs found.</div>';return;}
-  el.innerHTML=runs.map(r=>{
-    const cls=r.status==='in_progress'?'running':r.conclusion==='success'?'pass':r.conclusion==='failure'?'fail':'cancelled';
-    const data=encodeURIComponent(JSON.stringify(r));
-    const ticketBtn=r.conclusion==='failure'?`<button class="create-ticket-btn" onclick="event.stopPropagation();openCreateTicketModal(JSON.parse(decodeURIComponent('${data}')))">🐛 Create Ticket</button>`:'';
-    return `<div class="pipeline-item" onclick="openRunModal(decodeURIComponent('${data}'))">
-      <div class="p-dot ${cls}"></div>
-      <div class="p-info">
-        <div class="p-name">${(r.display_title||r.head_commit?.message||'Run').slice(0,50)}</div>
-        <div class="p-meta">${timeAgo(r.updated_at)} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${r.head_branch}</span></div>
-      </div>
-      <div style="display:flex;align-items:center;gap:8px">${ticketBtn}<span class="pill ${cls}">${cls==='pass'?'✓ pass':cls==='fail'?'✗ fail':cls==='running'?'⟳ running':'— '+cls}</span></div>
-    </div>`;
-  }).join('');
-}
+function renderAllRuns(){renderPipelineList('all-runs-list',allRuns.slice(0,40));}
 
 function renderCompare(){
   const now=new Date(), tm=now.getMonth(), ty=now.getFullYear();
@@ -1205,9 +671,8 @@ function renderCompare(){
   const getMRuns=(y,m)=>allRuns.filter(r=>{const d=new Date(r.created_at);return d.getFullYear()===y&&d.getMonth()===m&&r.status==='completed';});
   const stats=runs=>{
     const p=runs.filter(r=>r.conclusion==='success').length;
-    const f=runs.filter(r=>['failure','timed_out','action_required'].includes(r.conclusion)).length;
-    const countable=runs.filter(r=>!['skipped','neutral','stale','cancelled'].includes(r.conclusion));
-    const rate=countable.length?((p/countable.length)*100).toFixed(1):'0';
+    const f=runs.filter(r=>r.conclusion==='failure').length;
+    const rate=runs.length?((p/runs.length)*100).toFixed(1):'0';
     const d=runs.map(r=>(new Date(r.updated_at)-new Date(r.created_at))/1000).filter(d=>d>0);
     const avg=d.length?d.reduce((a,b)=>a+b,0)/d.length:0;
     return{total:runs.length,passed:p,failed:f,rate,avg};
@@ -1266,77 +731,18 @@ function closeModal(e){
 }
 
 // ── TICKETS ───────────────────────────────────────────────────
-let pendingTickets = [];
-let confirmedTickets = [];
-let fixedTickets = [];
+let pendingTickets = JSON.parse(localStorage.getItem('pw_pending_tickets') || '[]');
+let confirmedTickets = JSON.parse(localStorage.getItem('pw_confirmed_tickets') || '[]');
+let fixedTickets = JSON.parse(localStorage.getItem('pw_fixed_tickets') || '[]');
 let currentEditTicket = null;
 let lastProcessedRunId = localStorage.getItem('pw_last_processed_run') || '';
 
-async function loadTicketsFromSupabase(){
-  try{
-    const repoEncoded = encodeURIComponent(currentRepo);
-    const res = await sbFetch(`tickets?select=*&repo=eq.${repoEncoded}&order=created_at.desc`);
-    const all = await res.json();
-    pendingTickets = all.filter(t=>t.status==='pending').map(dbToTicket);
-    confirmedTickets = all.filter(t=>t.status==='confirmed').map(dbToTicket);
-    fixedTickets = all.filter(t=>t.status==='fixed').map(dbToTicket);
-    renderTickets();
-  } catch(e){ console.error('Failed to load tickets:', e); }
+function saveTickets(){
+  localStorage.setItem('pw_pending_tickets', JSON.stringify(pendingTickets));
+  localStorage.setItem('pw_confirmed_tickets', JSON.stringify(confirmedTickets));
+  localStorage.setItem('pw_fixed_tickets', JSON.stringify(fixedTickets));
+  updateTicketBadge();
 }
-
-function dbToTicket(t){
-  return {
-    id: t.id, ticketRef: t.ticket_ref, status: t.status,
-    title: t.title, branch: t.branch, summary: t.summary,
-    steps: t.steps, expected: t.expected, actual: t.actual,
-    evidence: t.evidence, notes: t.notes, priority: t.priority,
-    creator: t.creator, runUrl: t.run_url, testKey: t.test_key,
-    autoGenerated: t.auto_generated, createdAt: t.created_at,
-    confirmedAt: t.confirmed_at, fixedAt: t.fixed_at,
-    fixedInRun: t.fixed_in_run, fixedInBranch: t.fixed_in_branch,
-    fixedRunUrl: t.fixed_run_url, runId: t.run_id, runNumber: t.run_number,
-    repo: t.repo||currentRepo
-  };
-}
-
-function ticketToDb(t, status){
-  return {
-    id: t.id, ticket_ref: t.ticketRef, status: status||t.status||'pending',
-    title: t.title, branch: t.branch, summary: t.summary,
-    steps: t.steps, expected: t.expected, actual: t.actual,
-    evidence: t.evidence, notes: t.notes, priority: t.priority,
-    creator: t.creator, run_url: t.runUrl, test_key: t.testKey,
-    auto_generated: t.autoGenerated||false, created_at: t.createdAt||new Date().toISOString(),
-    confirmed_at: t.confirmedAt||null, fixed_at: t.fixedAt||null,
-    fixed_in_run: t.fixedInRun||null, fixed_in_branch: t.fixedInBranch||null,
-    fixed_run_url: t.fixedRunUrl||null, run_id: t.runId||null, run_number: t.runNumber||null
-  };
-}
-
-async function saveTicketToSupabase(ticket, status){
-  const body = ticketToDb(ticket, status);
-  const res = await sbFetch('tickets', {
-    method: 'POST',
-    prefer: 'resolution=merge-duplicates,return=representation',
-    body: JSON.stringify(body)
-  });
-  return res.ok;
-}
-
-async function updateTicketInSupabase(id, updates){
-  const res = await sbFetch(`tickets?id=eq.${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify(updates)
-  });
-  return res.ok;
-}
-
-async function deleteTicketFromSupabase(id){
-  const res = await sbFetch(`tickets?id=eq.${id}`, { method: 'DELETE' });
-  return res.ok;
-}
-
-
 
 function updateTicketBadge(){
   const badge = document.getElementById('ticket-count-badge');
@@ -1359,7 +765,7 @@ async function autoGenerateTicketsFromLatestRun(){
 
   try {
     // Get artifacts for latest run
-    const artRes = await ghFetch(`https://api.github.com/repos/${currentRepo}/actions/runs/${latestRun.id}/artifacts`);
+    const artRes = await ghFetch(`https://api.github.com/repos/${REPO}/actions/runs/${latestRun.id}/artifacts`);
     const artData = await artRes.json();
     const artifacts = artData.artifacts || [];
     const resultsArtifact = artifacts.find(a => a.name === 'playwright-results');
@@ -1376,7 +782,7 @@ async function autoGenerateTicketsFromLatestRun(){
     }
 
     // Download the artifact zip — GitHub API requires redirect
-    const zipRes = await ghFetch(`https://api.github.com/repos/${currentRepo}/actions/artifacts/${resultsArtifact.id}/zip`);
+    const zipRes = await ghFetch(`https://api.github.com/repos/${REPO}/actions/artifacts/${resultsArtifact.id}/zip`);
     // We can't unzip in browser easily, so fall back to run-level ticket if failed
     if(latestRun.conclusion === 'failure'){
       autoCreateRunTicket(latestRun);
@@ -1390,7 +796,7 @@ async function autoGenerateTicketsFromLatestRun(){
   }
 }
 
-async function autoCreateRunTicket(run){
+function autoCreateRunTicket(run){
   const testKey = `run-${run.id}`;
   // No duplicate — check if ticket already exists for this run
   const alreadyExists = [...pendingTickets, ...confirmedTickets, ...fixedTickets]
@@ -1414,43 +820,44 @@ async function autoCreateRunTicket(run){
     autoGenerated: true,
   };
 
-  await saveTicketToSupabase(ticket, 'pending');
   pendingTickets.push(ticket);
-  updateTicketBadge();
+  saveTickets();
   renderTickets();
 }
 
-async function checkIfPreviouslyFailedTestsNowPass(latestRun, passedTests){
+function checkIfPreviouslyFailedTestsNowPass(latestRun, passedTests){
   if(latestRun.conclusion !== 'success') return;
-  const nowFixed = [...pendingTickets, ...confirmedTickets].filter(t =>
-    t.autoGenerated && t.runId && t.runId !== latestRun.id
-  );
+
+  // Find any pending/confirmed tickets from previous runs that are now fixed
+  const nowFixed = [...pendingTickets, ...confirmedTickets].filter(t => {
+    // If ticket was auto-generated from a run, and latest run passed — mark as fixed
+    return t.autoGenerated && t.runId && t.runId !== latestRun.id;
+  });
+
   if(!nowFixed.length) return;
-  for(const t of nowFixed){
-    const fixedAt = new Date().toISOString();
-    await updateTicketInSupabase(t.id, {
-      status:'fixed', fixed_at: fixedAt,
-      fixed_in_run: latestRun.run_number,
-      fixed_in_branch: latestRun.head_branch,
-      fixed_run_url: latestRun.html_url,
-    });
-    fixedTickets.push({...t, status:'fixed', fixedAt, fixedInRun:latestRun.run_number, fixedInBranch:latestRun.head_branch, fixedRunUrl:latestRun.html_url});
-    pendingTickets = pendingTickets.filter(p=>p.id!==t.id);
-    confirmedTickets = confirmedTickets.filter(c=>c.id!==t.id);
+
+  nowFixed.forEach(t => {
+    const fixedTicket = {
+      ...t,
+      fixedAt: new Date().toISOString(),
+      fixedInRun: latestRun.run_number,
+      fixedInBranch: latestRun.head_branch,
+      fixedRunUrl: latestRun.html_url,
+    };
+    fixedTickets.push(fixedTicket);
+    pendingTickets = pendingTickets.filter(p => p.id !== t.id);
+    confirmedTickets = confirmedTickets.filter(c => c.id !== t.id);
+  });
+
+  if(nowFixed.length) {
+    saveTickets();
+    renderTickets();
   }
-  updateTicketBadge();
-  renderTickets();
 }
 
 function markRunAsProcessed(runId){
   lastProcessedRunId = runId.toString();
   localStorage.setItem('pw_last_processed_run', lastProcessedRunId);
-}
-
-function genTicketId(){
-  const prefix='PW';
-  const num=String(pendingTickets.length+confirmedTickets.length+fixedTickets.length+1).padStart(4,'0');
-  return `${prefix}-${num}`;
 }
 
 function openCreateTicketModal(run){
@@ -1463,9 +870,6 @@ function openCreateTicketModal(run){
   document.getElementById('t-actual').value = `Test failed with conclusion: ${run.conclusion}. See GitHub Actions for full error log.`;
   document.getElementById('t-evidence').value = run.html_url || '';
   document.getElementById('t-notes').value = `Commit: ${run.head_sha?.slice(0,7)} · Triggered by: ${run.triggering_actor?.login || 'unknown'} · Duration: ${fmtDur((new Date(run.updated_at)-new Date(run.created_at))/1000)}`;
-  document.getElementById('t-priority').value = 'medium';
-  document.getElementById('t-creator').value = localStorage.getItem('pw_creator_name') || '';
-  document.getElementById('t-ticket-id').value = genTicketId();
   document.getElementById('t-title').dataset.runId = run.id;
   document.getElementById('t-title').dataset.runUrl = run.html_url;
   document.getElementById('ticket-modal-overlay').classList.add('open');
@@ -1484,21 +888,13 @@ function openEditTicketModal(ticketId, fromList){
   document.getElementById('t-actual').value = ticket.actual;
   document.getElementById('t-evidence').value = ticket.evidence;
   document.getElementById('t-notes').value = ticket.notes;
-  document.getElementById('t-priority').value = ticket.priority || 'medium';
-  document.getElementById('t-creator').value = ticket.creator || '';
-  document.getElementById('t-ticket-id').value = ticket.ticketRef || genTicketId();
   document.getElementById('ticket-modal-overlay').classList.add('open');
 }
 
-async function confirmTicket(){
-  const creator = document.getElementById('t-creator').value.trim();
-  if(creator) localStorage.setItem('pw_creator_name', creator);
-  const existingTicket = currentEditTicket ?
-    ([...pendingTickets,...confirmedTickets,...fixedTickets].find(t=>t.id===currentEditTicket.ticketId)||{}) : {};
+function confirmTicket(){
   const ticket = {
     id: currentEditTicket ? currentEditTicket.ticketId : Date.now().toString(),
-    ticketRef: document.getElementById('t-ticket-id').value.trim(),
-    testKey: existingTicket.testKey || null,
+    testKey: currentEditTicket ? (pendingTickets.find(t=>t.id===currentEditTicket.ticketId)||confirmedTickets.find(t=>t.id===currentEditTicket.ticketId)||{}).testKey : null,
     title: document.getElementById('t-title').value.trim(),
     branch: document.getElementById('t-branch').value.trim(),
     summary: document.getElementById('t-summary').value.trim(),
@@ -1507,56 +903,47 @@ async function confirmTicket(){
     actual: document.getElementById('t-actual').value.trim(),
     evidence: document.getElementById('t-evidence').value.trim(),
     notes: document.getElementById('t-notes').value.trim(),
-    priority: document.getElementById('t-priority').value,
-    creator: creator,
-    createdAt: existingTicket.createdAt || new Date().toISOString(),
+    createdAt: new Date().toISOString(),
     runUrl: document.getElementById('t-title').dataset.runUrl || '',
     autoGenerated: false,
-    status: currentEditTicket ? (existingTicket.status||'pending') : 'pending',
   };
   if(!ticket.title){ alert('Please add a bug title.'); return; }
-  await saveTicketToSupabase(ticket, ticket.status);
+
   if(currentEditTicket){
     const {ticketId, fromList} = currentEditTicket;
-    if(fromList==='pending'){ const idx=pendingTickets.findIndex(t=>t.id===ticketId); if(idx>-1) pendingTickets[idx]={...pendingTickets[idx],...ticket}; }
-    else if(fromList==='confirmed'){ const idx=confirmedTickets.findIndex(t=>t.id===ticketId); if(idx>-1) confirmedTickets[idx]={...confirmedTickets[idx],...ticket}; }
-    else if(fromList==='fixed'){ const idx=fixedTickets.findIndex(t=>t.id===ticketId); if(idx>-1) fixedTickets[idx]={...fixedTickets[idx],...ticket}; }
+    if(fromList === 'pending'){ const idx=pendingTickets.findIndex(t=>t.id===ticketId); if(idx>-1) pendingTickets[idx]={...pendingTickets[idx],...ticket}; }
+    else if(fromList === 'confirmed'){ const idx=confirmedTickets.findIndex(t=>t.id===ticketId); if(idx>-1) confirmedTickets[idx]={...confirmedTickets[idx],...ticket}; }
+    else if(fromList === 'fixed'){ const idx=fixedTickets.findIndex(t=>t.id===ticketId); if(idx>-1) fixedTickets[idx]={...fixedTickets[idx],...ticket}; }
   } else {
     pendingTickets.push(ticket);
   }
-  updateTicketBadge();
+
+  saveTickets();
   closeTicketModal();
   renderTickets();
   const ticketNav = document.querySelector('[onclick="showPage(\'tickets\',this)"]');
   if(ticketNav) showPage('tickets', ticketNav);
 }
 
-async function approveTicket(id){
-  const ticket = pendingTickets.find(t=>t.id===id);
-  if(!ticket) return;
-  const confirmedAt = new Date().toISOString();
-  await updateTicketInSupabase(id, {status:'confirmed', confirmed_at: confirmedAt});
-  pendingTickets = pendingTickets.filter(t=>t.id!==id);
-  confirmedTickets.push({...ticket, status:'confirmed', confirmedAt});
-  updateTicketBadge(); renderTickets();
+function approveTicket(id){
+  const idx = pendingTickets.findIndex(t => t.id === id);
+  if(idx > -1){
+    confirmedTickets.push({...pendingTickets[idx], confirmedAt: new Date().toISOString()});
+    pendingTickets.splice(idx, 1);
+    saveTickets(); renderTickets();
+  }
 }
 
-async function deleteTicket(id, fromList){
+function deleteTicket(id, fromList){
   if(!confirm('Delete this ticket?')) return;
-  await deleteTicketFromSupabase(id);
   if(fromList==='pending') pendingTickets = pendingTickets.filter(t=>t.id!==id);
   else if(fromList==='confirmed') confirmedTickets = confirmedTickets.filter(t=>t.id!==id);
   else if(fromList==='fixed') fixedTickets = fixedTickets.filter(t=>t.id!==id);
-  renderTickets();
+  saveTickets(); renderTickets();
 }
 
 function pushToJira(id){
   alert('🚧 Jira integration coming soon!\n\nThis ticket is confirmed and ready.\nWhen Jira is connected, it will be pushed automatically.');
-}
-
-function priorityBadge(p){
-  const labels={critical:'🔴 Critical',high:'🟡 High',medium:'🔵 Medium',low:'⚪ Low'};
-  return `<span class="priority-badge ${p||'medium'}">${labels[p]||'🔵 Medium'}</span>`;
 }
 
 function renderTickets(){
@@ -1572,23 +959,16 @@ function renderTickets(){
     pendingEl.innerHTML = pendingTickets.map((t,i) => `
       <div class="ticket-item" style="animation-delay:${i*.05}s">
         <div class="ticket-hd">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1">
-            ${t.ticketRef?`<span class="ticket-id">${t.ticketRef}</span>`:''}
-            <div class="ticket-title">${t.title} ${t.autoGenerated?'<span style="font-size:10px;background:var(--accent-glow);color:var(--accent);padding:2px 6px;border-radius:4px;font-weight:600;margin-left:4px">AUTO</span>':''}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            ${priorityBadge(t.priority)}
-            <span class="pill fail">pending</span>
-          </div>
+          <div class="ticket-title">${t.title} ${t.autoGenerated ? '<span style="font-size:10px;background:var(--accent-glow);color:var(--accent);padding:2px 6px;border-radius:4px;font-weight:600;margin-left:6px">AUTO</span>' : ''}</div>
+          <span class="pill fail">pending</span>
         </div>
-        <div class="ticket-meta">📅 ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span>${t.creator?` &nbsp;·&nbsp; 👤 ${t.creator}`:''}</div>
+        <div class="ticket-meta">📅 ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span></div>
         <div class="ticket-summary">${t.summary}</div>
-        ${t.evidence?`<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>`:''}
+        ${t.evidence ? `<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>` : ''}
         <div class="ticket-actions">
-          ${userRole==='stakeholder' ? '' : `<button class="ticket-btn confirm" onclick="approveTicket('${t.id}')">✅ Approve</button>`}
-          ${userRole==='stakeholder' ? '' : `<button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','pending')">✏️ Edit</button>`}
-          ${userRole==='stakeholder' ? '' : `<button class="ticket-btn delete" onclick="deleteTicket('${t.id}','pending')">🗑️ Delete</button>`}
-          ${userRole==='stakeholder' ? '<span style="font-size:12px;color:var(--muted)">👁️ Read-only</span>' : ''}
+          <button class="ticket-btn confirm" onclick="approveTicket('${t.id}')">✅ Approve</button>
+          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','pending')">✏️ Edit</button>
+          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}','pending')">🗑️ Delete</button>
         </div>
       </div>`).join('');
   }
@@ -1601,22 +981,16 @@ function renderTickets(){
     confirmedEl.innerHTML = confirmedTickets.map((t,i) => `
       <div class="ticket-item" style="animation-delay:${i*.05}s;border-color:rgba(31,209,149,.2)">
         <div class="ticket-hd">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1">
-            ${t.ticketRef?`<span class="ticket-id">${t.ticketRef}</span>`:''}
-            <div class="ticket-title">${t.title}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            ${priorityBadge(t.priority)}
-            <span class="pill pass">confirmed</span>
-          </div>
+          <div class="ticket-title">${t.title}</div>
+          <span class="pill pass">confirmed</span>
         </div>
-        <div class="ticket-meta">✅ Confirmed ${new Date(t.confirmedAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span>${t.creator?` &nbsp;·&nbsp; 👤 ${t.creator}`:''}</div>
+        <div class="ticket-meta">✅ Confirmed ${new Date(t.confirmedAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span></div>
         <div class="ticket-summary">${t.summary}</div>
-        ${t.evidence?`<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>`:''}
+        ${t.evidence ? `<div style="font-size:12px;margin-bottom:8px"><a href="${t.evidence}" target="_blank" style="color:var(--accent);text-decoration:none">🔗 View Evidence</a></div>` : ''}
         <div class="ticket-actions">
-          ${userRole==='stakeholder' ? '<span style="font-size:12px;color:var(--muted)">👁️ Read-only</span>' : `<button class="ticket-btn push" onclick="pushToJira('${t.id}')">🚀 Push to Jira</button>`}
-          ${userRole==='stakeholder' ? '' : `<button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','confirmed')">✏️ Edit</button>`}
-          ${userRole==='stakeholder' ? '' : `<button class="ticket-btn delete" onclick="deleteTicket('${t.id}','confirmed')">🗑️ Delete</button>`}
+          <button class="ticket-btn push" onclick="pushToJira('${t.id}')">🚀 Push to Jira</button>
+          <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','confirmed')">✏️ Edit</button>
+          <button class="ticket-btn delete" onclick="deleteTicket('${t.id}','confirmed')">🗑️ Delete</button>
         </div>
       </div>`).join('');
   }
@@ -1629,16 +1003,10 @@ function renderTickets(){
     fixedEl.innerHTML = fixedTickets.map((t,i) => `
       <div class="ticket-item" style="animation-delay:${i*.05}s;border-color:rgba(31,209,149,.3)">
         <div class="ticket-hd">
-          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1">
-            ${t.ticketRef?`<span class="ticket-id">${t.ticketRef}</span>`:''}
-            <div class="ticket-title">${t.title}</div>
-          </div>
-          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
-            ${priorityBadge(t.priority)}
-            <span class="pill fixed">fixed</span>
-          </div>
+          <div class="ticket-title">${t.title}</div>
+          <span class="pill fixed">fixed</span>
         </div>
-        <div class="ticket-meta">📅 Originally: ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span>${t.creator?` &nbsp;·&nbsp; 👤 ${t.creator}`:''}</div>
+        <div class="ticket-meta">📅 Originally found: ${new Date(t.createdAt).toLocaleString()} &nbsp;·&nbsp; <span class="branch-badge">⎇ ${t.branch}</span></div>
         <div class="fixed-badge">✅ Fixed in Run #${t.fixedInRun} · ${t.fixedInBranch} &nbsp;<a href="${t.fixedRunUrl}" target="_blank" style="color:var(--green);text-decoration:none">↗</a></div>
         <div class="ticket-actions" style="margin-top:12px">
           <button class="ticket-btn edit" onclick="openEditTicketModal('${t.id}','fixed')">✏️ View Details</button>
@@ -1655,400 +1023,16 @@ function closeTicketModal(e){
     document.getElementById('ticket-modal-overlay').classList.remove('open');
 }
 // ── END TICKETS ────────────────────────────────────────────────
-
-function updateTicketBadge(){
-  const badge = document.getElementById('ticket-count-badge');
-  if(!badge) return;
-  if(pendingTickets.length > 0){
-    badge.style.display='inline-block';
-    badge.textContent=pendingTickets.length;
-  } else {
-    badge.style.display='none';
-  }
-}
-
-async function renderSettings(){
-  const body = document.getElementById('settings-body');
-  const badge = document.getElementById('settings-role-badge');
-  if(!body) return;
-  if(badge) badge.textContent = userRole === 'stakeholder' ? '👔 STAKEHOLDER VIEW' : '👩‍💻 QA VIEW';
-
-  if(userRole === 'stakeholder'){
-    body.innerHTML=`
-      <div style="padding:12px 0;color:var(--muted);font-size:13px;line-height:1.8">
-        You are logged in as a <strong style="color:var(--purple)">Stakeholder</strong>.<br>
-        You have read-only access to the dashboard.<br>
-        Contact your QA lead to make changes.
-      </div>`;
-    return;
-  }
-
-  // QA settings
-  body.innerHTML=`<div class="loading"><div class="spinner"></div></div>`;
-  try{
-    const res = await sbFetch('settings?key=eq.manager_password&select=value');
-    const data = await res.json();
-    const currentPw = data[0]?.value || '';
-    body.innerHTML=`
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;padding:8px 0">
-        <div>
-          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">🔑 Stakeholder Password</div>
-          <div class="form-group">
-            <label>Current Password</label>
-            <input type="text" value="${currentPw}" id="current-pw-display" readonly style="opacity:.6;font-family:'JetBrains Mono',monospace;font-size:12px;" />
-          </div>
-          <div class="form-group">
-            <label>New Password</label>
-            <input type="password" id="new-stakeholder-pw" placeholder="Enter new stakeholder password" />
-          </div>
-          <button class="save-btn" onclick="updateManagerPassword()">🔒 Update Password</button>
-          <div id="pw-msg" style="font-size:12px;margin-top:8px;display:none"></div>
-        </div>
-        <div>
-          <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">👤 Your Profile</div>
-          <div class="form-group">
-            <label>Your Name (for tickets)</label>
-            <input type="text" id="settings-creator" value="${localStorage.getItem('pw_creator_name')||''}" placeholder="Your name" />
-          </div>
-          <button class="save-btn" onclick="saveCreatorName()">💾 Save Name</button>
-          <div style="margin-top:24px">
-            <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:14px">🗄️ Database</div>
-            <div style="font-size:12px;color:var(--muted);line-height:1.8">
-              <div>Supabase: <span style="color:var(--green);font-family:'JetBrains Mono',monospace">connected</span></div>
-              <div>Pending tickets: <strong>${pendingTickets.length}</strong></div>
-              <div>Confirmed tickets: <strong>${confirmedTickets.length}</strong></div>
-              <div>Fixed tickets: <strong>${fixedTickets.length}</strong></div>
-            </div>
-          </div>
-        </div>
-      </div>`;
-  } catch(e){
-    body.innerHTML='<div class="empty">⚠️ Could not load settings.</div>';
-  }
-}
-
-async function updateManagerPassword(){
-  const newPw = document.getElementById('new-stakeholder-pw').value.trim();
-  const msg = document.getElementById('pw-msg');
-  if(!newPw){ msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='Please enter a new password.'; return; }
-  const res = await sbFetch('settings?key=eq.manager_password', {
-    method:'PATCH', body: JSON.stringify({value: newPw})
-  });
-  if(res.ok){
-    msg.style.display='block'; msg.style.color='var(--green)';
-    msg.textContent='✅ Password updated! Share the new password with your stakeholders.';
-    document.getElementById('current-pw-display').value = newPw;
-    document.getElementById('new-stakeholder-pw').value = '';
-  } else {
-    msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='❌ Failed to update. Try again.';
-  }
-}
-
-function saveCreatorName(){
-  const name = document.getElementById('settings-creator').value.trim();
-  localStorage.setItem('pw_creator_name', name);
-  const btn = event.target; btn.textContent='✅ Saved!';
-  setTimeout(()=>btn.textContent='💾 Save Name', 2000);
-}
-
-
-
-// ─── STAKEHOLDER DASHBOARD ────────────────────────────────────────────────
-let shDateRange = 'day';
-let shEnv = 'all';
-let shType = 'all';
-let shTrendChart = null;
-let shDonutChart = null;
-let shAllRuns = [];
-let shReleases = [];
-
-function enterStakeholderDashboard(){
-  document.getElementById('auth-screen').style.display='none';
-  document.getElementById('dashboard').style.display='none';
-  document.getElementById('stakeholder-dashboard').style.display='block';
-  loadStakeholderData();
-  initShInfoIcons();
-}
-
-function initShInfoIcons(){
-  document.querySelectorAll('.sh-info').forEach(el=>{
-    el.addEventListener('mouseenter', e=>{
-      const pop = document.getElementById('sh-info-popup');
-      pop.textContent = el.dataset.tip;
-      pop.style.display='block';
-      pop.style.left = (e.clientX+12)+'px';
-      pop.style.top = (e.clientY-10)+'px';
-    });
-    el.addEventListener('mouseleave', ()=>{
-      document.getElementById('sh-info-popup').style.display='none';
-    });
-  });
-}
-
-function shSetDate(range){
-  shDateRange = range;
-  document.querySelectorAll('.sh-date-btn').forEach(b=>b.classList.remove('active-date'));
-  document.getElementById('sh-btn-'+range).classList.add('active-date');
-  renderStakeholderDashboard();
-}
-
-function shSetEnv(env){ shEnv=env; renderStakeholderDashboard(); }
-function shSetType(type){ shType=type; renderStakeholderDashboard(); }
-
-function shSwitchRepo(repo){
-  currentRepo = repo;
-  loadStakeholderData();
-}
-
-async function loadStakeholderData(){
-  document.getElementById('sh-topbar-sub').textContent = 'Syncing...';
-  try{
-    const [rr, relR] = await Promise.all([
-      ghFetch(`https://api.github.com/repos/${currentRepo}/actions/workflows/${WORKFLOW}/runs?per_page=100`),
-      ghFetch(`https://api.github.com/repos/${currentRepo}/releases?per_page=5`)
-    ]);
-    shAllRuns = (await rr.json()).workflow_runs||[];
-    shReleases = relR.ok ? await relR.json() : [];
-
-    // Fetch all repos for dropdown + breakdown
-    const repoR = await ghFetch('https://api.github.com/user/repos?per_page=100&sort=updated&affiliation=owner,collaborator,organization_member');
-    if(repoR.ok){
-      const allRepos = (await repoR.json()).filter(r=>!r.archived);
-      const sel = document.getElementById('sh-repo-select');
-      sel.innerHTML = allRepos.map(r=>`<option value="${r.full_name}" ${r.full_name===currentRepo?'selected':''}>${r.name}</option>`).join('');
-      renderRepoBreakdown(allRepos);
-    }
-
-    const l = shAllRuns[0];
-    document.getElementById('sh-topbar-sub').textContent = l ? `Last run ${timeAgo(l.updated_at)}` : 'No runs yet';
-    renderStakeholderDashboard();
-  } catch(e){
-    document.getElementById('sh-topbar-sub').textContent = '⚠️ Failed to sync';
-  }
-}
-
-function shFilteredRuns(){
-  const now = Date.now();
-  const cutoffs = { day: 1, week: 7, month: 30, year: 365 };
-  const days = cutoffs[shDateRange] || 1;
-  return shAllRuns.filter(r => {
-    const age = (now - new Date(r.created_at)) / 86400000;
-    if(age > days) return false;
-    if(shEnv !== 'all' && !r.display_title?.toLowerCase().includes(shEnv) && !r.head_branch?.toLowerCase().includes(shEnv)) return false;
-    if(shType !== 'all' && !r.display_title?.toLowerCase().includes(shType) && !r.name?.toLowerCase().includes(shType)) return false;
-    return true;
-  });
-}
-
-function renderStakeholderDashboard(){
-  const runs = shFilteredRuns();
-  renderShStats(runs);
-  renderShTrend(runs);
-  renderShDonut(runs);
-  renderShRuns(runs);
-  renderShRelease();
-}
-
-function renderShStats(runs){
-  const total = runs.length;
-  const passed = runs.filter(r=>r.conclusion==='success').length;
-  const failed = runs.filter(r=>r.conclusion==='failure').length;
-  const rate = total ? Math.round((passed/total)*100) : 0;
-  const durations = runs.filter(r=>r.created_at&&r.updated_at).map(r=>(new Date(r.updated_at)-new Date(r.created_at))/1000);
-  const avgDur = durations.length ? Math.round(durations.reduce((a,b)=>a+b,0)/durations.length) : 0;
-
-  document.getElementById('sh-pass-rate').textContent = total ? rate+'%' : '—';
-  document.getElementById('sh-pass-rate').style.color = rate>=80?'var(--green)':rate>=60?'var(--yellow)':'var(--red)';
-  document.getElementById('sh-pass-rate-sub').textContent = `${passed} of ${total} runs passed`;
-  document.getElementById('sh-fail-count').textContent = total ? failed : '—';
-  document.getElementById('sh-fail-sub').textContent = total ? `${Math.round((failed/total)*100)}% failure rate` : 'no data';
-  document.getElementById('sh-total-runs').textContent = total || '—';
-  document.getElementById('sh-total-sub').textContent = total ? `in selected period` : 'no data';
-  document.getElementById('sh-avg-dur').textContent = avgDur ? fmtDur(avgDur) : '—';
-  document.getElementById('sh-dur-sub').textContent = avgDur ? 'average per run' : 'no data';
-}
-
-function renderShTrend(runs){
-  const groups = {};
-  const fmt = r => {
-    const d = new Date(r.created_at);
-    if(shDateRange==='day') return d.getHours()+':00';
-    if(shDateRange==='year') return d.toLocaleString('default',{month:'short'});
-    return d.toLocaleDateString('default',{month:'short',day:'numeric'});
-  };
-  runs.forEach(r=>{
-    const k = fmt(r);
-    if(!groups[k]) groups[k]={pass:0,fail:0};
-    if(r.conclusion==='success') groups[k].pass++;
-    else if(r.conclusion==='failure') groups[k].fail++;
-  });
-  const labels = Object.keys(groups).reverse();
-  const passData = labels.map(l=>groups[l].pass);
-  const failData = labels.map(l=>groups[l].fail);
-
-  if(shTrendChart) shTrendChart.destroy();
-  const ctx = document.getElementById('sh-trend-chart').getContext('2d');
-  shTrendChart = new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels,
-      datasets:[
-        {label:'Pass',data:passData,backgroundColor:'#1fd195',borderRadius:4,barPercentage:.6,categoryPercentage:.7},
-        {label:'Fail',data:failData,backgroundColor:'#f05b7a',borderRadius:4,barPercentage:.6,categoryPercentage:.7}
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      interaction:{mode:'index',intersect:false},
-      plugins:{
-        legend:{display:false},
-        tooltip:{
-          enabled:false,
-          external(ctx2){
-            const tip=document.getElementById('sh-tooltip');
-            if(ctx2.tooltip.opacity===0){tip.style.display='none';return;}
-            const i=ctx2.tooltip.dataPoints[0].dataIndex;
-            const total=(passData[i]||0)+(failData[i]||0);
-            const rate=total?Math.round((passData[i]/total)*100):0;
-            tip.innerHTML=`<div style="font-weight:600;margin-bottom:4px">${labels[i]}</div><div style="color:var(--green)">Pass: ${passData[i]}</div><div style="color:var(--red)">Fail: ${failData[i]}</div><div style="color:var(--muted);font-size:10px;margin-top:4px">Pass rate: ${rate}%</div>`;
-            tip.style.display='block';
-            const x=ctx2.tooltip.caretX;
-            const w=document.getElementById('sh-trend-chart').getBoundingClientRect().width;
-            tip.style.left=(x>w/2?x-140:x+12)+'px';
-            tip.style.top='20px';
-          }
-        }
-      },
-      scales:{
-        x:{grid:{display:false},ticks:{color:'#565d80',font:{size:10},maxTicksLimit:8}},
-        y:{grid:{color:'rgba(86,93,128,.15)'},ticks:{color:'#565d80',font:{size:10},stepSize:1},beginAtZero:true}
-      }
-    }
-  });
-}
-
-function renderShDonut(runs){
-  const passed = runs.filter(r=>r.conclusion==='success').length;
-  const failed = runs.filter(r=>r.conclusion==='failure').length;
-  const skipped = runs.filter(r=>r.conclusion==='skipped'||r.conclusion==='neutral').length;
-  const cancelled = runs.filter(r=>r.conclusion==='cancelled').length;
-  const total = passed+failed+skipped+cancelled;
-
-  if(shDonutChart) shDonutChart.destroy();
-  const ctx = document.getElementById('sh-donut-chart').getContext('2d');
-  shDonutChart = new Chart(ctx,{
-    type:'doughnut',
-    data:{
-      labels:['Pass','Fail','Skip','Cancel'],
-      datasets:[{data:[passed,failed,skipped,cancelled],backgroundColor:['#1fd195','#f05b7a','#5b8af0','#565d80'],borderWidth:0,hoverOffset:4}]
-    },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw} (${total?Math.round(c.raw/total*100):0}%)`}}},cutout:'70%'}
-  });
-
-  document.getElementById('sh-donut-legend').innerHTML=[
-    ['Pass','#1fd195',passed],['Fail','#f05b7a',failed],['Skip','#5b8af0',skipped],['Cancel','#565d80',cancelled]
-  ].map(([l,c,v])=>`<div style="display:flex;align-items:center;justify-content:space-between"><div style="display:flex;align-items:center;gap:6px"><span style="width:8px;height:8px;border-radius:2px;background:${c};display:inline-block"></span><span style="color:var(--muted)">${l}</span></div><span style="color:var(--text);font-weight:500">${v} <span style="color:var(--muted);font-size:10px">(${total?Math.round(v/total*100):0}%)</span></span></div>`).join('');
-}
-
-function renderShRuns(runs){
-  const el = document.getElementById('sh-runs-list');
-  if(!runs.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No runs in selected period</div>';return;}
-  el.innerHTML = runs.slice(0,10).map(r=>{
-    const cls = r.conclusion==='success'?'pass':r.conclusion==='failure'?'fail':'cancelled';
-    const color = cls==='pass'?'var(--green)':cls==='fail'?'var(--red)':'var(--muted)';
-    const icon = cls==='pass'?'✓':cls==='fail'?'✗':'—';
-    const type = r.display_title?.match(/\[(smoke|sanity|regression)\]/i)?.[1] || r.name?.match(/(smoke|sanity|regression)/i)?.[1] || '';
-    const typeBadge = type ? `<span style="background:var(--accent-glow);color:var(--accent);font-size:10px;padding:2px 8px;border-radius:10px;text-transform:capitalize">${type}</span>` : '';
-    return `<div class="sh-run-row">
-      <span style="color:${color};font-size:14px;font-weight:700;width:16px">${icon}</span>
-      <div style="flex:1;min-width:0">
-        <div style="font-size:12px;font-weight:500;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${(r.display_title||r.head_commit?.message||'Run').slice(0,60)}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">${timeAgo(r.updated_at)} · ${r.head_branch}</div>
-      </div>
-      ${typeBadge}
-      <span style="font-size:11px;color:var(--muted)">${fmtDur((new Date(r.updated_at)-new Date(r.created_at))/1000)}</span>
-      <span style="font-size:11px;font-weight:600;color:${color};min-width:40px;text-align:right">${cls}</span>
-    </div>`;
-  }).join('');
-}
-
-function renderShRelease(){
-  const rel = shReleases[0];
-  if(!rel){
-    document.getElementById('sh-release-tag').textContent='No release';
-    document.getElementById('sh-release-name').textContent='No releases found';
-    document.getElementById('sh-release-date').textContent='—';
-    document.getElementById('sh-release-body').textContent='—';
-    return;
-  }
-  document.getElementById('sh-release-tag').textContent=rel.tag_name||'—';
-  document.getElementById('sh-release-name').textContent=rel.name||rel.tag_name||'—';
-  document.getElementById('sh-release-date').textContent='Released '+new Date(rel.published_at).toLocaleDateString('default',{year:'numeric',month:'long',day:'numeric'});
-  document.getElementById('sh-release-body').textContent=rel.body||'No release notes provided.';
-}
-
-async function renderRepoBreakdown(allRepos){
-  const el = document.getElementById('sh-repo-breakdown');
-  const topRepos = allRepos.slice(0,5);
-  el.innerHTML='<div style="color:var(--muted);font-size:12px">Fetching repo stats...</div>';
-  const results = await Promise.all(topRepos.map(async repo=>{
-    try{
-      const r = await ghFetch(`https://api.github.com/repos/${repo.full_name}/actions/workflows/${WORKFLOW}/runs?per_page=20`);
-      if(!r.ok) return null;
-      const runs = (await r.json()).workflow_runs||[];
-      const total=runs.length, passed=runs.filter(r=>r.conclusion==='success').length;
-      const rate=total?Math.round(passed/total*100):0;
-      return {name:repo.name,total,rate};
-    }catch(e){return null;}
-  }));
-  const valid = results.filter(Boolean);
-  if(!valid.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">No test data found</div>';return;}
-  el.innerHTML = valid.map(r=>{
-    const color=r.rate>=80?'var(--green)':r.rate>=60?'var(--yellow)':'var(--red)';
-    return `<div class="sh-repo-row">
-      <div style="flex:1">
-        <div style="font-size:12px;font-weight:500;color:var(--text);font-family:'JetBrains Mono',monospace">${r.name}</div>
-        <div style="font-size:11px;color:var(--muted);margin-top:2px">${r.total} runs</div>
-      </div>
-      <div style="width:80px;height:4px;background:var(--surface3);border-radius:4px;overflow:hidden">
-        <div style="width:${r.rate}%;height:100%;background:${color};border-radius:4px"></div>
-      </div>
-      <span style="font-size:13px;font-weight:600;color:${color};min-width:36px;text-align:right">${r.rate}%</span>
-    </div>`;
-  }).join('');
-}
-// ─── END STAKEHOLDER ──────────────────────────────────────────────────────
-
 function fmtDur(s){if(!s||s<0)return'—';const m=Math.floor(s/60),sec=Math.round(s%60);return m>0?`${m}m ${sec}s`:`${sec}s`;}
 function timeAgo(d){const s=(Date.now()-new Date(d))/1000;if(s<60)return'just now';if(s<3600)return`${Math.floor(s/60)}m ago`;if(s<86400)return`${Math.floor(s/3600)}h ago`;return`${Math.floor(s/86400)}d ago`;}
 
-window.addEventListener('load', async ()=>{
-  const savedRole = localStorage.getItem('pw_role');
-  const savedToken = localStorage.getItem('pw_token');
-  const stakeholderAuth = localStorage.getItem('pw_stakeholder_auth');
+window.addEventListener('load',()=>{
+  const saved=localStorage.getItem('pw_token');
+  if(saved){token=saved;document.getElementById('auth-screen').style.display='none';document.getElementById('dashboard').style.display='block';loadData();}
   document.getElementById('token-input').addEventListener('keydown',e=>{if(e.key==='Enter')connect();});
-  if(savedRole==='stakeholder' && stakeholderAuth==='true'){
-    token = STAKEHOLDER_TOKEN;
-    userRole = 'stakeholder';
-    enterDashboard();
-  } else if(savedRole==='qa' && savedToken){
-    // Validate saved token before restoring session
-    try{
-      const r = await fetch(`https://api.github.com/repos/${currentRepo}`, {
-        headers:{'Authorization':`Bearer ${savedToken}`,'Accept':'application/vnd.github+json'}
-      });
-      if(!r.ok) throw new Error('expired');
-      token = savedToken;
-      userRole = 'qa';
-      enterDashboard();
-    } catch(e){
-      // Token expired — clear and show clean login
-      localStorage.removeItem('pw_token');
-      localStorage.removeItem('pw_role');
-    }
-  }
+  renderTickets();
 });
-setInterval(()=>{ if(userRole==='qa') loadData(); }, 120000);
+setInterval(loadData,120000);
 </script>
 </body>
 </html>
