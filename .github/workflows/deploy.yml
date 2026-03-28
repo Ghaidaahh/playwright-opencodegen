@@ -26,15 +26,18 @@ jobs:
 
       - name: Inject stakeholder token
         run: |
+          TOKEN="${{ secrets.STAKEHOLDER_TOKEN }}"
           node -e "
-          const fs = require('fs');
-          let html = fs.readFileSync('index.html', 'utf8');
-          html = html.replace(/const STAKEHOLDER_TOKEN='[^']*';/, \`const STAKEHOLDER_TOKEN='\${process.env.STAKEHOLDER_TOKEN}';\`);
-          fs.writeFileSync('index.html', html);
-          console.log('Token injected successfully');
-          "
-        env:
-          STAKEHOLDER_TOKEN: ${{ secrets.STAKEHOLDER_TOKEN }}
+            const fs = require('fs');
+            const token = process.argv[1];
+            let html = fs.readFileSync('index.html', 'utf8');
+            const before = html.includes('STAKEHOLDER_TOKEN_PLACEHOLDER');
+            html = html.replace(/const STAKEHOLDER_TOKEN='[^']*';/g, \"const STAKEHOLDER_TOKEN='\" + token + \"';\");
+            fs.writeFileSync('index.html', html);
+            console.log('Before had placeholder:', before);
+            console.log('Token injected, length:', token.length);
+            console.log('Verify:', html.includes(token) ? 'SUCCESS' : 'FAILED');
+          " "$TOKEN"
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
