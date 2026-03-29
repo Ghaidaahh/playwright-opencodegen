@@ -1,4 +1,6 @@
 name: Deploy Dashboard
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 on:
   push:
@@ -29,7 +31,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Generate stakeholder data
         run: node scripts/generate-stakeholder-data.js
@@ -37,6 +39,9 @@ jobs:
           GH_DASHBOARD_TOKEN: ${{ secrets.GH_DASHBOARD_TOKEN }}
           STAKEHOLDER_REPOS: ${{ vars.STAKEHOLDER_REPOS }}
           STAKEHOLDER_WORKFLOW_FILE: ${{ vars.STAKEHOLDER_WORKFLOW_FILE }}
+          STAKEHOLDER_WORKFLOW_FILES: ${{ vars.STAKEHOLDER_WORKFLOW_FILES }}
+          STAKEHOLDER_WORKFLOW_MAP: ${{ vars.STAKEHOLDER_WORKFLOW_MAP }}
+          STAKEHOLDER_DAYS_BACK: ${{ vars.STAKEHOLDER_DAYS_BACK }}
           DASHBOARD_SUMMARY_PATH: ${{ vars.DASHBOARD_SUMMARY_PATH }}
 
       - name: Setup Pages

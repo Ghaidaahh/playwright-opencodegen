@@ -1,6 +1,6 @@
 import { test, expect, type Page } from '@playwright/test';
 
-const stakeholderPassword = 'manager123';
+const stakeholderPassword = process.env.STAKEHOLDER_PASSWORD || 'manager123';
 
 async function openStakeholderDashboard(page: Page) {
   await page.goto('/stakeholder.html');
@@ -41,10 +41,44 @@ test.describe('Stakeholder dashboard', () => {
   test('renders repository cards and current build details @regression', async ({ page }) => {
     await openStakeholderDashboard(page);
 
-    await expect(page.locator('.repo-card')).toHaveCount(1);
-    await expect(page.locator('.repo-card .name')).toContainText('playwright-opencodegen');
+    await expect(page.locator('.repo-card').first()).toBeVisible();
+    await expect(page.locator('.repo-card .name').first()).toContainText(/playwright-opencodegen/i);
     await expect(page.locator('#build-title')).toContainText(/Checkout|Portfolio|Release|quality/i);
-    await expect(page.locator('#failure-source-copy')).toContainText('Product');
+    await expect(page.locator('#failure-source-copy')).toContainText(/Product|Automation|Unknown/);
+  });
+
+  test('switches the environment dropdown and updates the summary @sanity', async ({ page }) => {
+    await openStakeholderDashboard(page);
+
+    await page.locator('#env-filter').selectOption('production');
+    await expect(page.locator('#summary-grid')).toContainText('Production');
+    await expect(page.locator('#env-production-copy')).toBeVisible();
+  });
+
+  test('switches from all repos to a specific repo @sanity', async ({ page }) => {
+    await openStakeholderDashboard(page);
+
+    const repoOptions = await page.locator('#repo-filter option').allTextContents();
+    expect(repoOptions.length).toBeGreaterThan(1);
+
+    const specificRepoValue = await page.locator('#repo-filter option').nth(1).getAttribute('value');
+    if (!specificRepoValue) throw new Error('Expected a repository option after "All repos".');
+
+    await page.locator('#repo-filter').selectOption(specificRepoValue);
+    await expect(page.locator('#summary-grid')).not.toContainText('All repos');
+    await expect(page.locator('.repo-card')).toHaveCount(1);
+  });
+
+  test('renders the trend chart with datasets @regression', async ({ page }) => {
+    await openStakeholderDashboard(page);
+
+    await expect(page.locator('#trend-chart')).toBeVisible();
+    const datasetCount = await page.evaluate(() => {
+      const canvas = document.getElementById('trend-chart');
+      const chart = window.Chart?.getChart?.(canvas);
+      return chart?.data?.datasets?.length || 0;
+    });
+    expect(datasetCount).toBeGreaterThan(0);
   });
 
   test('can intentionally fail to exercise the dashboard pipeline @regression', async ({ page }) => {

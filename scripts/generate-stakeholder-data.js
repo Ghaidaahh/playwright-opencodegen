@@ -4,13 +4,37 @@ const path = require('path');
 const OUT_FILE = path.join(process.cwd(), 'stakeholder-data.json');
 const API_ROOT = 'https://api.github.com';
 const DEFAULT_SUMMARY_PATH = process.env.DASHBOARD_SUMMARY_PATH || 'dashboard-summary.json';
-const DEFAULT_WORKFLOW = process.env.STAKEHOLDER_WORKFLOW_FILE || 'playwright.yml';
+const DEFAULT_WORKFLOWS = parseList(process.env.STAKEHOLDER_WORKFLOW_FILES || process.env.STAKEHOLDER_WORKFLOW_FILE || 'playwright.yml');
+const WORKFLOW_MAP = parseKeyedList(process.env.STAKEHOLDER_WORKFLOW_MAP);
+const DAYS_BACK = Number(process.env.STAKEHOLDER_DAYS_BACK || 400);
+const RUNS_PER_PAGE = 100;
+const MAX_PAGES = 10;
 
 function parseRepos(raw) {
   return String(raw || '')
     .split(/[\n,]/)
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function parseList(raw) {
+  return String(raw || '')
+    .split(/[,\n|]/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseKeyedList(raw) {
+  return String(raw || '')
+    .split(/\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .reduce((acc, line) => {
+      const [key, ...rest] = line.split('=');
+      if (!key || !rest.length) return acc;
+      acc[key.trim()] = parseList(rest.join('=').trim());
+      return acc;
+    }, {});
 }
 
 function headers(token) {
@@ -48,7 +72,7 @@ function inferType(text) {
 }
 
 function inferEnvironment(text) {
-  return inferLabel(text, ['qa', 'staging', 'production'], 'qa');
+  return inferLabel(text, ['qa', 'staging', 'production'], 'staging');
 }
 
 function inferFailureSource(text) {
@@ -100,16 +124,45 @@ async function fetchLatestRelease(ownerRepo, token) {
   return fetchJson(`${API_ROOT}/repos/${ownerRepo}/releases/latest`, token, true);
 }
 
-async function fetchWorkflowRuns(ownerRepo, token) {
-  let payload = await fetchJson(
-    `${API_ROOT}/repos/${ownerRepo}/actions/workflows/${encodeURIComponent(DEFAULT_WORKFLOW)}/runs?per_page=50`,
-    token,
-    true
-  );
-  if (!payload) {
-    payload = await fetchJson(`${API_ROOT}/repos/${ownerRepo}/actions/runs?per_page=50`, token, false);
+function getWorkflowCandidates(ownerRepo) {
+  return WORKFLOW_MAP[ownerRepo] || DEFAULT_WORKFLOWS;
+}
+
+function isWithinHistoryWindow(run, cutoffTime) {
+  return new Date(run.created_at).getTime() >= cutoffTime;
+}
+
+async function fetchRunsForUrl(url, token, cutoffTime) {
+  const runs = [];
+  for (let page = 1; page <= MAX_PAGES; page += 1) {
+    const separator = url.includes('?') ? '&' : '?';
+    const payload = await fetchJson(`${url}${separator}per_page=${RUNS_PER_PAGE}&page=${page}`, token, true);
+    if (!payload?.workflow_runs?.length) break;
+    const pageRuns = payload.workflow_runs;
+    runs.push(...pageRuns.filter((run) => isWithinHistoryWindow(run, cutoffTime)));
+    if (pageRuns.every((run) => !isWithinHistoryWindow(run, cutoffTime))) break;
+    if (pageRuns.length < RUNS_PER_PAGE) break;
   }
-  return payload.workflow_runs || [];
+  return runs;
+}
+
+async function fetchWorkflowRuns(ownerRepo, token) {
+  const cutoffTime = Date.now() - (DAYS_BACK * 86400000);
+  for (const workflow of getWorkflowCandidates(ownerRepo)) {
+    const workflowRuns = await fetchRunsForUrl(
+      `${API_ROOT}/repos/${ownerRepo}/actions/workflows/${encodeURIComponent(workflow)}/runs`,
+      token,
+      cutoffTime
+    );
+    if (workflowRuns.length) {
+      console.log(`Using workflow "${workflow}" for ${ownerRepo}; collected ${workflowRuns.length} runs from the last ${DAYS_BACK} days.`);
+      return workflowRuns;
+    }
+  }
+
+  const fallbackRuns = await fetchRunsForUrl(`${API_ROOT}/repos/${ownerRepo}/actions/runs`, token, cutoffTime);
+  console.warn(`Falling back to all workflow runs for ${ownerRepo}; none of the configured workflow files returned recent runs.`);
+  return fallbackRuns;
 }
 
 function normalizeRun(run, summary) {
@@ -150,6 +203,9 @@ async function buildRepo(ownerRepo, token) {
     summary?.testCaseCount ||
     summary?.test_case_count ||
     0;
+  if (!testCaseCount) {
+    console.warn(`No testCaseCount found for ${ownerRepo}. Add it to ${DEFAULT_SUMMARY_PATH} for richer coverage reporting.`);
+  }
 
   return {
     name: repo.name,
