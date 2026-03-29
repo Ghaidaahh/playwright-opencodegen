@@ -3,12 +3,18 @@ const path = require('path');
 
 const OUT_FILE = path.join(process.cwd(), 'stakeholder-data.json');
 const API_ROOT = 'https://api.github.com';
-const DEFAULT_SUMMARY_PATH = process.env.DASHBOARD_SUMMARY_PATH || 'dashboard-summary.json';
 const DEFAULT_WORKFLOWS = parseList(process.env.STAKEHOLDER_WORKFLOW_FILES || process.env.STAKEHOLDER_WORKFLOW_FILE || 'playwright.yml');
 const WORKFLOW_MAP = parseKeyedList(process.env.STAKEHOLDER_WORKFLOW_MAP);
 const DAYS_BACK = Number(process.env.STAKEHOLDER_DAYS_BACK || 400);
 const RUNS_PER_PAGE = 100;
 const MAX_PAGES = 10;
+const TEST_FILE_PATTERN = /(^|\/)(tests?|e2e|specs?)\/.*\.(spec|test)\.[jt]sx?$|(^|\/).*\.(spec|test)\.[jt]sx?$/i;
+const THRESHOLDS = {
+  riskFailedRuns: Number(process.env.STAKEHOLDER_RISK_FAILED_RUNS || 5),
+  riskPassRate: Number(process.env.STAKEHOLDER_RISK_PASS_RATE || 60),
+  attentionPassRate: Number(process.env.STAKEHOLDER_ATTENTION_PASS_RATE || 85),
+  buildRiskFailedRuns: Number(process.env.STAKEHOLDER_BUILD_RISK_FAILED_RUNS || 3),
+};
 
 function parseRepos(raw) {
   return String(raw || '')
@@ -57,11 +63,6 @@ async function fetchJson(url, token, allowNotFound = false) {
   return res.json();
 }
 
-function decodeContent(payload) {
-  if (!payload?.content) return null;
-  return Buffer.from(payload.content, 'base64').toString('utf8');
-}
-
 function inferLabel(text, variants, fallback = 'other') {
   const source = String(text || '').toLowerCase();
   return variants.find((value) => source.includes(value)) || fallback;
@@ -85,19 +86,46 @@ function inferFailureSource(text) {
   return 'unknown';
 }
 
+function uniq(values) {
+  return [...new Set(values.filter(Boolean))];
+}
+
+function countTestsFromSource(source) {
+  const counts = { smoke: 0, sanity: 0, regression: 0, unlabeled: 0, total: 0 };
+  const matcher = /\b(?:test|it)(?:\.(?:only|skip|fixme))?\s*\(\s*(['"`])([\s\S]*?)\1/g;
+  let match;
+
+  while ((match = matcher.exec(source))) {
+    const title = String(match[2] || '').toLowerCase();
+    counts.total += 1;
+    if (title.includes('@smoke')) counts.smoke += 1;
+    else if (title.includes('@sanity')) counts.sanity += 1;
+    else if (title.includes('@regression')) counts.regression += 1;
+    else counts.unlabeled += 1;
+  }
+
+  return counts;
+}
+
+function addTypeCounts(target, source) {
+  for (const key of Object.keys(target)) {
+    target[key] += source[key] || 0;
+  }
+}
+
 function computePortfolioStatus(repos) {
   const allRuns = repos.flatMap((repo) => repo.runs || []);
   const total = allRuns.length;
   const passed = allRuns.filter((run) => run.conclusion === 'success').length;
   const failed = allRuns.filter((run) => run.conclusion === 'failure').length;
   const passRate = total ? Math.round((passed / total) * 100) : 0;
-  if (failed >= 5 || passRate < 60) {
+  if (failed >= THRESHOLDS.riskFailedRuns || passRate < THRESHOLDS.riskPassRate) {
     return {
       status: 'At risk',
       summary: 'Failure volume is high across the tracked repositories, so release confidence should remain low until the largest issues are resolved.',
     };
   }
-  if (failed > 0 || passRate < 85) {
+  if (failed > 0 || passRate < THRESHOLDS.attentionPassRate) {
     return {
       status: 'Needs attention',
       summary: 'There are still visible issues across the tracked repositories. Quality is improving, but confidence is not yet comfortably high.',
@@ -109,20 +137,18 @@ function computePortfolioStatus(repos) {
   };
 }
 
-async function fetchRepoSummary(ownerRepo, token, ref) {
-  const encoded = encodeURIComponent(DEFAULT_SUMMARY_PATH);
-  const url = `${API_ROOT}/repos/${ownerRepo}/contents/${encoded}?ref=${encodeURIComponent(ref)}`;
-  const payload = await fetchJson(url, token, true);
-  if (!payload) return null;
-  try {
-    return JSON.parse(decodeContent(payload));
-  } catch (error) {
-    throw new Error(`Could not parse ${DEFAULT_SUMMARY_PATH} for ${ownerRepo}: ${error.message}`);
-  }
-}
-
 async function fetchLatestRelease(ownerRepo, token) {
   return fetchJson(`${API_ROOT}/repos/${ownerRepo}/releases/latest`, token, true);
+}
+
+async function fetchRepoTree(ownerRepo, token, ref) {
+  return fetchJson(`${API_ROOT}/repos/${ownerRepo}/git/trees/${encodeURIComponent(ref)}?recursive=1`, token, false);
+}
+
+async function fetchBlob(ownerRepo, token, sha) {
+  const payload = await fetchJson(`${API_ROOT}/repos/${ownerRepo}/git/blobs/${sha}`, token, false);
+  if (!payload?.content) return '';
+  return Buffer.from(payload.content, 'base64').toString('utf8');
 }
 
 async function fetchMergedPullRequests(ownerRepo, token, defaultBranch) {
@@ -187,7 +213,7 @@ async function fetchWorkflowRuns(ownerRepo, token) {
   return fallbackRuns;
 }
 
-function normalizeRun(run, summary) {
+function normalizeRun(run) {
   const hint = [
     run.name,
     run.display_title,
@@ -197,44 +223,96 @@ function normalizeRun(run, summary) {
     run.html_url,
   ].filter(Boolean).join(' ');
 
-  const failureMap = Array.isArray(summary?.recentFailures) ? summary.recentFailures : [];
-  const matchedFailure = failureMap.find((item) => item.runId === run.id || item.html_url === run.html_url);
-
   return {
     created_at: run.created_at,
     updated_at: run.updated_at || run.run_started_at || run.created_at,
     conclusion: run.conclusion || run.status || 'unknown',
-    environment: matchedFailure?.environment || inferEnvironment(hint),
-    type: (matchedFailure?.type || inferType(hint)).toLowerCase(),
-    failureSource: matchedFailure?.failureSource || inferFailureSource(matchedFailure?.message || hint),
+    environment: inferEnvironment(hint),
+    type: inferType(hint).toLowerCase(),
+    failureSource: inferFailureSource(hint),
+  };
+}
+
+async function discoverTestInventory(ownerRepo, token, ref) {
+  const tree = await fetchRepoTree(ownerRepo, token, ref);
+  const files = (tree?.tree || []).filter((item) => item.type === 'blob' && TEST_FILE_PATTERN.test(item.path));
+  const totals = { smoke: 0, sanity: 0, regression: 0, unlabeled: 0, total: 0 };
+
+  for (const file of files) {
+    try {
+      const source = await fetchBlob(ownerRepo, token, file.sha);
+      addTypeCounts(totals, countTestsFromSource(source));
+    } catch (error) {
+      console.warn(`Could not inspect ${ownerRepo}:${file.path} for automated test counting: ${error.message}`);
+    }
+  }
+
+  const testTypes = uniq([
+    totals.smoke > 0 ? 'Smoke' : null,
+    totals.sanity > 0 ? 'Sanity' : null,
+    totals.regression > 0 ? 'Regression' : null,
+    totals.unlabeled > 0 ? 'Unlabeled' : null,
+  ]);
+
+  return {
+    total: totals.total,
+    counts: totals,
+    testTypes: testTypes.length ? testTypes : ['Regression'],
+  };
+}
+
+function deriveCurrentBuild(repo, runs, mergedPullRequests, latestRelease) {
+  const latestRun = [...runs].sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())[0] || null;
+  const latestPr = mergedPullRequests[0] || null;
+  const passed = runs.filter((run) => run.conclusion === 'success').length;
+  const failed = runs.filter((run) => run.conclusion === 'failure').length;
+  const passRate = runs.length ? Math.round((passed / runs.length) * 100) : 0;
+
+  let status = 'Needs attention';
+  if (latestRun?.conclusion === 'success' && passRate >= THRESHOLDS.attentionPassRate) status = 'On track';
+  else if (latestRun?.conclusion === 'failure' || failed >= THRESHOLDS.buildRiskFailedRuns || passRate < THRESHOLDS.riskPassRate) status = 'At risk';
+
+  const summaryParts = [];
+  if (latestPr) summaryParts.push(`Latest merged change is PR #${latestPr.number}.`);
+  if (latestRun) summaryParts.push(`Last run finished ${latestRun.conclusion}.`);
+  if (runs.length) summaryParts.push(`${passRate}% of ${runs.length} recent runs passed in the tracked history window.`);
+
+  return {
+    title: latestPr?.title || latestRelease?.name || `${repo.name} delivery signal`,
+    status,
+    summary: summaryParts.join(' ') || 'Automated build summary generated from recent runs and merged pull requests.',
+    updatedAt: latestRun?.updated_at || latestPr?.mergedAt || latestRelease?.published_at || new Date().toISOString(),
   };
 }
 
 async function buildRepo(ownerRepo, token) {
   const repo = await fetchJson(`${API_ROOT}/repos/${ownerRepo}`, token, false);
-  const summary = await fetchRepoSummary(ownerRepo, token, repo.default_branch);
   const latestRelease = await fetchLatestRelease(ownerRepo, token);
   const mergedPullRequests = await fetchMergedPullRequests(ownerRepo, token, repo.default_branch);
-  const runs = (await fetchWorkflowRuns(ownerRepo, token)).map((run) => normalizeRun(run, summary));
-
-  const summaryRepo = summary?.repo || summary?.repository || {};
-  const currentBuild = summary?.currentBuild || summary?.current_build || null;
-  const testTypes = summaryRepo.testTypes || summaryRepo.test_types || summary?.testTypes || ['Smoke', 'Sanity', 'Regression'];
-  const testCaseCount =
-    summaryRepo.testCaseCount ||
-    summaryRepo.test_case_count ||
-    summary?.testCaseCount ||
-    summary?.test_case_count ||
-    0;
+  const runs = (await fetchWorkflowRuns(ownerRepo, token)).map((run) => normalizeRun(run));
+  const discoveredTests = await discoverTestInventory(ownerRepo, token, repo.default_branch);
+  const currentBuild = deriveCurrentBuild(repo, runs, mergedPullRequests, latestRelease);
+  const runTypes = uniq(
+    runs
+      .map((run) => String(run.type || '').trim())
+      .filter(Boolean)
+      .map((type) => type.charAt(0).toUpperCase() + type.slice(1))
+  );
+  const testTypes = uniq([
+    ...discoveredTests.testTypes,
+    ...runTypes,
+  ]);
+  const testCaseCount = discoveredTests.total || 0;
   if (!testCaseCount) {
-    console.warn(`No testCaseCount found for ${ownerRepo}. Add it to ${DEFAULT_SUMMARY_PATH} for richer coverage reporting.`);
+    console.warn(`No automated test count could be discovered for ${ownerRepo}.`);
   }
 
   return {
     name: repo.name,
     full_name: repo.full_name,
     testCaseCount,
-    testTypes,
+    testTypes: testTypes.length ? testTypes : ['Regression'],
+    testTypeCounts: discoveredTests.counts,
     currentBuild,
     latestRelease: latestRelease
       ? {
@@ -269,6 +347,7 @@ async function main() {
   const portfolio = computePortfolioStatus(repoData);
   const payload = {
     generatedAt: new Date().toISOString(),
+    thresholds: THRESHOLDS,
     portfolioBuild: {
       title: 'Portfolio quality overview',
       status: portfolio.status,

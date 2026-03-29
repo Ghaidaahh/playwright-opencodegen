@@ -1,236 +1,129 @@
 # Playwatch Stakeholder Dashboard
 
-## Overview
+## Purpose
 
-This repository contains a stakeholder-facing quality dashboard built on top of GitHub Pages and Playwright.
+This repository hosts a stakeholder-facing quality dashboard on GitHub Pages.
 
 It is designed for non-technical leadership to review:
 
-- overall pass/fail health
-- environment health
-- coverage summary
-- failure source split
-- current build summary
-- latest merged pull request activity
+- release readiness
+- current quality signal
+- latest merged change
+- latest run timestamp
+- pass/fail trends
+- repository coverage
+- likely failure source split
 
-The dashboard is static in the browser, while the data is generated server-side in GitHub Actions.
+The browser is static. The data is generated automatically in GitHub Actions.
 
-## What This Project Includes
+## Main Files
 
-- A stakeholder dashboard page: [stakeholder.html](/Users/ghegazy/Playwright/stakeholder.html)
-- Static stakeholder data file used by the dashboard: [stakeholder-data.json](/Users/ghegazy/Playwright/stakeholder-data.json)
-- A generator that collects repo data from GitHub and rewrites the stakeholder JSON: [scripts/generate-stakeholder-data.js](/Users/ghegazy/Playwright/scripts/generate-stakeholder-data.js)
-- A sample repo-level current build summary file: [dashboard-summary.json](/Users/ghegazy/Playwright/dashboard-summary.json)
-- A Playwright validation suite for the dashboard itself: [tests/stakeholder-dashboard.spec.ts](/Users/ghegazy/Playwright/tests/stakeholder-dashboard.spec.ts)
-- GitHub Actions workflows for test execution and dashboard deployment:
-  - [.github/workflows/playwright.yml](/Users/ghegazy/Playwright/.github/workflows/playwright.yml)
-  - [.github/workflows/deploy.yml](/Users/ghegazy/Playwright/.github/workflows/deploy.yml)
+- Dashboard UI: [stakeholder.html](/Users/ghegazy/Playwright/stakeholder.html)
+- Generated dashboard data: [stakeholder-data.json](/Users/ghegazy/Playwright/stakeholder-data.json)
+- Data generator: [scripts/generate-stakeholder-data.js](/Users/ghegazy/Playwright/scripts/generate-stakeholder-data.js)
+- Dashboard Playwright tests: [tests/stakeholder-dashboard.spec.ts](/Users/ghegazy/Playwright/tests/stakeholder-dashboard.spec.ts)
+- Test workflow: [.github/workflows/playwright.yml](/Users/ghegazy/Playwright/.github/workflows/playwright.yml)
+- Deploy workflow: [.github/workflows/deploy.yml](/Users/ghegazy/Playwright/.github/workflows/deploy.yml)
 
-## High-Level Architecture
+## Architecture
 
-### 1. Frontend
+### Frontend
 
-- The stakeholder dashboard is a static HTML page hosted on GitHub Pages.
-- The browser reads from `stakeholder-data.json`.
-- Filters are applied client-side for:
+- [stakeholder.html](/Users/ghegazy/Playwright/stakeholder.html) is served by GitHub Pages.
+- It reads [stakeholder-data.json](/Users/ghegazy/Playwright/stakeholder-data.json).
+- Filtering is done in the browser for:
   - repository
-  - day
-  - week
-  - month
-  - year
-  - environment
+  - calendar day
+  - calendar week
+  - calendar month
+  - calendar year
   - test type
+- Theme choice is stored in `localStorage`.
 
-### 2. Data Generation
+### Data Generation
 
 - GitHub Actions runs [scripts/generate-stakeholder-data.js](/Users/ghegazy/Playwright/scripts/generate-stakeholder-data.js).
-- The generator uses a GitHub token stored in repository secrets.
-- It fetches:
+- The generator reads live GitHub data from the tracked repositories.
+- It automatically collects:
   - workflow runs
   - latest release
-  - recent merged pull requests
-  - optional `dashboard-summary.json` from each tracked repo
-- It writes a fresh [stakeholder-data.json](/Users/ghegazy/Playwright/stakeholder-data.json).
+  - latest merged pull requests
+  - discovered Playwright test files
+  - test counts by tag where available
+- It writes a fresh [stakeholder-data.json](/Users/ghegazy/Playwright/stakeholder-data.json) before deployment.
 
-### 3. Deployment
+### Deployment
 
-- GitHub Pages publishes the repository contents.
-- The deploy workflow refreshes the data file before publishing.
+- Pushes to `main` trigger the deploy workflow.
+- The deploy workflow regenerates stakeholder data.
+- GitHub Pages publishes the latest repository contents.
 
-## Stakeholder Dashboard Features
+## What Is Automated
 
-- Executive status banner
-- Pass rate, failures, duration, and total runs
-- Trend comparison vs previous matching period
-- Test coverage summary
-- Failure source split:
-  - product
-  - automation
-  - unknown
-- Environment health cards:
-  - QA
-  - Staging
-  - Production
-- Pass/fail trend chart
-- Result breakdown donut chart
-- Repository breakdown cards
-- Current build summary
-- Latest merged PR shown in Current Build
-- Exact latest-run timestamps
-- Calendar-based filtering for:
-  - day
-  - week
-  - month
-  - year
+- Coverage count is generated from real discovered test files.
+- Test type counts are generated from tagged tests like `@smoke`, `@sanity`, and `@regression`.
+- Current Build is generated from:
+  - latest merged PR
+  - latest run outcome
+  - latest release fallback
+- Portfolio status is generated from recent run history.
+- Thresholds can be configured through GitHub repository variables.
+- Stakeholder dashboard Playwright validation runs in CI.
 
-## Current Build Logic
+## What Is Not Fully Automatable On GitHub Pages
 
-The `Current Build` section is populated from the following sources in order:
+- The stakeholder password gate in [stakeholder.html](/Users/ghegazy/Playwright/stakeholder.html) is still client-side.
+- That means the password is not truly secure on GitHub Pages alone.
+- Real secure authentication would require a backend or serverless function.
 
-1. `currentBuild` in `dashboard-summary.json`
-2. latest merged pull request information
-3. latest release fallback
+## Local Setup
 
-This means the current build card can show:
+Requirements:
 
-- build summary title
-- build summary status
-- summary text
-- latest run timestamp
-- latest merged PR title
-- merged PR timestamp
-
-If you want a new build to appear in the dashboard:
-
-1. create a branch
-2. open a PR into `main`
-3. merge the PR
-4. let Actions run
-
-If you want the current build summary text itself to change, also update [dashboard-summary.json](/Users/ghegazy/Playwright/dashboard-summary.json) before merging.
-
-## Dependencies
-
-### Required Locally
-
-- Node.js 20+ recommended
+- Node.js
 - npm
 - Python 3
 
-### npm Packages
-
-Defined in [package.json](/Users/ghegazy/Playwright/package.json):
-
-- `@playwright/test`
-- `@types/node`
-
-### Browser Dependencies
-
-Playwright browsers are installed separately via:
-
-```bash
-npx playwright install --with-deps
-```
-
-## Local Installation
-
-From the repo root:
+Install:
 
 ```bash
 npm ci
 npx playwright install --with-deps
 ```
 
-## Running Locally
+## Local Run
 
-### Open the Stakeholder Dashboard
-
-You can serve the project locally with Python:
+Start a local server:
 
 ```bash
 python3 -m http.server 3000
 ```
 
-Then open:
+Open:
 
 ```text
 http://127.0.0.1:3000/stakeholder.html
 ```
 
-### Default Stakeholder Password
+## Local Test Run
 
-The current stakeholder gate is client-side and temporary.
-
-Current default password:
-
-```text
-manager123
-```
-
-Important:
-
-- this is not secure long-term
-- it is currently suitable only as a temporary access gate
-- a backend-backed auth flow would be needed for real security
-
-## Running Tests
-
-### Run the Stakeholder Dashboard Suite
+Run the stakeholder dashboard suite:
 
 ```bash
 npx playwright test tests/stakeholder-dashboard.spec.ts --project=chromium
 ```
 
-### Intentionally Create a Failing Test Run
-
-This is supported for dashboard validation:
+Run the intentional failing scenario:
 
 ```bash
 SIMULATE_FAILING_DASHBOARD_TEST=true npx playwright test tests/stakeholder-dashboard.spec.ts --project=chromium
 ```
 
-When this flag is enabled, one test fails on purpose so the dashboard pipeline can be validated against a real failed run.
-
-## GitHub Actions
-
-### 1. Playwright Tests Workflow
-
-File: [.github/workflows/playwright.yml](/Users/ghegazy/Playwright/.github/workflows/playwright.yml)
-
-Purpose:
-
-- runs the stakeholder dashboard Playwright suite
-- uploads HTML and JSON test artifacts
-- supports manual triggering of an intentional failure
-
-Manual workflow input:
-
-- `simulate_failure`
-  - `false` = normal green run
-  - `true` = one test fails intentionally
-
-### 2. Deploy Dashboard Workflow
-
-File: [.github/workflows/deploy.yml](/Users/ghegazy/Playwright/.github/workflows/deploy.yml)
-
-Purpose:
-
-- regenerates `stakeholder-data.json`
-- deploys the dashboard to GitHub Pages
-
-Triggers:
-
-- push to `main`
-- manual run
-- scheduled refresh every 6 hours
-
-## Required GitHub Secrets and Variables
+## GitHub Actions Setup
 
 ### Required Secret
 
 - `GH_DASHBOARD_TOKEN`
-
-This token should have read access to the repos the dashboard needs to inspect.
 
 Recommended permissions:
 
@@ -252,127 +145,62 @@ Ghaidaahh/playwright-opencodegen,owner/repo-two,owner/repo-three
 ### Optional Variables
 
 - `STAKEHOLDER_WORKFLOW_FILE`
-  - single fallback workflow file name
+  - single fallback workflow file
 - `STAKEHOLDER_WORKFLOW_FILES`
-  - multiple fallback workflow names
-  - example: `playwright.yml,ci.yml,e2e.yml`
+  - comma-separated workflow file fallbacks
 - `STAKEHOLDER_WORKFLOW_MAP`
   - per-repo workflow mapping
-  - example:
-  ```text
-  Ghaidaahh/playwright-opencodegen=playwright.yml
-  owner/repo-two=e2e.yml,qa.yml
-  ```
 - `STAKEHOLDER_DAYS_BACK`
-  - how much history to fetch for the dashboard
+  - how much run history to fetch
   - default: `400`
-- `DASHBOARD_SUMMARY_PATH`
-  - path to the per-repo summary file
-  - default: `dashboard-summary.json`
+- `STAKEHOLDER_RISK_FAILED_RUNS`
+  - default: `5`
+- `STAKEHOLDER_RISK_PASS_RATE`
+  - default: `60`
+- `STAKEHOLDER_ATTENTION_PASS_RATE`
+  - default: `85`
+- `STAKEHOLDER_BUILD_RISK_FAILED_RUNS`
+  - default: `3`
 
-## Data Generator Behavior
+## Current Build Logic
 
-The generator currently:
+The dashboard derives the Current Build card automatically from:
 
-- supports multiple workflow file names
-- supports per-repo workflow mapping
-- fetches enough history for longer dashboard date filters
-- defaults inferred environment to `staging`
-- warns when `testCaseCount` is missing
-- pulls recent merged PRs for the Current Build section
+1. latest merged PR
+2. latest run outcome
+3. latest release fallback
 
-## Repo-Level Summary File
-
-Each tracked repo can optionally provide a [dashboard-summary.json](/Users/ghegazy/Playwright/dashboard-summary.json)-style file.
-
-This is the best place to provide:
-
-- `testCaseCount`
-- `testTypes`
-- `currentBuild`
-- curated failure classifications
-
-Example shape:
-
-```json
-{
-  "repo": {
-    "name": "playwright-opencodegen",
-    "full_name": "Ghaidaahh/playwright-opencodegen",
-    "testCaseCount": 128,
-    "testTypes": ["Smoke", "Sanity", "Regression"]
-  },
-  "currentBuild": {
-    "title": "Stakeholder dashboard release readiness",
-    "status": "Needs attention",
-    "summary": "Smoke and sanity checks are stable, with a smaller set of issues still under review.",
-    "updatedAt": "2026-03-29T16:00:00Z"
-  }
-}
-```
-
-## Suggested Day-to-Day Flow
-
-### For Development
+So to create a new build signal:
 
 1. create a branch
-2. make changes
-3. run tests locally
-4. push the branch
-5. open a PR
-6. merge into `main`
+2. make your changes
+3. push the branch
+4. open a PR to `main`
+5. merge the PR
+6. let Actions run
 
-### For Dashboard Refresh
+## Recommended Day-To-Day Flow
 
-1. merge changes into `main`
-2. let `Playwright Tests` run
-3. let `Deploy Dashboard` regenerate `stakeholder-data.json`
-4. refresh the dashboard page in the browser
+1. Create a branch
+2. Make changes
+3. Run the stakeholder tests locally
+4. Push the branch
+5. Open a PR
+6. Merge to `main`
+7. Let `Playwright Tests` and `Deploy Dashboard` run
+8. Refresh the live dashboard
 
 ## Known Limitations
 
-- Stakeholder login is currently client-side only
-- The page does not live-refresh while already open
-- The dashboard filters run client-side on the generated data file
-- The generator fetches history server-side, but the page still needs browser refresh to see new data
+- The stakeholder password is still client-side.
+- The page does not auto-refresh while already open.
+- Failure-source classification is still heuristic unless richer CI metadata is added.
+- Browser refresh is still needed to see newly deployed data.
 
 ## Recommended Next Improvements
 
-- move stakeholder auth to a real backend
-- auto-refresh dashboard data in the browser every few minutes
-- generate `dashboard-summary.json` automatically from test results
-- include PR description/body in the Current Build section
-- add release readiness scoring across repos
+- Move stakeholder auth to a real backend.
+- Generate richer failure-source metadata from Playwright JSON results in CI.
+- Add in-page auto-refresh or a “new data available” banner.
+- Add PR body/merge summary into the Current Build section.
 
-## Quick Commands
-
-### Install
-
-```bash
-npm ci
-npx playwright install --with-deps
-```
-
-### Run tests
-
-```bash
-npx playwright test tests/stakeholder-dashboard.spec.ts --project=chromium
-```
-
-### Start local server
-
-```bash
-python3 -m http.server 3000
-```
-
-### Create a branch
-
-```bash
-git checkout -b codex/my-next-build
-```
-
-### Push a branch
-
-```bash
-git push -u origin codex/my-next-build
-```
