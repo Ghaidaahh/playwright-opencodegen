@@ -4,6 +4,12 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
+  workflow_dispatch:
+    inputs:
+      simulate_failure:
+        description: 'Run the intentionally failing stakeholder test'
+        required: false
+        default: 'false'
 jobs:
   test:
     timeout-minutes: 60
@@ -18,9 +24,9 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests
-      run: npx playwright test --reporter=html,json --workers=4
+      run: npx playwright test --workers=4
       env:
-        PLAYWRIGHT_JSON_OUTPUT_NAME: results.json
+        SIMULATE_FAILING_DASHBOARD_TEST: ${{ github.event.inputs.simulate_failure || 'false' }}
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:

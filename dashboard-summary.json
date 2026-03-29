@@ -1,0 +1,30 @@
+{
+  "repo": {
+    "name": "playwright-opencodegen",
+    "full_name": "Ghaidaahh/playwright-opencodegen",
+    "testCaseCount": 128,
+    "testTypes": ["Smoke", "Sanity", "Regression"]
+  },
+  "currentBuild": {
+    "title": "Stakeholder dashboard release readiness",
+    "status": "Needs attention",
+    "summary": "The executive dashboard is in active validation. Smoke and sanity checks are stable, while the intentional failure toggle is available when the team needs to verify failed-run reporting end to end.",
+    "updatedAt": "2026-03-29T16:00:00Z"
+  },
+  "recentFailures": [
+    {
+      "runId": 1,
+      "type": "Regression",
+      "environment": "qa",
+      "failureSource": "automation",
+      "message": "locator timeout while validating the stakeholder dashboard"
+    },
+    {
+      "runId": 2,
+      "type": "Smoke",
+      "environment": "staging",
+      "failureSource": "product",
+      "message": "checkout service returned 500 in staging"
+    }
+  ]
+}
