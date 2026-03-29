@@ -914,19 +914,24 @@
 
     function renderTrendComparison(data) {
       if (!data.previousMetrics.total) {
-        document.getElementById('compare-value').textContent = 'New';
+        document.getElementById('compare-value').textContent = 'No earlier comparison yet';
         document.getElementById('compare-copy').textContent =
           'There is no matching earlier period in the current dataset yet, so trend comparison will appear after more history is collected.';
         return;
       }
       const delta = data.metrics.passRate - data.previousMetrics.passRate;
-      const direction = delta > 0 ? 'Improving' : delta < 0 ? 'Declining' : 'Flat';
-      document.getElementById('compare-value').textContent = `${direction}`;
+      const direction = delta > 0 ? 'Pass rate improved' : delta < 0 ? 'Pass rate declined' : 'Pass rate unchanged';
+      const movement = delta > 0
+        ? `${Math.abs(delta)}% higher than the previous time`
+        : delta < 0
+          ? `${Math.abs(delta)}% lower than the previous time`
+          : 'The same as the previous time';
+      document.getElementById('compare-value').textContent = direction;
       document.getElementById('compare-copy').innerHTML = `
         <div class="mini-breakdown">
-          <span class="mini-pill ${delta > 0 ? 'green' : delta < 0 ? 'red' : 'gold'}"><strong>${delta >= 0 ? '+' : ''}${delta} pts</strong></span>
-          <span class="mini-pill blue">Now <strong>${data.metrics.passRate}%</strong></span>
-          <span class="mini-pill gray">Before <strong>${data.previousMetrics.passRate}%</strong></span>
+          <span class="mini-pill ${delta > 0 ? 'green' : delta < 0 ? 'red' : 'gold'}"><strong>${movement}</strong></span>
+          <span class="mini-pill blue">Selected time <strong>${data.metrics.passRate}%</strong></span>
+          <span class="mini-pill gray">Previous time <strong>${data.previousMetrics.passRate}%</strong></span>
         </div>
       `;
     }
