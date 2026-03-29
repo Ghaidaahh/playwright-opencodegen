@@ -1,0 +1,255 @@
+{
+  "generatedAt": "2026-03-29T00:55:00Z",
+  "portfolioBuild": {
+    "title": "Portfolio quality overview",
+    "status": "Attention needed",
+    "summary": "Today’s combined view shows heavy failure volume in the active repository. Smoke, sanity, and regression coverage are visible, and managers can switch to a single repository for a more focused build summary.",
+    "updatedAt": "2026-03-29T00:55:00Z"
+  },
+  "repos": [
+    {
+      "name": "playwright-opencodegen",
+      "full_name": "Ghaidaahh/playwright-opencodegen",
+      "testCaseCount": 128,
+      "testTypes": ["Smoke", "Sanity", "Regression"],
+      "currentBuild": {
+        "title": "Checkout and reporting release readiness",
+        "status": "Needs review",
+        "summary": "The latest daily view shows a concentration of failures in regression coverage. Managers should treat the current build as not ready for broad release until the failing scenarios are resolved.",
+        "updatedAt": "2026-03-29T00:55:00Z"
+      },
+      "latestRelease": {
+        "tag_name": "v1.0.0",
+        "name": "Initial Release",
+        "published_at": "2026-03-28T22:14:57Z",
+        "body": "Initial dashboard release. Executive stakeholder view now tracks quality signals separately from the QA console."
+      },
+      "runs": [
+        {
+          "created_at": "2026-03-29T00:12:00Z",
+          "updated_at": "2026-03-29T01:28:00Z",
+          "conclusion": "failure",
+          "environment": "qa",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-29T00:28:00Z",
+          "updated_at": "2026-03-29T01:46:00Z",
+          "conclusion": "failure",
+          "environment": "qa",
+          "type": "sanity"
+        },
+        {
+          "created_at": "2026-03-29T00:45:00Z",
+          "updated_at": "2026-03-29T02:03:00Z",
+          "conclusion": "failure",
+          "environment": "staging",
+          "type": "smoke"
+        },
+        {
+          "created_at": "2026-03-29T01:05:00Z",
+          "updated_at": "2026-03-29T02:19:00Z",
+          "conclusion": "failure",
+          "environment": "production",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-28T10:10:00Z",
+          "updated_at": "2026-03-28T11:18:00Z",
+          "conclusion": "failure",
+          "environment": "qa",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-28T12:20:00Z",
+          "updated_at": "2026-03-28T13:31:00Z",
+          "conclusion": "failure",
+          "environment": "staging",
+          "type": "smoke"
+        },
+        {
+          "created_at": "2026-03-28T14:00:00Z",
+          "updated_at": "2026-03-28T15:05:00Z",
+          "conclusion": "failure",
+          "environment": "production",
+          "type": "sanity"
+        },
+        {
+          "created_at": "2026-03-28T16:15:00Z",
+          "updated_at": "2026-03-28T17:37:00Z",
+          "conclusion": "failure",
+          "environment": "qa",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-28T18:10:00Z",
+          "updated_at": "2026-03-28T19:26:00Z",
+          "conclusion": "failure",
+          "environment": "qa",
+          "type": "sanity"
+        },
+        {
+          "created_at": "2026-03-28T20:00:00Z",
+          "updated_at": "2026-03-28T21:30:00Z",
+          "conclusion": "failure",
+          "environment": "staging",
+          "type": "smoke"
+        },
+        {
+          "created_at": "2026-03-27T10:00:00Z",
+          "updated_at": "2026-03-27T11:20:00Z",
+          "conclusion": "failure",
+          "environment": "qa",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-27T12:00:00Z",
+          "updated_at": "2026-03-27T13:17:00Z",
+          "conclusion": "success",
+          "environment": "staging",
+          "type": "smoke"
+        },
+        {
+          "created_at": "2026-03-27T14:00:00Z",
+          "updated_at": "2026-03-27T15:26:00Z",
+          "conclusion": "failure",
+          "environment": "production",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-26T09:30:00Z",
+          "updated_at": "2026-03-26T10:36:00Z",
+          "conclusion": "failure",
+          "environment": "qa",
+          "type": "sanity"
+        },
+        {
+          "created_at": "2026-03-26T12:40:00Z",
+          "updated_at": "2026-03-26T13:50:00Z",
+          "conclusion": "failure",
+          "environment": "staging",
+          "type": "smoke"
+        },
+        {
+          "created_at": "2026-03-26T15:00:00Z",
+          "updated_at": "2026-03-26T16:29:00Z",
+          "conclusion": "success",
+          "environment": "production",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-25T11:00:00Z",
+          "updated_at": "2026-03-25T12:22:00Z",
+          "conclusion": "failure",
+          "environment": "qa",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-25T13:20:00Z",
+          "updated_at": "2026-03-25T14:47:00Z",
+          "conclusion": "failure",
+          "environment": "staging",
+          "type": "sanity"
+        },
+        {
+          "created_at": "2026-03-25T16:10:00Z",
+          "updated_at": "2026-03-25T17:18:00Z",
+          "conclusion": "failure",
+          "environment": "production",
+          "type": "smoke"
+        },
+        {
+          "created_at": "2026-03-24T10:00:00Z",
+          "updated_at": "2026-03-24T11:15:00Z",
+          "conclusion": "failure",
+          "environment": "qa",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-24T12:00:00Z",
+          "updated_at": "2026-03-24T13:28:00Z",
+          "conclusion": "failure",
+          "environment": "staging",
+          "type": "smoke"
+        },
+        {
+          "created_at": "2026-03-24T15:00:00Z",
+          "updated_at": "2026-03-24T16:41:00Z",
+          "conclusion": "failure",
+          "environment": "production",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-23T09:00:00Z",
+          "updated_at": "2026-03-23T10:32:00Z",
+          "conclusion": "failure",
+          "environment": "qa",
+          "type": "sanity"
+        },
+        {
+          "created_at": "2026-03-23T13:00:00Z",
+          "updated_at": "2026-03-23T14:26:00Z",
+          "conclusion": "failure",
+          "environment": "staging",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-22T10:30:00Z",
+          "updated_at": "2026-03-22T11:44:00Z",
+          "conclusion": "cancelled",
+          "environment": "qa",
+          "type": "smoke"
+        },
+        {
+          "created_at": "2026-03-22T14:10:00Z",
+          "updated_at": "2026-03-22T15:21:00Z",
+          "conclusion": "cancelled",
+          "environment": "staging",
+          "type": "sanity"
+        },
+        {
+          "created_at": "2026-03-21T11:40:00Z",
+          "updated_at": "2026-03-21T12:53:00Z",
+          "conclusion": "cancelled",
+          "environment": "production",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-20T10:20:00Z",
+          "updated_at": "2026-03-20T11:38:00Z",
+          "conclusion": "success",
+          "environment": "qa",
+          "type": "smoke"
+        },
+        {
+          "created_at": "2026-03-19T12:50:00Z",
+          "updated_at": "2026-03-19T13:58:00Z",
+          "conclusion": "success",
+          "environment": "staging",
+          "type": "sanity"
+        },
+        {
+          "created_at": "2026-03-18T14:40:00Z",
+          "updated_at": "2026-03-18T15:47:00Z",
+          "conclusion": "success",
+          "environment": "production",
+          "type": "regression"
+        },
+        {
+          "created_at": "2026-03-17T09:10:00Z",
+          "updated_at": "2026-03-17T10:19:00Z",
+          "conclusion": "success",
+          "environment": "qa",
+          "type": "smoke"
+        },
+        {
+          "created_at": "2026-03-16T10:50:00Z",
+          "updated_at": "2026-03-16T12:01:00Z",
+          "conclusion": "success",
+          "environment": "staging",
+          "type": "regression"
+        }
+      ]
+    }
+  ]
+}
