@@ -68,6 +68,7 @@
     .repo-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
     .repo-card .name { font-family:'Syne', sans-serif; font-size:18px; font-weight:700; letter-spacing:-.3px; }
     .repo-card .meta { margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .repo-card .stamp { margin-top: 8px; color: var(--muted); font-size: 11px; line-height: 1.6; }
     .repo-stats { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:10px; margin: 14px 0; }
     .repo-stat { border:1px solid var(--border); border-radius:14px; padding:10px 12px; background: rgba(255,255,255,.02); }
     .repo-stat span { display:block; font-size:10px; text-transform:uppercase; letter-spacing:.7px; color:var(--muted); margin-bottom:6px; }
@@ -301,6 +302,18 @@
       const mins = Math.floor(seconds / 60);
       const secs = Math.round(seconds % 60);
       return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+    }
+
+    function fmtStamp(value) {
+      if (!value) return 'No timestamp';
+      const date = new Date(value);
+      return date.toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
     }
 
     function titleCase(value) {
@@ -642,9 +655,17 @@
       const metrics = buildMetrics(filteredRuns);
       const previousMetrics = buildMetrics(getPreviousPeriodRuns());
       const trend = buildTrend(filteredRuns);
+      const latestRunAt = filteredRuns
+        .map((run) => run.updated_at || run.created_at)
+        .filter(Boolean)
+        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] || null;
       const repos = (state.dataset?.repos || []).map((repo) => {
         const repoRuns = (repo.runs || []).filter(matchesFilters);
         const repoMetrics = buildMetrics(repoRuns);
+        const repoLatestRunAt = repoRuns
+          .map((run) => run.updated_at || run.created_at)
+          .filter(Boolean)
+          .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] || null;
         return {
           name: repo.name,
           full_name: repo.full_name,
@@ -652,6 +673,7 @@
           testTypes: repo.testTypes || ['Smoke', 'Sanity', 'Regression'],
           metrics: repoMetrics,
           passRate: repoMetrics.passRate,
+          latestRunAt: repoLatestRunAt,
         };
       });
 
@@ -665,6 +687,7 @@
         previousMetrics,
         trend,
         currentRepo: state.currentRepo,
+        latestRunAt,
         coverage: buildCoverageSummary(repos),
         failureSource: buildFailureSourceSummary(filteredRuns),
         envCards: buildEnvironmentCards(),
@@ -700,6 +723,7 @@
         <div><span>Environment</span><strong>${state.env === 'all' ? 'All environments' : titleCase(state.env)}</strong></div>
         <div><span>Test Type</span><strong>${Array.isArray(testTypes) ? testTypes.join(', ') : testTypes}</strong></div>
         <div><span>Coverage</span><strong>${testCaseCount} test cases</strong></div>
+        <div><span>Latest Run</span><strong>${data.latestRunAt ? fmtStamp(data.latestRunAt) : 'No matching runs'}</strong></div>
       `;
     }
 
@@ -875,6 +899,7 @@
                 <div>
                   <div class="name">${repoName}</div>
                   <div class="meta">${count} test cases · ${(types.length ? types.join(', ') : 'Smoke, Sanity, Regression')}</div>
+                  <div class="stamp">Latest run: ${repo.latestRunAt ? fmtStamp(repo.latestRunAt) : 'No runs in current filters'}</div>
                 </div>
                 <span class="badge ${tone}">${rate}% pass rate</span>
               </div>
@@ -923,7 +948,12 @@
         tag.textContent = build.status || build.tag || 'Build summary';
         tag.className = 'badge green';
         title.textContent = build.title || build.name || 'Current delivery summary';
-        date.textContent = build.updatedAt || build.updated_at ? `Updated ${new Date(build.updatedAt || build.updated_at).toLocaleDateString()}` : 'Updated by server-side sync';
+        if (build.updatedAt || build.updated_at) {
+          const updated = build.updatedAt || build.updated_at;
+          date.textContent = `Updated ${fmtStamp(updated)}${data.latestRunAt ? ` · Latest run ${fmtStamp(data.latestRunAt)}` : ''}`;
+        } else {
+          date.textContent = data.latestRunAt ? `Latest run ${fmtStamp(data.latestRunAt)}` : 'Updated by server-side sync';
+        }
         body.textContent = build.summary || build.description || build.body || 'Build summary available.';
         return;
       }
@@ -932,7 +962,7 @@
         tag.textContent = data.latestRelease.tag_name || 'Release';
         tag.className = 'badge gold';
         title.textContent = data.latestRelease.name || data.latestRelease.tag_name || 'Latest release';
-        date.textContent = `Release fallback · ${new Date(data.latestRelease.published_at).toLocaleDateString()}`;
+        date.textContent = `Release fallback · ${fmtStamp(data.latestRelease.published_at)}${data.latestRunAt ? ` · Latest run ${fmtStamp(data.latestRunAt)}` : ''}`;
         body.textContent = data.latestRelease.body || 'No executive build summary is published yet.';
         return;
       }
@@ -940,7 +970,7 @@
       tag.textContent = 'Pending';
       tag.className = 'badge red';
       title.textContent = 'No build summary available';
-      date.textContent = 'Publish dashboard-summary.json to populate this card';
+      date.textContent = data.latestRunAt ? `Latest run ${fmtStamp(data.latestRunAt)}` : 'Publish dashboard-summary.json to populate this card';
       body.textContent = 'The backend is ready, but no Jira/Epic summary file exists yet.';
     }
 
