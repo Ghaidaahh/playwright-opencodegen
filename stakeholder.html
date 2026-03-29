@@ -179,8 +179,8 @@
         <div class="brand">
           <div class="brand-icon">🎭</div>
           <div>
-            <h1>Playwatch</h1>
-            <p>Executive quality lens across repositories, releases, and delivery movement.</p>
+            <h1>Quality Snapshot</h1>
+            <p>Clear release signals for leadership, focused on what changed and what needs attention.</p>
           </div>
         </div>
 
@@ -201,27 +201,17 @@
             </div>
           </div>
         </div>
-
-        <div class="side-section">
-          <div class="side-label">Signals</div>
-          <div class="side-pill-row">
-            <span class="side-stat">Executive only</span>
-            <span class="side-stat">Read-only</span>
-            <span class="side-stat">PR-aware</span>
-            <span class="side-stat">Run timestamps</span>
-          </div>
-        </div>
       </aside>
 
       <div class="shell">
       <div class="header">
         <div>
           <div class="header-kickers">
-            <span class="kicker"><strong>Playwatch</strong> Executive View</span>
+            <span class="kicker"><strong>Leadership</strong> Dashboard</span>
             <span id="header-sync" class="kicker">Syncing latest dashboard snapshot...</span>
           </div>
-          <h1>Quality Health Overview</h1>
-          <p>Leadership-friendly quality reporting across repositories and test types. This view avoids technical actions and keeps the focus on reliability, release confidence, and testing coverage.</p>
+          <h1>Quality Snapshot</h1>
+          <p>A concise view of release confidence, latest delivery movement, and the reasons quality needs attention.</p>
         </div>
         <button class="ghost" id="logout-btn">Sign out</button>
       </div>
@@ -258,7 +248,8 @@
       <section class="summary banner">
         <div>
           <div id="status-title" class="banner-title">Evaluating portfolio health...</div>
-          <div id="status-copy" class="banner-copy">The dashboard is reviewing the current pass rate, failures, and trend to decide whether the release outlook is healthy, needs attention, or is at risk.</div>
+          <div id="status-copy" class="banner-copy">The dashboard is reviewing the current pass rate, failures, and trend to explain the current release signal in plain language.</div>
+          <div id="status-reasons" class="build-badges" style="margin-top:12px"></div>
         </div>
         <div id="status-badge" class="badge gold">Loading</div>
       </section>
@@ -336,19 +327,19 @@
           <article class="panel hero-build">
             <div class="build-head">
               <div>
-                <h3>Current Build <span class="info-dot" data-tip="High-level delivery summary. In All repos view, this shows a portfolio summary. In a single repo view, it can show a repo-specific build summary.">i</span></h3>
-                <p class="meta">Build state, freshest run, and latest merged delivery movement.</p>
+                <h3>Release Signal <span class="info-dot" data-tip="High-level delivery summary. In All repos view, this shows a portfolio summary. In a single repo view, it can show a repo-specific build summary.">i</span></h3>
+                <p class="meta">What changed most recently and how stable the current release looks.</p>
               </div>
               <div id="build-tag" class="badge gold">Loading</div>
             </div>
             <div id="build-title" style="font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1.12;margin-top:4px">Loading build summary...</div>
             <div class="build-badges">
-              <span id="build-date" class="build-badge">Loading timestamp</span>
-              <span id="build-latest-run" class="build-badge">Loading latest run</span>
+              <span id="build-date" class="build-badge">Loading release signal</span>
+              <span id="build-latest-run" class="build-badge">Loading last run</span>
             </div>
             <div id="build-body" class="status-note"></div>
             <div class="build-pr-box">
-              <strong>Latest merged delivery</strong>
+              <strong>Latest merged change</strong>
               <span id="build-pr">Loading merged pull request...</span>
             </div>
           </article>
@@ -710,6 +701,17 @@
       return risks.slice(0, 4);
     }
 
+    function buildStatusReasons(metrics, previousMetrics, failureSource, latestPr) {
+      const reasons = [];
+      if (metrics.failed > 0) reasons.push(`${metrics.failed} failed runs in the selected period`);
+      if (metrics.passRate < 85) reasons.push(`${metrics.passRate}% pass rate is below the preferred release threshold`);
+      if (metrics.passRate < previousMetrics.passRate && previousMetrics.total) reasons.push(`Pass rate is down from ${previousMetrics.passRate}% in the previous matching period`);
+      if (failureSource.product > 0) reasons.push(`${failureSource.product} failures appear product-related`);
+      if (failureSource.automation > 0) reasons.push(`${failureSource.automation} failures appear automation-related`);
+      if (latestPr) reasons.push(`Latest merged change is PR #${latestPr.number}`);
+      return reasons.slice(0, 3);
+    }
+
     function buildViewModel() {
       const filteredRuns = getFilteredRuns();
       const metrics = buildMetrics(filteredRuns);
@@ -770,6 +772,7 @@
             : (selectedRepo?.currentBuild || null),
         },
         risks: buildTopRisks(metrics, previousMetrics, buildFailureSourceSummary(filteredRuns)),
+        statusReasons: buildStatusReasons(metrics, previousMetrics, buildFailureSourceSummary(filteredRuns), mergedPullRequests[0]),
       };
     }
 
@@ -827,6 +830,8 @@
       badge.className = `badge ${status.tone}`;
       document.getElementById('status-title').textContent = status.title;
       document.getElementById('status-copy').textContent = status.body;
+      const reasons = document.getElementById('status-reasons');
+      reasons.innerHTML = (data.statusReasons || []).map((reason) => `<span class="build-badge">${reason}</span>`).join('');
     }
 
     function renderTrendComparison(data) {
@@ -1054,11 +1059,11 @@
         title.textContent = build.title || build.name || 'Current delivery summary';
         if (build.updatedAt || build.updated_at) {
           const updated = build.updatedAt || build.updated_at;
-          date.textContent = `Updated ${fmtStamp(updated)}`;
+          date.textContent = `Release signal updated ${fmtStamp(updated)}`;
         } else {
-          date.textContent = 'Updated by server-side sync';
+          date.textContent = 'Release signal updated by server-side sync';
         }
-        latestRun.textContent = data.latestRunAt ? `Latest run ${fmtStamp(data.latestRunAt)}` : 'No matching runs';
+        latestRun.textContent = data.latestRunAt ? `Last run ${fmtStamp(data.latestRunAt)}` : 'No matching runs';
         body.textContent = build.summary || build.description || build.body || 'Build summary available.';
         pr.textContent = prText;
         return;
@@ -1068,8 +1073,8 @@
         tag.textContent = data.latestRelease.tag_name || 'Release';
         tag.className = 'badge gold';
         title.textContent = data.latestRelease.name || data.latestRelease.tag_name || 'Latest release';
-        date.textContent = `Release fallback · ${fmtStamp(data.latestRelease.published_at)}`;
-        latestRun.textContent = data.latestRunAt ? `Latest run ${fmtStamp(data.latestRunAt)}` : 'No matching runs';
+        date.textContent = `Release signal from latest release · ${fmtStamp(data.latestRelease.published_at)}`;
+        latestRun.textContent = data.latestRunAt ? `Last run ${fmtStamp(data.latestRunAt)}` : 'No matching runs';
         body.textContent = data.latestRelease.body || 'No executive build summary is published yet.';
         pr.textContent = prText;
         return;
@@ -1078,8 +1083,8 @@
       tag.textContent = 'Pending';
       tag.className = 'badge red';
       title.textContent = 'No build summary available';
-      date.textContent = 'Build summary pending';
-      latestRun.textContent = data.latestRunAt ? `Latest run ${fmtStamp(data.latestRunAt)}` : 'No matching runs';
+      date.textContent = 'Release signal pending';
+      latestRun.textContent = data.latestRunAt ? `Last run ${fmtStamp(data.latestRunAt)}` : 'No matching runs';
       body.textContent = 'The backend is ready, but no Jira/Epic summary file exists yet.';
       pr.textContent = prText;
     }
