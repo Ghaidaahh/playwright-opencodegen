@@ -12,17 +12,29 @@
       --border:#2a3150; --accent:#5a82ff; --accent-soft:rgba(90,130,255,.16); --green:#23e0a4;
       --red:#ff5f8d; --gold:#ffd24d; --navy:#0a0d19; --shadow:0 26px 62px rgba(0,0,0,.4); --line:rgba(255,255,255,.045);
     }
+    body[data-theme="light"] {
+      --bg:#eef3ff; --paper:#ffffff; --paper-2:#f4f7ff; --paper-3:#eaf0ff; --ink:#18203b; --muted:#647091;
+      --border:#d5dff5; --accent:#436cf5; --accent-soft:rgba(67,108,245,.12); --green:#129d74;
+      --red:#d63c69; --gold:#c89a1d; --navy:#dfe7fb; --shadow:0 18px 42px rgba(42,61,110,.14); --line:rgba(24,32,59,.06);
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: 'Figtree', sans-serif; background:
       radial-gradient(circle at 15% 0%, rgba(90,130,255,.16), transparent 24%),
       radial-gradient(circle at 85% 10%, rgba(255,95,141,.09), transparent 22%),
       linear-gradient(180deg,#060812 0%,#090c17 100%); color: var(--ink); min-height: 100vh; position:relative; }
+    body[data-theme="light"] { background:
+      radial-gradient(circle at 15% 0%, rgba(67,108,245,.12), transparent 24%),
+      radial-gradient(circle at 85% 10%, rgba(214,60,105,.06), transparent 22%),
+      linear-gradient(180deg,#eef3ff 0%,#f8fbff 100%); }
     body::before { content:''; position:fixed; inset:0; pointer-events:none; opacity:.18; background-image:
       linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
       linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
       background-size: 36px 36px;
       mask-image: radial-gradient(circle at center, black 38%, transparent 88%);
     }
+    body[data-theme="light"]::before { opacity:.1; background-image:
+      linear-gradient(rgba(24,32,59,.05) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(24,32,59,.05) 1px, transparent 1px); }
     .dashboard-layout { max-width: 1540px; margin: 0 auto; padding: 16px; display:grid; grid-template-columns: 280px minmax(0, 1fr); gap: 16px; align-items:start; }
     .shell { min-width: 0; }
     .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 28px; }
@@ -41,6 +53,10 @@
     .primary:hover { transform: translateY(-1px); box-shadow: 0 18px 32px rgba(95,134,255,.28); }
     .ghost { border-radius: 12px; padding: 10px 14px; background: rgba(255,255,255,.02); color: var(--muted); border: 1px solid var(--border); transition: border-color .18s ease, background .18s ease, color .18s ease; }
     .ghost:hover { border-color: rgba(95,134,255,.28); color: var(--ink); background: rgba(255,255,255,.04); }
+    .header-actions { display:flex; align-items:center; gap:10px; }
+    .theme-toggle { display:inline-flex; align-items:center; gap:4px; border:1px solid var(--border); border-radius:999px; padding:4px; background: rgba(255,255,255,.03); }
+    .theme-toggle button { padding:8px 12px; border-radius:999px; background: transparent; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: .5px; }
+    .theme-toggle button.active { background: rgba(255,255,255,.08); color: var(--ink); box-shadow: inset 0 1px 0 rgba(255,255,255,.04); }
     .error { display:none; margin-bottom: 16px; border-radius: 14px; padding: 12px 14px; background: rgba(240,91,122,.1); color: var(--red); border:1px solid rgba(240,91,122,.2); }
     .sidebar { position: sticky; top: 16px; padding: 18px; background:
       radial-gradient(circle at top left, rgba(90,130,255,.16), transparent 26%),
@@ -209,7 +225,13 @@
           </div>
           <h1>Release Readiness</h1>
         </div>
-        <button class="ghost" id="logout-btn">Sign out</button>
+        <div class="header-actions">
+          <div class="theme-toggle" aria-label="Theme toggle">
+            <button id="theme-dark" type="button">Dark</button>
+            <button id="theme-light" type="button">Light</button>
+          </div>
+          <button class="ghost" id="logout-btn">Sign out</button>
+        </div>
       </div>
 
       <div class="toolbar">
@@ -362,6 +384,7 @@
       currentRepo: 'all',
       range: 'day',
       type: 'all',
+      theme: localStorage.getItem('stakeholder_theme') || 'dark',
       calendarValue: new Date().toISOString().slice(0, 10),
       trendChart: null,
       donutChart: null,
@@ -371,6 +394,16 @@
     const dashboardView = document.getElementById('dashboard-view');
     const loginError = document.getElementById('login-error');
     const tooltip = document.getElementById('tooltip');
+    const themeDarkBtn = document.getElementById('theme-dark');
+    const themeLightBtn = document.getElementById('theme-light');
+
+    function applyTheme(theme) {
+      state.theme = theme === 'light' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', state.theme);
+      themeDarkBtn?.classList.toggle('active', state.theme === 'dark');
+      themeLightBtn?.classList.toggle('active', state.theme === 'light');
+      localStorage.setItem('stakeholder_theme', state.theme);
+    }
 
     function fmtDur(seconds) {
       if (!seconds) return '-';
@@ -859,6 +892,9 @@
 
     function renderTrend(data) {
       const ctx = document.getElementById('trend-chart').getContext('2d');
+      const styles = getComputedStyle(document.body);
+      const legendColor = styles.getPropertyValue('--muted').trim() || '#8d94b5';
+      const gridColor = state.theme === 'light' ? 'rgba(24,32,59,.08)' : 'rgba(255,255,255,.06)';
       if (state.trendChart) state.trendChart.destroy();
       const passGradient = ctx.createLinearGradient(0, 0, 0, 260);
       passGradient.addColorStop(0, 'rgba(46,224,177,.95)');
@@ -881,7 +917,7 @@
           plugins: {
             legend: {
               labels: {
-                color: '#8d94b5',
+                color: legendColor,
                 boxWidth: 12,
                 boxHeight: 12,
                 usePointStyle: true,
@@ -891,8 +927,8 @@
             }
           },
           scales: {
-            x: { ticks: { color: '#7d85a9' }, grid: { display: false }, border: { display: false } },
-            y: { ticks: { color: '#7d85a9', stepSize: 1 }, grid: { color: 'rgba(255,255,255,.06)' }, beginAtZero: true, border: { display: false } },
+            x: { ticks: { color: legendColor }, grid: { display: false }, border: { display: false } },
+            y: { ticks: { color: legendColor, stepSize: 1 }, grid: { color: gridColor }, beginAtZero: true, border: { display: false } },
           },
         },
       });
@@ -917,6 +953,8 @@
 
     function renderDonut(data) {
       const ctx = document.getElementById('donut-chart').getContext('2d');
+      const styles = getComputedStyle(document.body);
+      const legendColor = styles.getPropertyValue('--muted').trim() || '#8d94b5';
       if (state.donutChart) state.donutChart.destroy();
       state.donutChart = new Chart(ctx, {
         type: 'doughnut',
@@ -936,7 +974,7 @@
             legend: {
               position: 'bottom',
               labels: {
-                color: '#8d94b5',
+                color: legendColor,
                 boxWidth: 10,
                 boxHeight: 10,
                 usePointStyle: true,
@@ -945,11 +983,11 @@
               }
             },
             tooltip: {
-              backgroundColor: '#181e32',
-              borderColor: 'rgba(255,255,255,.08)',
+              backgroundColor: state.theme === 'light' ? '#ffffff' : '#181e32',
+              borderColor: state.theme === 'light' ? 'rgba(24,32,59,.12)' : 'rgba(255,255,255,.08)',
               borderWidth: 1,
-              titleColor: '#ecf0ff',
-              bodyColor: '#c7ceec',
+              titleColor: state.theme === 'light' ? '#18203b' : '#ecf0ff',
+              bodyColor: state.theme === 'light' ? '#4b5778' : '#c7ceec',
               callbacks: {
                 label(context) {
                   const keys = ['passed', 'failed', 'skipped', 'cancelled'];
@@ -1170,6 +1208,14 @@
       if (event.key === 'Enter') login();
     });
     document.getElementById('logout-btn').addEventListener('click', logout);
+    themeDarkBtn?.addEventListener('click', () => {
+      applyTheme('dark');
+      if (!dashboardView.classList.contains('hidden') && state.dataset) loadDashboard();
+    });
+    themeLightBtn?.addEventListener('click', () => {
+      applyTheme('light');
+      if (!dashboardView.classList.contains('hidden') && state.dataset) loadDashboard();
+    });
 
     document.getElementById('repo-filter').addEventListener('change', (event) => {
       state.currentRepo = event.target.value;
@@ -1184,6 +1230,8 @@
       state.type = event.target.value;
       loadDashboard();
     });
+
+    applyTheme(state.theme);
 
     if (sessionStorage.getItem('stakeholder_access') === 'true') {
       showDashboard().catch(() => {
