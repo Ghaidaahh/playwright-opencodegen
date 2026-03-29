@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-03-29T00:55:00Z",
+  "generatedAt": "2026-03-29T04:25:00Z",
   "portfolioBuild": {
     "title": "Portfolio quality overview",
     "status": "Attention needed",
-    "summary": "Today’s combined view shows heavy failure volume in the active repository. Smoke, sanity, and regression coverage are visible, and managers can switch to a single repository for a more focused build summary.",
-    "updatedAt": "2026-03-29T00:55:00Z"
+    "summary": "Today’s combined view shows a mixed quality signal in the active repository, with both passing and failing runs visible across environments and test types.",
+    "updatedAt": "2026-03-29T04:25:00Z"
   },
   "repos": [
     {
@@ -15,8 +15,8 @@
       "currentBuild": {
         "title": "Checkout and reporting release readiness",
         "status": "Needs review",
-        "summary": "The latest daily view shows a concentration of failures in regression coverage. Managers should treat the current build as not ready for broad release until the failing scenarios are resolved.",
-        "updatedAt": "2026-03-29T00:55:00Z"
+        "summary": "The latest daily view shows a mixed result set. Core smoke coverage is stable, while a smaller set of failures still needs review before broad release confidence improves.",
+        "updatedAt": "2026-03-29T04:25:00Z"
       },
       "latestRelease": {
         "tag_name": "v1.0.0",
@@ -28,10 +28,9 @@
         {
           "created_at": "2026-03-29T00:12:00Z",
           "updated_at": "2026-03-29T01:28:00Z",
-          "conclusion": "failure",
+          "conclusion": "success",
           "environment": "qa",
-          "type": "regression",
-          "failureSource": "automation"
+          "type": "regression"
         },
         {
           "created_at": "2026-03-29T00:28:00Z",
@@ -44,10 +43,9 @@
         {
           "created_at": "2026-03-29T00:45:00Z",
           "updated_at": "2026-03-29T02:03:00Z",
-          "conclusion": "failure",
+          "conclusion": "success",
           "environment": "staging",
-          "type": "smoke",
-          "failureSource": "product"
+          "type": "smoke"
         },
         {
           "created_at": "2026-03-29T01:05:00Z",
@@ -56,6 +54,20 @@
           "environment": "production",
           "type": "regression",
           "failureSource": "automation"
+        },
+        {
+          "created_at": "2026-03-29T02:40:00Z",
+          "updated_at": "2026-03-29T03:36:00Z",
+          "conclusion": "success",
+          "environment": "production",
+          "type": "sanity"
+        },
+        {
+          "created_at": "2026-03-29T03:05:00Z",
+          "updated_at": "2026-03-29T04:19:00Z",
+          "conclusion": "cancelled",
+          "environment": "qa",
+          "type": "smoke"
         },
         {
           "created_at": "2026-03-28T10:10:00Z",
