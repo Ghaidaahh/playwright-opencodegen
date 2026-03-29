@@ -8,88 +8,149 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg:#07080f; --paper:#0d0f1a; --paper-2:#13162a; --ink:#dde1f5; --muted:#697086;
-      --border:#22263d; --accent:#5b8af0; --accent-soft:rgba(91,138,240,.12); --green:#1fd195;
-      --red:#f05b7a; --gold:#f0c84a; --shadow:0 18px 44px rgba(0,0,0,.28);
+      --bg:#070914; --paper:#101321; --paper-2:#14192a; --paper-3:#0b1020; --ink:#eef2ff; --muted:#7680a7;
+      --border:#2a3150; --accent:#5a82ff; --accent-soft:rgba(90,130,255,.16); --green:#23e0a4;
+      --red:#ff5f8d; --gold:#ffd24d; --navy:#0a0d19; --shadow:0 26px 62px rgba(0,0,0,.4); --line:rgba(255,255,255,.045);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Figtree', sans-serif; background: radial-gradient(circle at top, rgba(91,138,240,.08), transparent 32%), linear-gradient(180deg,#07080f 0%,#0b0d16 100%); color: var(--ink); min-height: 100vh; }
-    .shell { max-width: 1320px; margin: 0 auto; padding: 28px; }
+    body { font-family: 'Figtree', sans-serif; background:
+      radial-gradient(circle at 15% 0%, rgba(90,130,255,.16), transparent 24%),
+      radial-gradient(circle at 85% 10%, rgba(255,95,141,.09), transparent 22%),
+      linear-gradient(180deg,#060812 0%,#090c17 100%); color: var(--ink); min-height: 100vh; position:relative; }
+    body::before { content:''; position:fixed; inset:0; pointer-events:none; opacity:.18; background-image:
+      linear-gradient(rgba(255,255,255,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,.03) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: radial-gradient(circle at center, black 38%, transparent 88%);
+    }
+    .dashboard-layout { max-width: 1540px; margin: 0 auto; padding: 16px; display:grid; grid-template-columns: 280px minmax(0, 1fr); gap: 16px; align-items:start; }
+    .shell { min-width: 0; }
     .login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 28px; }
-    .login-card, .panel, .metric, .summary { background: var(--paper); border: 1px solid var(--border); border-radius: 24px; box-shadow: var(--shadow); }
-    .login-card { width: 100%; max-width: 460px; padding: 40px; }
+    .login-card, .panel, .metric, .summary, .sidebar { background: linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015)); border: 1px solid var(--border); border-radius: 24px; box-shadow: var(--shadow); backdrop-filter: blur(14px); }
+    .login-card { width: 100%; max-width: 500px; padding: 42px; }
     .brand { display:flex; align-items:center; gap:14px; margin-bottom: 26px; }
-    .brand-icon { width: 58px; height: 58px; display:flex; align-items:center; justify-content:center; border-radius: 18px; background: linear-gradient(135deg,#2d7c79,#d0a03e); color:#fff; font-size: 28px; }
-    .brand h1 { font-family: 'Syne', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: -.6px; }
+    .brand-icon { width: 58px; height: 58px; display:flex; align-items:center; justify-content:center; border-radius: 18px; background: linear-gradient(135deg,#2a6dff,#38d0a5 60%,#f4cc56); color:#fff; font-size: 28px; box-shadow: 0 14px 32px rgba(95,134,255,.24); }
+    .brand h1 { font-family: 'Syne', sans-serif; font-size: 29px; font-weight: 800; letter-spacing: -.8px; }
     .brand p { color: var(--muted); font-size: 13px; line-height: 1.7; margin-top: 8px; }
     label { display:block; font-size:11px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
     input, select, button { font: inherit; }
-    input, select { width: 100%; border-radius: 14px; border: 1px solid var(--border); background: var(--paper-2); padding: 13px 14px; color: var(--ink); }
+    input, select { width: 100%; border-radius: 14px; border: 1px solid var(--border); background: var(--paper-2); padding: 13px 14px; color: var(--ink); box-shadow: inset 0 1px 0 rgba(255,255,255,.03); transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease; }
+    input:focus, select:focus { outline:none; border-color: rgba(95,134,255,.42); box-shadow: 0 0 0 3px rgba(95,134,255,.12), inset 0 1px 0 rgba(255,255,255,.03); }
     button { border: 0; cursor: pointer; }
-    .primary { width: 100%; border-radius: 14px; padding: 14px 18px; background: var(--accent); color: #fff; font-weight: 700; margin-top: 14px; }
-    .ghost { border-radius: 12px; padding: 10px 14px; background: transparent; color: var(--muted); border: 1px solid var(--border); }
+    .primary { width: 100%; border-radius: 14px; padding: 14px 18px; background: linear-gradient(135deg, #4f75ff, #6a8dff); color: #fff; font-weight: 700; margin-top: 14px; box-shadow: 0 14px 28px rgba(95,134,255,.22); transition: transform .18s ease, box-shadow .18s ease; }
+    .primary:hover { transform: translateY(-1px); box-shadow: 0 18px 32px rgba(95,134,255,.28); }
+    .ghost { border-radius: 12px; padding: 10px 14px; background: rgba(255,255,255,.02); color: var(--muted); border: 1px solid var(--border); transition: border-color .18s ease, background .18s ease, color .18s ease; }
+    .ghost:hover { border-color: rgba(95,134,255,.28); color: var(--ink); background: rgba(255,255,255,.04); }
     .error { display:none; margin-bottom: 16px; border-radius: 14px; padding: 12px 14px; background: rgba(240,91,122,.1); color: var(--red); border:1px solid rgba(240,91,122,.2); }
-    .header { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom: 24px; }
-    .header h1 { font-family: 'Syne', sans-serif; font-size: 38px; font-weight: 800; letter-spacing: -1px; }
-    .header p { max-width: 720px; color: var(--muted); line-height: 1.8; margin-top: 8px; }
-    .toolbar { display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
-    .banner { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:22px; margin-bottom:18px; background:linear-gradient(135deg, rgba(91,138,240,.12), rgba(31,209,149,.06)); border:1px solid rgba(91,138,240,.18); }
-    .banner-title { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; letter-spacing:-.7px; margin-bottom:8px; }
-    .banner-copy { color:var(--muted); font-size:14px; line-height:1.8; max-width:760px; }
-    .toolbar .field, .summary { padding: 16px; }
-    .summary { margin-bottom: 24px; }
-    .summary h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 10px; }
-    .summary-grid { display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; font-size: 14px; }
-    .summary-grid div span:first-child { display:block; font-size:11px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 6px; }
-    .metrics { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .metric { padding: 20px; }
-    .metric .label { display:flex; align-items:center; gap:8px; font-size: 11px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 12px; }
-    .metric .value { font-family: 'Syne', sans-serif; font-size: 40px; font-weight: 800; letter-spacing: -1px; }
-    .metric .sub { margin-top: 8px; color: var(--muted); font-size: 13px; line-height: 1.7; }
-    .panels { display:grid; grid-template-columns: 1.3fr .7fr; gap: 16px; margin-bottom: 24px; }
-    .panel { padding: 20px; }
-    .panel h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
-    .panel p.meta { color: var(--muted); font-size: 13px; line-height: 1.7; margin-bottom: 18px; }
-    .chart-box { position: relative; height: 230px; }
-    .mini-panels, .env-grid { display:grid; gap:16px; margin-bottom:24px; }
+    .sidebar { position: sticky; top: 16px; padding: 18px; background:
+      radial-gradient(circle at top left, rgba(90,130,255,.16), transparent 26%),
+      linear-gradient(180deg, rgba(11,14,27,.98), rgba(14,18,34,.95)); min-height: calc(100vh - 36px); }
+    .sidebar .brand { padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+    .side-section { padding-top: 16px; margin-top: 16px; border-top: 1px solid rgba(255,255,255,.04); }
+    .side-label { font-size: 11px; text-transform: uppercase; letter-spacing: .9px; color: var(--muted); margin-bottom: 12px; font-weight: 700; }
+    .side-nav { display:flex; flex-direction:column; gap: 10px; }
+    .side-item { border: 1px solid var(--border); border-radius: 16px; padding: 11px 13px; background: rgba(255,255,255,.02); box-shadow: inset 0 1px 0 rgba(255,255,255,.02); }
+    .side-item strong { display:block; font-size: 13px; margin-bottom: 4px; }
+    .side-item span { color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .side-pill-row { display:flex; flex-wrap:wrap; gap: 8px; }
+    .side-stat { border-radius: 999px; padding: 8px 10px; border: 1px solid var(--border); background: rgba(255,255,255,.03); color: var(--muted); font-size: 11px; }
+    .header { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; margin-bottom: 16px; padding: 18px 20px; background: linear-gradient(180deg, rgba(16,19,33,.95), rgba(13,17,31,.95)); border: 1px solid var(--border); border-radius: 24px; box-shadow: var(--shadow); position:relative; overflow:hidden; }
+    .header::after { content:''; position:absolute; inset:auto -10% -70% 30%; height:180px; background: radial-gradient(circle, rgba(95,134,255,.18), transparent 68%); pointer-events:none; }
+    .header h1 { font-family: 'Syne', sans-serif; font-size: 38px; font-weight: 800; letter-spacing: -1.2px; line-height: 1; }
+    .header p { max-width: 700px; color: var(--muted); line-height: 1.7; margin-top: 7px; font-size: 13px; }
+    .header-kickers { display:flex; flex-wrap:wrap; gap: 8px; margin-bottom: 8px; }
+    .kicker { display:inline-flex; align-items:center; gap:8px; border-radius:999px; padding:7px 11px; background: rgba(255,255,255,.03); border:1px solid var(--border); font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .85px; }
+    .kicker strong { color: var(--ink); }
+    .toolbar { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+    .banner { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:20px; margin-bottom:16px; background:linear-gradient(135deg, rgba(79,117,255,.16), rgba(46,224,177,.08)); border:1px solid rgba(95,134,255,.24); box-shadow: inset 0 1px 0 rgba(255,255,255,.04), var(--shadow); }
+    .banner-title { font-family:'Syne',sans-serif; font-size:22px; font-weight:800; letter-spacing:-.7px; margin-bottom:6px; }
+    .banner-copy { color:var(--muted); font-size:13px; line-height:1.75; max-width:760px; }
+    .toolbar .field, .summary { padding: 14px; background: linear-gradient(180deg, rgba(255,255,255,.022), rgba(255,255,255,.012)); border: 1px solid var(--border); border-radius: 20px; box-shadow: var(--shadow); }
+    .summary { margin-bottom: 18px; }
+    .summary h2 { font-size: 10px; text-transform: uppercase; letter-spacing: .9px; color: var(--muted); margin-bottom: 10px; }
+    .summary-grid { display:grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; font-size: 14px; }
+    .summary-grid div { padding: 9px 11px; border-radius: 16px; background: rgba(255,255,255,.025); border: 1px solid rgba(255,255,255,.04); }
+    .summary-grid div span:first-child { display:block; font-size:10px; text-transform: uppercase; letter-spacing: .9px; color: var(--muted); margin-bottom: 8px; }
+    .summary-grid strong { font-size: 12px; line-height: 1.5; }
+    .metrics { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
+    .metric { padding: 18px; position: relative; overflow:hidden; background: linear-gradient(180deg, rgba(16,19,33,.95), rgba(13,17,31,.95)); }
+    .metric::before { content:''; position:absolute; inset:0 auto auto 0; width:100%; height:3px; background: var(--accent); opacity:.9; }
+    .metric:nth-child(2)::before { background: var(--green); }
+    .metric:nth-child(3)::before { background: var(--red); }
+    .metric:nth-child(4)::before { background: var(--gold); }
+    .metric .label { display:flex; align-items:center; gap:8px; font-size: 10px; color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: .95px; margin-bottom: 10px; }
+    .metric .value { font-family: 'Syne', sans-serif; font-size: 44px; font-weight: 800; letter-spacing: -1.5px; line-height: .95; }
+    .metrics .metric:nth-child(1) .value { color: var(--accent); }
+    .metrics .metric:nth-child(2) .value { color: var(--green); }
+    .metrics .metric:nth-child(3) .value { color: var(--red); }
+    .metrics .metric:nth-child(4) .value { color: var(--gold); }
+    .metric .sub { margin-top: 8px; color: var(--muted); font-size: 12px; line-height: 1.65; }
+    .metric::after { content:''; position:absolute; width:140px; height:140px; border-radius:999px; right:-52px; top:-62px; background: radial-gradient(circle, rgba(255,255,255,.06), transparent 68%); pointer-events:none; }
+    .panels { display:grid; grid-template-columns: 1.3fr .7fr; gap: 16px; margin-bottom: 18px; }
+    .panel { padding: 18px; background: linear-gradient(180deg, rgba(16,19,33,.95), rgba(13,17,31,.95)); position:relative; overflow:hidden; }
+    .panel::before { content:''; position:absolute; inset:0; pointer-events:none; background: linear-gradient(180deg, rgba(255,255,255,.02), transparent 28%); }
+    .panel h3 { font-family: 'Syne', sans-serif; font-size: 19px; font-weight: 700; margin-bottom: 6px; letter-spacing: -.3px; }
+    .panel p.meta { color: var(--muted); font-size: 12px; line-height: 1.7; margin-bottom: 16px; }
+    .chart-box { position: relative; height: 228px; padding: 8px 8px 0; border-radius: 18px; background:
+      linear-gradient(180deg, rgba(255,255,255,.025), rgba(255,255,255,.01)),
+      linear-gradient(180deg, rgba(8,11,22,.95), rgba(11,14,25,.9)); border: 1px solid rgba(255,255,255,.04); }
+    .mini-panels { display:grid; gap:14px; margin-bottom:18px; }
     .mini-panels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .env-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-    .env-card { padding:20px; }
-    .env-card h4, .mini-card h4 { font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:12px; }
-    .env-card .env-value, .mini-card .mini-value { font-family:'Syne',sans-serif; font-size:30px; font-weight:800; letter-spacing:-.8px; }
-    .mini-card { padding:20px; }
+    .mini-card h4 { font-size:10px; text-transform:uppercase; letter-spacing:.95px; color:var(--muted); margin-bottom:10px; }
+    .mini-card .mini-value { font-family:'Syne',sans-serif; font-size:30px; font-weight:800; letter-spacing:-.9px; line-height: .98; }
+    .mini-card { padding:18px; background: linear-gradient(180deg, rgba(16,19,33,.95), rgba(13,17,31,.95)); }
+    .mini-panels .mini-card:nth-child(1) { border-color: rgba(95,134,255,.18); }
+    .mini-panels .mini-card:nth-child(2) { border-color: rgba(46,224,177,.18); }
+    .mini-panels .mini-card:nth-child(3) { border-color: rgba(240,96,143,.18); }
     .list { display:flex; flex-direction:column; gap:12px; }
     .list-item { display:flex; align-items:flex-start; gap:10px; color:var(--ink); line-height:1.7; font-size:13px; }
     .list-item .dot { width:8px; height:8px; border-radius:999px; margin-top:7px; flex:0 0 auto; }
     .split { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
     .split:last-child { border-bottom:none; padding-bottom:0; }
     .repo-list { display:grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
-    .repo-card { border:1px solid var(--border); border-radius:20px; background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0)); padding:18px; }
+    .repo-card { border:1px solid var(--border); border-radius:20px; background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.015)); padding:18px; box-shadow: inset 0 1px 0 rgba(255,255,255,.03); transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease; }
+    .repo-card:hover { transform: translateY(-2px); border-color: rgba(95,134,255,.22); box-shadow: inset 0 1px 0 rgba(255,255,255,.03), 0 18px 30px rgba(0,0,0,.24); }
     .repo-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:12px; }
-    .repo-card .name { font-family:'Syne', sans-serif; font-size:18px; font-weight:700; letter-spacing:-.3px; }
+    .repo-card .name { font-family:'Syne', sans-serif; font-size:19px; font-weight:700; letter-spacing:-.4px; }
     .repo-card .meta { margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.6; }
     .repo-card .stamp { margin-top: 8px; color: var(--muted); font-size: 11px; line-height: 1.6; }
     .repo-stats { display:grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap:10px; margin: 14px 0; }
-    .repo-stat { border:1px solid var(--border); border-radius:14px; padding:10px 12px; background: rgba(255,255,255,.02); }
+    .repo-stat { border:1px solid var(--border); border-radius:14px; padding:10px 12px; background: rgba(255,255,255,.028); }
     .repo-stat span { display:block; font-size:10px; text-transform:uppercase; letter-spacing:.7px; color:var(--muted); margin-bottom:6px; }
-    .repo-stat strong { font-size:16px; font-weight:700; }
-    .repo-bar { height:10px; background: rgba(255,255,255,.05); border-radius:999px; overflow:hidden; display:flex; margin-bottom:12px; }
+    .repo-stat strong { font-size:17px; font-weight:700; }
+    .repo-bar { height:10px; background: rgba(255,255,255,.05); border-radius:999px; overflow:hidden; display:flex; margin-bottom:12px; box-shadow: inset 0 1px 2px rgba(0,0,0,.5); }
     .repo-bar-fill { height:100%; }
     .repo-tags { display:flex; flex-wrap:wrap; gap:8px; }
-    .chip { display:inline-flex; align-items:center; border-radius:999px; padding:6px 10px; font-size:11px; border:1px solid var(--border); color:var(--muted); background:rgba(255,255,255,.03); }
-    .badge { display:inline-flex; align-items:center; gap:6px; border-radius: 999px; padding: 6px 10px; font-size: 11px; font-weight: 700; }
-    .badge.green { background: rgba(31,140,96,.12); color: var(--green); }
-    .badge.red { background: rgba(196,83,76,.12); color: var(--red); }
-    .badge.gold { background: rgba(199,152,50,.14); color: var(--gold); }
+    .chip { display:inline-flex; align-items:center; border-radius:999px; padding:6px 10px; font-size:11px; border:1px solid var(--border); color:var(--muted); background:rgba(255,255,255,.035); }
+    .chip:nth-child(1) { color: var(--accent); }
+    .chip:nth-child(2) { color: var(--gold); }
+    .chip:nth-child(3) { color: var(--muted); }
+    .badge { display:inline-flex; align-items:center; gap:6px; border-radius: 999px; padding: 7px 11px; font-size: 11px; font-weight: 700; border:1px solid transparent; }
+    .badge.green { background: rgba(46,224,177,.1); color: var(--green); border-color: rgba(46,224,177,.18); }
+    .badge.red { background: rgba(240,96,143,.1); color: var(--red); border-color: rgba(240,96,143,.2); }
+    .badge.gold { background: rgba(244,204,86,.1); color: var(--gold); border-color: rgba(244,204,86,.18); }
     .compact-grid { display:grid; grid-template-columns: 1.2fr .8fr; gap:16px; margin-bottom:24px; }
     .aside-stack { display:grid; gap:16px; }
-    .info-dot { width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background: var(--accent-soft); color: var(--accent); font-size: 11px; cursor: help; }
-    .tooltip { position: fixed; max-width: 220px; padding: 10px 12px; border-radius: 14px; background: #1f2433; color: #fff; font-size: 12px; line-height: 1.6; box-shadow: 0 18px 44px rgba(0,0,0,.28); display:none; z-index: 50; }
-    .status-note { color: var(--muted); font-size: 12px; margin-top: 12px; line-height: 1.7; }
+    .info-dot { width:18px; height:18px; display:inline-flex; align-items:center; justify-content:center; border-radius:999px; background: var(--accent-soft); color: var(--accent); font-size: 11px; cursor: help; border:1px solid rgba(95,134,255,.16); }
+    .tooltip { position: fixed; max-width: 220px; padding: 10px 12px; border-radius: 14px; background: #1a2034; color: #fff; font-size: 12px; line-height: 1.6; box-shadow: 0 18px 44px rgba(0,0,0,.34); display:none; z-index: 50; border:1px solid rgba(255,255,255,.05); }
+    .status-note { color: var(--muted); font-size: 11px; margin-top: 10px; line-height: 1.65; }
+    #build-title { text-wrap: balance; }
+    .hero-build { background:
+      radial-gradient(circle at top right, rgba(95,134,255,.16), transparent 34%),
+      radial-gradient(circle at bottom left, rgba(46,224,177,.08), transparent 32%),
+      linear-gradient(180deg, rgba(16,19,33,.98), rgba(12,15,28,.98)); }
+    .hero-build .build-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:14px; }
+    .build-badges { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .build-badge { display:inline-flex; align-items:center; gap:6px; border-radius:999px; padding:7px 10px; font-size:10px; font-weight:700; border:1px solid var(--border); background:rgba(255,255,255,.04); color:var(--muted); letter-spacing:.35px; }
+    .build-pr-box { margin-top:14px; padding:13px 15px; border-radius:18px; border:1px solid rgba(95,134,255,.18); background: linear-gradient(180deg, rgba(95,134,255,.08), rgba(95,134,255,.03)); }
+    .build-pr-box strong { display:block; margin-bottom:6px; font-size:12px; color:var(--ink); letter-spacing:.2px; }
+    .build-pr-box span { color:var(--muted); font-size:12px; line-height:1.7; }
     .hidden { display:none !important; }
     .loading { color: var(--muted); font-size: 13px; }
     @media (max-width: 980px) {
-      .toolbar, .metrics, .summary-grid, .panels, .mini-panels, .env-grid, .compact-grid, .repo-list { grid-template-columns: 1fr; }
+      .dashboard-layout { grid-template-columns: 1fr; padding: 14px; }
+      .sidebar { position: static; min-height: auto; }
+      .toolbar, .metrics, .summary-grid, .panels, .mini-panels, .compact-grid, .repo-list { grid-template-columns: 1fr; }
       .header { flex-direction: column; }
       .banner { flex-direction:column; }
     }
@@ -113,11 +174,54 @@
   </section>
 
   <main id="dashboard-view" class="hidden">
-    <div class="shell">
+    <div class="dashboard-layout">
+      <aside class="sidebar">
+        <div class="brand">
+          <div class="brand-icon">🎭</div>
+          <div>
+            <h1>Playwatch</h1>
+            <p>Executive quality lens across repositories, releases, and delivery movement.</p>
+          </div>
+        </div>
+
+        <div class="side-section">
+          <div class="side-label">Executive Lens</div>
+          <div class="side-nav">
+            <div class="side-item">
+              <strong>Current Scope</strong>
+              <span id="side-current-scope">All repos · Today · Dev environment</span>
+            </div>
+            <div class="side-item">
+              <strong>Latest Run</strong>
+              <span id="side-latest-run">Syncing latest test activity...</span>
+            </div>
+            <div class="side-item">
+              <strong>Current Build</strong>
+              <span id="side-build-status">Waiting for current build summary...</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="side-section">
+          <div class="side-label">Signals</div>
+          <div class="side-pill-row">
+            <span class="side-stat">Executive only</span>
+            <span class="side-stat">Read-only</span>
+            <span class="side-stat">PR-aware</span>
+            <span class="side-stat">Run timestamps</span>
+          </div>
+        </div>
+      </aside>
+
+      <div class="shell">
       <div class="header">
         <div>
+          <div class="header-kickers">
+            <span class="kicker"><strong>Playwatch</strong> Executive View</span>
+            <span id="header-sync" class="kicker">Syncing latest dashboard snapshot...</span>
+          </div>
           <h1>Quality Health Overview</h1>
-          <p>Leadership-friendly quality reporting across repositories, environments, and test types. This view avoids technical actions and keeps the focus on reliability, release confidence, and testing coverage.</p>
+          <p>Leadership-friendly quality reporting across repositories and test types. This view avoids technical actions and keeps the focus on reliability, release confidence, and testing coverage.</p>
         </div>
         <button class="ghost" id="logout-btn">Sign out</button>
       </div>
@@ -139,15 +243,6 @@
         <div class="field">
           <label id="calendar-filter-label" for="calendar-filter">Date</label>
           <div id="calendar-filter-wrap"></div>
-        </div>
-        <div class="field">
-          <label for="env-filter">Environment</label>
-          <select id="env-filter">
-            <option value="all">All Environments</option>
-            <option value="staging">Staging</option>
-            <option value="production">Production</option>
-            <option value="qa">QA</option>
-          </select>
         </div>
         <div class="field">
           <label for="type-filter">Test Type</label>
@@ -216,33 +311,15 @@
         </article>
       </section>
 
-      <section class="env-grid">
-        <article class="panel env-card">
-          <h4>QA Health <span class="info-dot" data-tip="Quality status for the QA environment in the selected period and test type.">i</span></h4>
-          <div id="env-qa-value" class="env-value">-</div>
-          <div id="env-qa-copy" class="status-note">Loading environment health...</div>
-        </article>
-        <article class="panel env-card">
-          <h4>Staging Health <span class="info-dot" data-tip="Quality status for the Staging environment in the selected period and test type.">i</span></h4>
-          <div id="env-staging-value" class="env-value">-</div>
-          <div id="env-staging-copy" class="status-note">Loading environment health...</div>
-        </article>
-        <article class="panel env-card">
-          <h4>Production Health <span class="info-dot" data-tip="Quality status for the Production environment in the selected period and test type.">i</span></h4>
-          <div id="env-production-value" class="env-value">-</div>
-          <div id="env-production-copy" class="status-note">Loading environment health...</div>
-        </article>
-      </section>
-
       <section class="panels">
         <article class="panel">
           <h3>Pass / Fail Trend <span class="info-dot" data-tip="Shows how passing and failing runs changed over time for the selected scope.">i</span></h3>
-          <p class="meta">Trend line for the currently selected scope.</p>
+          <p class="meta">Quality movement across the selected period.</p>
           <div class="chart-box"><canvas id="trend-chart"></canvas></div>
         </article>
         <article class="panel">
           <h3>Result Breakdown <span class="info-dot" data-tip="Distribution of pass, fail, skip, and cancel outcomes within the current filters.">i</span></h3>
-          <p class="meta">At-a-glance distribution of passed, failed, skipped, and cancelled runs.</p>
+          <p class="meta">Overall outcome split for the selected scope.</p>
           <div class="chart-box"><canvas id="donut-chart"></canvas></div>
         </article>
       </section>
@@ -256,14 +333,24 @@
           </div>
         </article>
         <div class="aside-stack">
-          <article class="panel">
-            <h3>Current Build <span class="info-dot" data-tip="High-level delivery summary. In All repos view, this shows a portfolio summary. In a single repo view, it can show a repo-specific build summary.">i</span></h3>
-            <p class="meta">Jira/Epic-style build summary if available, otherwise latest release fallback.</p>
-            <div id="build-tag" class="badge gold">Loading</div>
-            <div id="build-title" style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;line-height:1.2;margin-top:16px">Loading build summary...</div>
-            <div id="build-date" class="status-note"></div>
+          <article class="panel hero-build">
+            <div class="build-head">
+              <div>
+                <h3>Current Build <span class="info-dot" data-tip="High-level delivery summary. In All repos view, this shows a portfolio summary. In a single repo view, it can show a repo-specific build summary.">i</span></h3>
+                <p class="meta">Build state, freshest run, and latest merged delivery movement.</p>
+              </div>
+              <div id="build-tag" class="badge gold">Loading</div>
+            </div>
+            <div id="build-title" style="font-family:'Syne',sans-serif;font-size:30px;font-weight:800;line-height:1.12;margin-top:4px">Loading build summary...</div>
+            <div class="build-badges">
+              <span id="build-date" class="build-badge">Loading timestamp</span>
+              <span id="build-latest-run" class="build-badge">Loading latest run</span>
+            </div>
             <div id="build-body" class="status-note"></div>
-            <div id="build-pr" class="status-note"></div>
+            <div class="build-pr-box">
+              <strong>Latest merged delivery</strong>
+              <span id="build-pr">Loading merged pull request...</span>
+            </div>
           </article>
 
           <article class="panel">
@@ -275,6 +362,7 @@
           </article>
         </div>
       </section>
+      </div>
     </div>
   </main>
   <div id="tooltip" class="tooltip"></div>
@@ -286,7 +374,6 @@
       repos: [],
       currentRepo: 'all',
       range: 'day',
-      env: 'all',
       type: 'all',
       calendarValue: new Date().toISOString().slice(0, 10),
       trendChart: null,
@@ -483,10 +570,8 @@
     }
 
     function matchesFilters(run) {
-      const env = (run.environment || 'all').toLowerCase();
       const type = (run.type || 'other').toLowerCase();
       if (!inRange(run)) return false;
-      if (state.env !== 'all' && env !== state.env) return false;
       if (state.type !== 'all' && type !== state.type) return false;
       return true;
     }
@@ -495,19 +580,6 @@
       return getSelectedRepos()
         .flatMap((repo) => repo.runs || [])
         .filter(matchesFilters);
-    }
-
-    function getFilteredRunsForEnv(envName) {
-      return getSelectedRepos()
-        .flatMap((repo) => repo.runs || [])
-        .filter((run) => {
-          const env = (run.environment || 'all').toLowerCase();
-          const type = (run.type || 'other').toLowerCase();
-          if (!inRange(run)) return false;
-          if (envName !== 'all' && env !== envName) return false;
-          if (state.type !== 'all' && type !== state.type) return false;
-          return true;
-        });
     }
 
     function buildMetrics(runs) {
@@ -539,9 +611,7 @@
       return getSelectedRepos()
         .flatMap((repo) => repo.runs || [])
         .filter((run) => {
-          const env = (run.environment || 'all').toLowerCase();
           const type = (run.type || 'other').toLowerCase();
-          if (state.env !== 'all' && env !== state.env) return false;
           if (state.type !== 'all' && type !== state.type) return false;
           const runDate = new Date(run.created_at);
           if (state.range === 'day') return toInputDate(runDate) === previousValue;
@@ -623,24 +693,13 @@
       };
     }
 
-    function buildEnvironmentCards() {
-      return ['qa', 'staging', 'production'].map((env) => {
-        const metrics = buildMetrics(getFilteredRunsForEnv(env));
-        return { env, metrics };
-      });
-    }
-
-    function buildTopRisks(metrics, previousMetrics, failureSource, envCards) {
+    function buildTopRisks(metrics, previousMetrics, failureSource) {
       const risks = [];
-      const weakestEnv = [...envCards].sort((a, b) => a.metrics.passRate - b.metrics.passRate)[0];
       if (metrics.failed > 0) {
         risks.push(`There are ${metrics.failed} failing runs in the current selection, which keeps release confidence below the desired threshold.`);
       }
       if (metrics.passRate < previousMetrics.passRate) {
         risks.push(`Pass rate has dropped from ${previousMetrics.passRate}% in the previous period to ${metrics.passRate}% now.`);
-      }
-      if (weakestEnv && weakestEnv.metrics.total > 0) {
-        risks.push(`${titleCase(weakestEnv.env)} is the weakest environment right now at ${weakestEnv.metrics.passRate}% pass rate.`);
       }
       if (failureSource.automation > 0) {
         risks.push(`${failureSource.automation} failures look automation-related, which may hide the true product signal until tests are stabilized.`);
@@ -697,7 +756,6 @@
         latestRunAt,
         coverage: buildCoverageSummary(repos),
         failureSource: buildFailureSourceSummary(filteredRuns),
-        envCards: buildEnvironmentCards(),
         latestRelease: selectedRepo?.latestRelease || state.dataset?.latestRelease || null,
         mergedPullRequests,
         summary: {
@@ -711,7 +769,7 @@
               })
             : (selectedRepo?.currentBuild || null),
         },
-        risks: buildTopRisks(metrics, previousMetrics, buildFailureSourceSummary(filteredRuns), buildEnvironmentCards()),
+        risks: buildTopRisks(metrics, previousMetrics, buildFailureSourceSummary(filteredRuns)),
       };
     }
 
@@ -728,11 +786,27 @@
       document.getElementById('summary-grid').innerHTML = `
         <div><span>Repository</span><strong>${state.currentRepo === 'all' ? 'All repos' : state.currentRepo.split('/')[1]}</strong></div>
         <div><span>Period</span><strong>${getCurrentPeriodLabel()}</strong></div>
-        <div><span>Environment</span><strong>${state.env === 'all' ? 'All environments' : titleCase(state.env)}</strong></div>
         <div><span>Test Type</span><strong>${Array.isArray(testTypes) ? testTypes.join(', ') : testTypes}</strong></div>
         <div><span>Coverage</span><strong>${testCaseCount} test cases</strong></div>
         <div><span>Latest Run</span><strong>${data.latestRunAt ? fmtStamp(data.latestRunAt) : 'No matching runs'}</strong></div>
       `;
+    }
+
+    function renderChrome(data) {
+      const scopeLabel = `${state.currentRepo === 'all' ? 'All repos' : state.currentRepo.split('/')[1]} · ${getCurrentPeriodLabel()} · Dev environment`;
+      const syncText = state.dataset?.generatedAt
+        ? `Synced ${fmtStamp(state.dataset.generatedAt)}`
+        : 'Syncing latest dashboard snapshot...';
+      const buildText = data.summary?.currentBuild?.status
+        ? `${data.summary.currentBuild.status}${data.mergedPullRequests?.[0] ? ` · PR #${data.mergedPullRequests[0].number}` : ''}`
+        : data.mergedPullRequests?.[0]
+          ? `Latest merged PR #${data.mergedPullRequests[0].number}`
+          : 'No build summary yet';
+
+      document.getElementById('header-sync').textContent = syncText;
+      document.getElementById('side-current-scope').textContent = scopeLabel;
+      document.getElementById('side-latest-run').textContent = data.latestRunAt ? fmtStamp(data.latestRunAt) : 'No matching runs in current filters';
+      document.getElementById('side-build-status').textContent = buildText;
     }
 
     function renderMetrics(data) {
@@ -782,43 +856,42 @@
         `Product ${data.failureSource.product} · Automation ${data.failureSource.automation} · Unknown ${data.failureSource.unknown}`;
     }
 
-    function renderEnvironmentCards(data) {
-      data.envCards.forEach((card) => {
-        const prefix = `env-${card.env}`;
-        const valueEl = document.getElementById(`${prefix}-value`);
-        const copyEl = document.getElementById(`${prefix}-copy`);
-        if (!valueEl || !copyEl) return;
-        if (!card.metrics.total) {
-          valueEl.textContent = 'No runs';
-          valueEl.style.color = 'var(--muted)';
-          copyEl.textContent = `No ${titleCase(card.env)} runs matched the current filters.`;
-          return;
-        }
-        valueEl.textContent = `${card.metrics.passRate}%`;
-        valueEl.style.color = card.metrics.passRate >= 80 ? 'var(--green)' : card.metrics.passRate >= 60 ? 'var(--gold)' : 'var(--red)';
-        copyEl.textContent = `${card.metrics.failed} failures across ${card.metrics.total} runs in ${titleCase(card.env)}.`;
-      });
-    }
-
     function renderTrend(data) {
       const ctx = document.getElementById('trend-chart').getContext('2d');
       if (state.trendChart) state.trendChart.destroy();
+      const passGradient = ctx.createLinearGradient(0, 0, 0, 260);
+      passGradient.addColorStop(0, 'rgba(46,224,177,.95)');
+      passGradient.addColorStop(1, 'rgba(46,224,177,.18)');
+      const failGradient = ctx.createLinearGradient(0, 0, 0, 260);
+      failGradient.addColorStop(0, 'rgba(240,96,143,.92)');
+      failGradient.addColorStop(1, 'rgba(240,96,143,.18)');
       state.trendChart = new Chart(ctx, {
         type: 'bar',
         data: {
           labels: data.trend.labels,
           datasets: [
-            { label: 'Pass', data: data.trend.pass, backgroundColor: '#1f8c60', borderRadius: 8 },
-            { label: 'Fail', data: data.trend.fail, backgroundColor: '#c4534c', borderRadius: 8 },
+            { label: 'Pass', data: data.trend.pass, backgroundColor: passGradient, borderRadius: 10, borderSkipped: false, maxBarThickness: 36 },
+            { label: 'Fail', data: data.trend.fail, backgroundColor: failGradient, borderRadius: 10, borderSkipped: false, maxBarThickness: 36 },
           ],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          plugins: { legend: { labels: { color: '#697086' } } },
+          plugins: {
+            legend: {
+              labels: {
+                color: '#8d94b5',
+                boxWidth: 12,
+                boxHeight: 12,
+                usePointStyle: true,
+                pointStyle: 'rectRounded',
+                padding: 18,
+              }
+            }
+          },
           scales: {
-            x: { ticks: { color: '#697086' }, grid: { display: false } },
-            y: { ticks: { color: '#697086' }, grid: { color: 'rgba(105,112,134,.12)' }, beginAtZero: true },
+            x: { ticks: { color: '#7d85a9' }, grid: { display: false }, border: { display: false } },
+            y: { ticks: { color: '#7d85a9', stepSize: 1 }, grid: { color: 'rgba(255,255,255,.06)' }, beginAtZero: true, border: { display: false } },
           },
         },
       });
@@ -850,16 +923,32 @@
           labels: ['Pass', 'Fail', 'Skip', 'Cancel'],
           datasets: [{
             data: [data.metrics.passed, data.metrics.failed, data.metrics.skipped, data.metrics.cancelled],
-            backgroundColor: ['#1f8c60', '#c4534c', '#c79832', '#697086'],
+            backgroundColor: ['#2ee0b1', '#f0608f', '#f4cc56', '#4e5678'],
             borderWidth: 0,
+            hoverOffset: 6,
           }],
         },
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
-            legend: { position: 'bottom', labels: { color: '#697086' } },
+            legend: {
+              position: 'bottom',
+              labels: {
+                color: '#8d94b5',
+                boxWidth: 10,
+                boxHeight: 10,
+                usePointStyle: true,
+                pointStyle: 'circle',
+                padding: 16,
+              }
+            },
             tooltip: {
+              backgroundColor: '#181e32',
+              borderColor: 'rgba(255,255,255,.08)',
+              borderWidth: 1,
+              titleColor: '#ecf0ff',
+              bodyColor: '#c7ceec',
               callbacks: {
                 label(context) {
                   const keys = ['passed', 'failed', 'skipped', 'cancelled'];
@@ -877,7 +966,7 @@
               }
             }
           },
-          cutout: '68%',
+          cutout: '72%',
         },
       });
     }
@@ -950,12 +1039,13 @@
       const tag = document.getElementById('build-tag');
       const title = document.getElementById('build-title');
       const date = document.getElementById('build-date');
+      const latestRun = document.getElementById('build-latest-run');
       const body = document.getElementById('build-body');
       const pr = document.getElementById('build-pr');
       const latestMergedPr = data.mergedPullRequests?.[0] || null;
 
       const prText = latestMergedPr
-        ? `Latest merged PR: #${latestMergedPr.number} ${latestMergedPr.title} · ${latestMergedPr.repo ? `${latestMergedPr.repo} · ` : ''}${fmtStamp(latestMergedPr.mergedAt)}`
+        ? `#${latestMergedPr.number} ${latestMergedPr.title}${latestMergedPr.repo ? ` · ${latestMergedPr.repo}` : ''} · ${fmtStamp(latestMergedPr.mergedAt)}`
         : 'No recent merged pull requests in the tracked history window.';
 
       if (build) {
@@ -964,10 +1054,11 @@
         title.textContent = build.title || build.name || 'Current delivery summary';
         if (build.updatedAt || build.updated_at) {
           const updated = build.updatedAt || build.updated_at;
-          date.textContent = `Updated ${fmtStamp(updated)}${data.latestRunAt ? ` · Latest run ${fmtStamp(data.latestRunAt)}` : ''}`;
+          date.textContent = `Updated ${fmtStamp(updated)}`;
         } else {
-          date.textContent = data.latestRunAt ? `Latest run ${fmtStamp(data.latestRunAt)}` : 'Updated by server-side sync';
+          date.textContent = 'Updated by server-side sync';
         }
+        latestRun.textContent = data.latestRunAt ? `Latest run ${fmtStamp(data.latestRunAt)}` : 'No matching runs';
         body.textContent = build.summary || build.description || build.body || 'Build summary available.';
         pr.textContent = prText;
         return;
@@ -977,7 +1068,8 @@
         tag.textContent = data.latestRelease.tag_name || 'Release';
         tag.className = 'badge gold';
         title.textContent = data.latestRelease.name || data.latestRelease.tag_name || 'Latest release';
-        date.textContent = `Release fallback · ${fmtStamp(data.latestRelease.published_at)}${data.latestRunAt ? ` · Latest run ${fmtStamp(data.latestRunAt)}` : ''}`;
+        date.textContent = `Release fallback · ${fmtStamp(data.latestRelease.published_at)}`;
+        latestRun.textContent = data.latestRunAt ? `Latest run ${fmtStamp(data.latestRunAt)}` : 'No matching runs';
         body.textContent = data.latestRelease.body || 'No executive build summary is published yet.';
         pr.textContent = prText;
         return;
@@ -986,7 +1078,8 @@
       tag.textContent = 'Pending';
       tag.className = 'badge red';
       title.textContent = 'No build summary available';
-      date.textContent = data.latestRunAt ? `Latest run ${fmtStamp(data.latestRunAt)}` : 'Publish dashboard-summary.json to populate this card';
+      date.textContent = 'Build summary pending';
+      latestRun.textContent = data.latestRunAt ? `Latest run ${fmtStamp(data.latestRunAt)}` : 'No matching runs';
       body.textContent = 'The backend is ready, but no Jira/Epic summary file exists yet.';
       pr.textContent = prText;
     }
@@ -1019,7 +1112,6 @@
       const params = new URLSearchParams({
         repo: state.currentRepo,
         range: state.range,
-        env: state.env,
         type: state.type,
       });
       try {
@@ -1031,16 +1123,16 @@
         }
         renderCalendarControl();
         const data = buildViewModel();
-        data.filters = { range: state.range, env: state.env, type: state.type };
+        data.filters = { range: state.range, type: state.type };
         state.repos = data.repos;
         populateRepos(data.repos);
+        renderChrome(data);
         renderSummary(data);
         renderExecutiveStatus(data);
         renderMetrics(data);
         renderTrendComparison(data);
         renderCoverage(data);
         renderFailureSource(data);
-        renderEnvironmentCards(data);
         renderTrend(data);
         renderDonut(data);
         renderRepoList(data);
@@ -1065,10 +1157,6 @@
     document.getElementById('range-filter').addEventListener('change', (event) => {
       state.range = event.target.value;
       state.calendarValue = getDefaultCalendarValue(state.range);
-      loadDashboard();
-    });
-    document.getElementById('env-filter').addEventListener('change', (event) => {
-      state.env = event.target.value;
       loadDashboard();
     });
     document.getElementById('type-filter').addEventListener('change', (event) => {
