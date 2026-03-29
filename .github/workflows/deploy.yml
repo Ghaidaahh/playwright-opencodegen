@@ -4,6 +4,8 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+  schedule:
+    - cron: '0 */6 * * *'
 
 permissions:
   contents: read
@@ -24,20 +26,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Inject stakeholder token
-        run: |
-          TOKEN="${{ secrets.STAKEHOLDER_TOKEN }}"
-          node -e "
-            const fs = require('fs');
-            const token = process.argv[1];
-            let html = fs.readFileSync('index.html', 'utf8');
-            const before = html.includes('STAKEHOLDER_TOKEN_PLACEHOLDER');
-            html = html.replace(/const STAKEHOLDER_TOKEN='[^']*';/g, \"const STAKEHOLDER_TOKEN='\" + token + \"';\");
-            fs.writeFileSync('index.html', html);
-            console.log('Before had placeholder:', before);
-            console.log('Token injected, length:', token.length);
-            console.log('Verify:', html.includes(token) ? 'SUCCESS' : 'FAILED');
-          " "$TOKEN"
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Generate stakeholder data
+        run: node scripts/generate-stakeholder-data.js
+        env:
+          GH_DASHBOARD_TOKEN: ${{ secrets.GH_DASHBOARD_TOKEN }}
+          STAKEHOLDER_REPOS: ${{ vars.STAKEHOLDER_REPOS }}
+          STAKEHOLDER_WORKFLOW_FILE: ${{ vars.STAKEHOLDER_WORKFLOW_FILE }}
+          DASHBOARD_SUMMARY_PATH: ${{ vars.DASHBOARD_SUMMARY_PATH }}
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

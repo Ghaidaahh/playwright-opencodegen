@@ -33,6 +33,9 @@
     .header h1 { font-family: 'Syne', sans-serif; font-size: 38px; font-weight: 800; letter-spacing: -1px; }
     .header p { max-width: 720px; color: var(--muted); line-height: 1.8; margin-top: 8px; }
     .toolbar { display:grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; margin-bottom: 18px; }
+    .banner { display:flex; align-items:flex-start; justify-content:space-between; gap:18px; padding:22px; margin-bottom:18px; background:linear-gradient(135deg, rgba(91,138,240,.12), rgba(31,209,149,.06)); border:1px solid rgba(91,138,240,.18); }
+    .banner-title { font-family:'Syne',sans-serif; font-size:24px; font-weight:800; letter-spacing:-.7px; margin-bottom:8px; }
+    .banner-copy { color:var(--muted); font-size:14px; line-height:1.8; max-width:760px; }
     .toolbar .field, .summary { padding: 16px; }
     .summary { margin-bottom: 24px; }
     .summary h2 { font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--muted); margin-bottom: 10px; }
@@ -48,6 +51,18 @@
     .panel h3 { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; }
     .panel p.meta { color: var(--muted); font-size: 13px; line-height: 1.7; margin-bottom: 18px; }
     .chart-box { position: relative; height: 260px; }
+    .mini-panels, .env-grid { display:grid; gap:16px; margin-bottom:24px; }
+    .mini-panels { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .env-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .env-card { padding:20px; }
+    .env-card h4, .mini-card h4 { font-size:11px; text-transform:uppercase; letter-spacing:.8px; color:var(--muted); margin-bottom:12px; }
+    .env-card .env-value, .mini-card .mini-value { font-family:'Syne',sans-serif; font-size:30px; font-weight:800; letter-spacing:-.8px; }
+    .mini-card { padding:20px; }
+    .list { display:flex; flex-direction:column; gap:12px; }
+    .list-item { display:flex; align-items:flex-start; gap:10px; color:var(--ink); line-height:1.7; font-size:13px; }
+    .list-item .dot { width:8px; height:8px; border-radius:999px; margin-top:7px; flex:0 0 auto; }
+    .split { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding:10px 0; border-bottom:1px solid var(--border); }
+    .split:last-child { border-bottom:none; padding-bottom:0; }
     .repo-list { display: flex; flex-direction: column; gap: 10px; }
     .repo-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; padding: 14px 0; border-bottom:1px solid var(--border); }
     .repo-row:last-child { border-bottom: 0; }
@@ -63,8 +78,9 @@
     .hidden { display:none !important; }
     .loading { color: var(--muted); font-size: 13px; }
     @media (max-width: 980px) {
-      .toolbar, .metrics, .summary-grid, .panels { grid-template-columns: 1fr; }
+      .toolbar, .metrics, .summary-grid, .panels, .mini-panels, .env-grid { grid-template-columns: 1fr; }
       .header { flex-direction: column; }
+      .banner { flex-direction:column; }
     }
   </style>
 </head>
@@ -75,7 +91,7 @@
         <div class="brand-icon">🎭</div>
         <div>
           <h1>Playwatch</h1>
-          <p>Executive dashboard access for leadership. Sign in with the stakeholder password managed on the server.</p>
+          <p>Executive dashboard access for leadership. Sign in with the stakeholder password to view the latest quality summary.</p>
         </div>
       </div>
       <div id="login-error" class="error"></div>
@@ -129,6 +145,14 @@
         </div>
       </div>
 
+      <section class="summary banner">
+        <div>
+          <div id="status-title" class="banner-title">Evaluating portfolio health...</div>
+          <div id="status-copy" class="banner-copy">The dashboard is reviewing the current pass rate, failures, and trend to decide whether the release outlook is healthy, needs attention, or is at risk.</div>
+        </div>
+        <div id="status-badge" class="badge gold">Loading</div>
+      </section>
+
       <section class="summary">
         <h2>Selected Scope</h2>
         <div id="summary-grid" class="summary-grid">
@@ -156,6 +180,42 @@
           <div class="label">Total Runs <span class="info-dot" data-tip="Total number of runs included after applying the current repository, date, environment, and test type filters.">i</span></div>
           <div id="total-runs" class="value">-</div>
           <div id="total-runs-sub" class="sub">Loading...</div>
+        </article>
+      </section>
+
+      <section class="mini-panels">
+        <article class="panel mini-card">
+          <h4>Trend Comparison <span class="info-dot" data-tip="Compares the current selected period against the previous matching period so managers can see if quality is improving or declining.">i</span></h4>
+          <div id="compare-value" class="mini-value">-</div>
+          <div id="compare-copy" class="status-note">Loading comparison...</div>
+        </article>
+        <article class="panel mini-card">
+          <h4>Test Coverage Summary <span class="info-dot" data-tip="Shows the total number of test cases in scope and how they are divided across smoke, sanity, and regression coverage.">i</span></h4>
+          <div id="coverage-value" class="mini-value">-</div>
+          <div id="coverage-copy" class="status-note">Loading coverage...</div>
+        </article>
+        <article class="panel mini-card">
+          <h4>Failure Source <span class="info-dot" data-tip="Separates failures caused by product issues from failures caused by automation issues, with an unknown bucket when classification is not yet available.">i</span></h4>
+          <div id="failure-source-value" class="mini-value">-</div>
+          <div id="failure-source-copy" class="status-note">Loading failure source...</div>
+        </article>
+      </section>
+
+      <section class="env-grid">
+        <article class="panel env-card">
+          <h4>QA Health <span class="info-dot" data-tip="Quality status for the QA environment in the selected period and test type.">i</span></h4>
+          <div id="env-qa-value" class="env-value">-</div>
+          <div id="env-qa-copy" class="status-note">Loading environment health...</div>
+        </article>
+        <article class="panel env-card">
+          <h4>Staging Health <span class="info-dot" data-tip="Quality status for the Staging environment in the selected period and test type.">i</span></h4>
+          <div id="env-staging-value" class="env-value">-</div>
+          <div id="env-staging-copy" class="status-note">Loading environment health...</div>
+        </article>
+        <article class="panel env-card">
+          <h4>Production Health <span class="info-dot" data-tip="Quality status for the Production environment in the selected period and test type.">i</span></h4>
+          <div id="env-production-value" class="env-value">-</div>
+          <div id="env-production-copy" class="status-note">Loading environment health...</div>
         </article>
       </section>
 
@@ -189,6 +249,14 @@
           <div id="build-body" class="status-note"></div>
         </article>
       </section>
+
+      <section class="panel">
+        <h3>Top Risks <span class="info-dot" data-tip="Plain-language risks derived from the latest dashboard signals, helping managers understand where attention is needed most.">i</span></h3>
+        <p class="meta">The most important things leadership should know from the selected view.</p>
+        <div id="risks-list" class="list">
+          <div class="loading">Generating executive risks...</div>
+        </div>
+      </section>
     </div>
   </main>
   <div id="tooltip" class="tooltip"></div>
@@ -219,7 +287,10 @@
     }
 
     function titleCase(value) {
-      return value ? value.charAt(0).toUpperCase() + value.slice(1) : value;
+      if (!value) return value;
+      const lower = String(value).toLowerCase();
+      if (lower === 'qa') return 'QA';
+      return lower.charAt(0).toUpperCase() + lower.slice(1);
     }
 
     function attachTooltips() {
@@ -304,6 +375,19 @@
         .filter(matchesFilters);
     }
 
+    function getFilteredRunsForEnv(envName) {
+      return getSelectedRepos()
+        .flatMap((repo) => repo.runs || [])
+        .filter((run) => {
+          const env = (run.environment || 'all').toLowerCase();
+          const type = (run.type || 'other').toLowerCase();
+          if (!inRange(run)) return false;
+          if (envName !== 'all' && env !== envName) return false;
+          if (state.type !== 'all' && type !== state.type) return false;
+          return true;
+        });
+    }
+
     function buildMetrics(runs) {
       const total = runs.length;
       const passed = runs.filter((run) => run.conclusion === 'success').length;
@@ -322,6 +406,25 @@
         passRate: total ? Math.round((passed / total) * 100) : 0,
         avgDurationSec,
       };
+    }
+
+    function getPeriodWindowDays() {
+      return { day: 1, week: 7, month: 30, year: 365 }[state.range] || 1;
+    }
+
+    function getPreviousPeriodRuns() {
+      const days = getPeriodWindowDays();
+      return getSelectedRepos()
+        .flatMap((repo) => repo.runs || [])
+        .filter((run) => {
+          const ageDays = (Date.now() - new Date(run.created_at).getTime()) / 86400000;
+          const env = (run.environment || 'all').toLowerCase();
+          const type = (run.type || 'other').toLowerCase();
+          if (ageDays <= days || ageDays > days * 2) return false;
+          if (state.env !== 'all' && env !== state.env) return false;
+          if (state.type !== 'all' && type !== state.type) return false;
+          return true;
+        });
     }
 
     function buildTrend(runs) {
@@ -344,9 +447,89 @@
       };
     }
 
+    function buildCoverageSummary(repos) {
+      const selectedRepos = state.currentRepo === 'all'
+        ? repos
+        : repos.filter((repo) => repo.full_name === state.currentRepo);
+      const totalCases = selectedRepos.reduce((sum, repo) => sum + (repo.testCaseCount || 0), 0);
+      const counts = { smoke: 0, sanity: 0, regression: 0 };
+      selectedRepos.forEach((repo) => {
+        (repo.testTypes || []).forEach((type) => {
+          const key = String(type).toLowerCase();
+          if (counts[key] !== undefined) counts[key] += Math.round((repo.testCaseCount || 0) / Math.max((repo.testTypes || []).length, 1));
+        });
+      });
+      return { totalCases, counts };
+    }
+
+    function buildFailureSourceSummary(runs) {
+      const failed = runs.filter((run) => run.conclusion === 'failure');
+      const summary = { product: 0, automation: 0, unknown: 0 };
+      failed.forEach((run) => {
+        const source = (run.failureSource || 'unknown').toLowerCase();
+        if (summary[source] !== undefined) summary[source] += 1;
+        else summary.unknown += 1;
+      });
+      return summary;
+    }
+
+    function buildExecutiveStatus(metrics, previousMetrics) {
+      if (metrics.failed >= 5 || metrics.passRate < 60) {
+        return {
+          badge: 'At risk',
+          tone: 'red',
+          title: 'Quality health is at risk',
+          body: 'Failure volume is high for the selected scope. Release confidence should remain low until the largest issues are addressed.',
+        };
+      }
+      if (metrics.failed > 0 || metrics.passRate < 85 || metrics.passRate < previousMetrics.passRate) {
+        return {
+          badge: 'Needs attention',
+          tone: 'gold',
+          title: 'Quality health needs attention',
+          body: 'There are still notable issues in the selected scope. The build may be acceptable for targeted review, but it is not yet comfortably stable.',
+        };
+      }
+      return {
+        badge: 'On track',
+        tone: 'green',
+        title: 'Quality health is on track',
+        body: 'Current pass rates and failure levels suggest the selected scope is stable enough for confident stakeholder review.',
+      };
+    }
+
+    function buildEnvironmentCards() {
+      return ['qa', 'staging', 'production'].map((env) => {
+        const metrics = buildMetrics(getFilteredRunsForEnv(env));
+        return { env, metrics };
+      });
+    }
+
+    function buildTopRisks(metrics, previousMetrics, failureSource, envCards) {
+      const risks = [];
+      const weakestEnv = [...envCards].sort((a, b) => a.metrics.passRate - b.metrics.passRate)[0];
+      if (metrics.failed > 0) {
+        risks.push(`There are ${metrics.failed} failing runs in the current selection, which keeps release confidence below the desired threshold.`);
+      }
+      if (metrics.passRate < previousMetrics.passRate) {
+        risks.push(`Pass rate has dropped from ${previousMetrics.passRate}% in the previous period to ${metrics.passRate}% now.`);
+      }
+      if (weakestEnv && weakestEnv.metrics.total > 0) {
+        risks.push(`${titleCase(weakestEnv.env)} is the weakest environment right now at ${weakestEnv.metrics.passRate}% pass rate.`);
+      }
+      if (failureSource.automation > 0) {
+        risks.push(`${failureSource.automation} failures look automation-related, which may hide the true product signal until tests are stabilized.`);
+      }
+      if (failureSource.product > 0) {
+        risks.push(`${failureSource.product} failures appear product-related and should be treated as direct release risks.`);
+      }
+      return risks.slice(0, 4);
+    }
+
     function buildViewModel() {
       const filteredRuns = getFilteredRuns();
       const metrics = buildMetrics(filteredRuns);
+      const previousMetrics = buildMetrics(getPreviousPeriodRuns());
       const trend = buildTrend(filteredRuns);
       const repos = (state.dataset?.repos || []).map((repo) => {
         const repoRuns = (repo.runs || []).filter(matchesFilters);
@@ -368,8 +551,12 @@
       return {
         repos,
         metrics,
+        previousMetrics,
         trend,
         currentRepo: state.currentRepo,
+        coverage: buildCoverageSummary(repos),
+        failureSource: buildFailureSourceSummary(filteredRuns),
+        envCards: buildEnvironmentCards(),
         latestRelease: selectedRepo?.latestRelease || state.dataset?.latestRelease || null,
         summary: {
           repos,
@@ -382,6 +569,7 @@
               })
             : (selectedRepo?.currentBuild || null),
         },
+        risks: buildTopRisks(metrics, previousMetrics, buildFailureSourceSummary(filteredRuns), buildEnvironmentCards()),
       };
     }
 
@@ -412,6 +600,60 @@
       document.getElementById('avg-duration-sub').textContent = 'Average run duration';
       document.getElementById('total-runs').textContent = String(data.metrics.total);
       document.getElementById('total-runs-sub').textContent = `Filtered by ${state.range === 'day' ? 'Today' : titleCase(state.range)}`;
+    }
+
+    function renderExecutiveStatus(data) {
+      const status = buildExecutiveStatus(data.metrics, data.previousMetrics);
+      const badge = document.getElementById('status-badge');
+      badge.textContent = status.badge;
+      badge.className = `badge ${status.tone}`;
+      document.getElementById('status-title').textContent = status.title;
+      document.getElementById('status-copy').textContent = status.body;
+    }
+
+    function renderTrendComparison(data) {
+      if (!data.previousMetrics.total) {
+        document.getElementById('compare-value').textContent = 'New';
+        document.getElementById('compare-copy').textContent =
+          'There is no matching earlier period in the current dataset yet, so trend comparison will appear after more history is collected.';
+        return;
+      }
+      const delta = data.metrics.passRate - data.previousMetrics.passRate;
+      const direction = delta > 0 ? 'Improving' : delta < 0 ? 'Declining' : 'Flat';
+      document.getElementById('compare-value').textContent = `${direction}`;
+      document.getElementById('compare-copy').textContent =
+        `Current pass rate is ${data.metrics.passRate}% versus ${data.previousMetrics.passRate}% in the previous matching period (${delta >= 0 ? '+' : ''}${delta} pts).`;
+    }
+
+    function renderCoverage(data) {
+      document.getElementById('coverage-value').textContent = `${data.coverage.totalCases}`;
+      const counts = data.coverage.counts;
+      document.getElementById('coverage-copy').textContent =
+        `Smoke ${counts.smoke} · Sanity ${counts.sanity} · Regression ${counts.regression} test cases in scope.`;
+    }
+
+    function renderFailureSource(data) {
+      document.getElementById('failure-source-value').textContent = `${data.failureSource.product}/${data.failureSource.automation}/${data.failureSource.unknown}`;
+      document.getElementById('failure-source-copy').textContent =
+        `Product ${data.failureSource.product} · Automation ${data.failureSource.automation} · Unknown ${data.failureSource.unknown}`;
+    }
+
+    function renderEnvironmentCards(data) {
+      data.envCards.forEach((card) => {
+        const prefix = `env-${card.env}`;
+        const valueEl = document.getElementById(`${prefix}-value`);
+        const copyEl = document.getElementById(`${prefix}-copy`);
+        if (!valueEl || !copyEl) return;
+        if (!card.metrics.total) {
+          valueEl.textContent = 'No runs';
+          valueEl.style.color = 'var(--muted)';
+          copyEl.textContent = `No ${titleCase(card.env)} runs matched the current filters.`;
+          return;
+        }
+        valueEl.textContent = `${card.metrics.passRate}%`;
+        valueEl.style.color = card.metrics.passRate >= 80 ? 'var(--green)' : card.metrics.passRate >= 60 ? 'var(--gold)' : 'var(--red)';
+        copyEl.textContent = `${card.metrics.failed} failures across ${card.metrics.total} runs in ${titleCase(card.env)}.`;
+      });
     }
 
     function renderTrend(data) {
@@ -553,10 +795,27 @@
       body.textContent = 'The backend is ready, but no Jira/Epic summary file exists yet.';
     }
 
+    function renderRisks(data) {
+      const risksEl = document.getElementById('risks-list');
+      if (!data.risks.length) {
+        risksEl.innerHTML = '<div class="status-note">No major risks detected in the current scope.</div>';
+        return;
+      }
+      risksEl.innerHTML = data.risks.map((risk, index) => `
+        <div class="list-item">
+          <span class="dot" style="background:${index === 0 ? 'var(--red)' : index === 1 ? 'var(--gold)' : 'var(--accent)'}"></span>
+          <span>${risk}</span>
+        </div>
+      `).join('');
+    }
+
     function populateRepos(repos) {
       const select = document.getElementById('repo-filter');
       if (!state.repos.length) state.repos = repos;
-      select.innerHTML = state.repos.map((repo) => `<option value="${repo.full_name}">${repo.name}</option>`).join('');
+      select.innerHTML = [
+        '<option value="all">All repos</option>',
+        ...state.repos.map((repo) => `<option value="${repo.full_name}">${repo.name}</option>`),
+      ].join('');
       select.value = state.currentRepo;
     }
 
@@ -579,11 +838,17 @@
         state.repos = data.repos;
         populateRepos(data.repos);
         renderSummary(data);
+        renderExecutiveStatus(data);
         renderMetrics(data);
+        renderTrendComparison(data);
+        renderCoverage(data);
+        renderFailureSource(data);
+        renderEnvironmentCards(data);
         renderTrend(data);
         renderDonut(data);
         renderRepoList(data);
         renderBuild(data);
+        renderRisks(data);
         attachTooltips();
       } catch (error) {
         alert(error.message);
