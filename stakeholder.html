@@ -141,6 +141,14 @@
     .mini-panels .mini-card:nth-child(1) { border-color: rgba(95,134,255,.18); }
     .mini-panels .mini-card:nth-child(2) { border-color: rgba(46,224,177,.18); }
     .mini-panels .mini-card:nth-child(3) { border-color: rgba(240,96,143,.18); }
+    .mini-breakdown { display:flex; flex-wrap:wrap; gap:8px; margin-top:10px; }
+    .mini-pill { display:inline-flex; align-items:center; gap:6px; padding:7px 10px; border-radius:999px; border:1px solid var(--border); background: var(--surface-chip); color: var(--muted); font-size:11px; line-height:1; }
+    .mini-pill strong { color: var(--ink); font-weight:700; }
+    .mini-pill.blue { border-color: rgba(90,130,255,.2); color: var(--accent); }
+    .mini-pill.green { border-color: rgba(35,224,164,.2); color: var(--green); }
+    .mini-pill.red { border-color: rgba(255,95,141,.22); color: var(--red); }
+    .mini-pill.gold { border-color: rgba(255,210,77,.22); color: var(--gold); }
+    .mini-pill.gray { color: var(--muted); }
     .list { display:flex; flex-direction:column; gap:12px; }
     .list-item { display:flex; align-items:flex-start; gap:10px; color:var(--ink); line-height:1.7; font-size:13px; }
     .list-item .dot { width:8px; height:8px; border-radius:999px; margin-top:7px; flex:0 0 auto; }
@@ -453,6 +461,14 @@
       return lower.charAt(0).toUpperCase() + lower.slice(1);
     }
 
+    function getThresholds() {
+      return {
+        riskFailedRuns: Number(state.dataset?.thresholds?.riskFailedRuns ?? 5),
+        riskPassRate: Number(state.dataset?.thresholds?.riskPassRate ?? 60),
+        attentionPassRate: Number(state.dataset?.thresholds?.attentionPassRate ?? 85),
+      };
+    }
+
     function toInputDate(date) {
       const copy = new Date(date);
       copy.setMinutes(copy.getMinutes() - copy.getTimezoneOffset());
@@ -689,8 +705,16 @@
         ? repos
         : repos.filter((repo) => repo.full_name === state.currentRepo);
       const totalCases = selectedRepos.reduce((sum, repo) => sum + (repo.testCaseCount || 0), 0);
-      const counts = { smoke: 0, sanity: 0, regression: 0 };
+      const counts = { smoke: 0, sanity: 0, regression: 0, unlabeled: 0 };
       selectedRepos.forEach((repo) => {
+        const sourceCounts = repo.testTypeCounts || {};
+        if (Object.keys(sourceCounts).length) {
+          counts.smoke += sourceCounts.smoke || 0;
+          counts.sanity += sourceCounts.sanity || 0;
+          counts.regression += sourceCounts.regression || 0;
+          counts.unlabeled += sourceCounts.unlabeled || 0;
+          return;
+        }
         (repo.testTypes || []).forEach((type) => {
           const key = String(type).toLowerCase();
           if (counts[key] !== undefined) counts[key] += Math.round((repo.testCaseCount || 0) / Math.max((repo.testTypes || []).length, 1));
@@ -711,7 +735,8 @@
     }
 
     function buildExecutiveStatus(metrics, previousMetrics) {
-      if (metrics.failed >= 5 || metrics.passRate < 60) {
+      const thresholds = getThresholds();
+      if (metrics.failed >= thresholds.riskFailedRuns || metrics.passRate < thresholds.riskPassRate) {
         return {
           badge: 'At risk',
           tone: 'red',
@@ -719,7 +744,7 @@
           body: 'Failure volume is high for the selected scope. Release confidence should remain low until the largest issues are addressed.',
         };
       }
-      if (metrics.failed > 0 || metrics.passRate < 85 || metrics.passRate < previousMetrics.passRate) {
+      if (metrics.failed > 0 || metrics.passRate < thresholds.attentionPassRate || metrics.passRate < previousMetrics.passRate) {
         return {
           badge: 'Needs attention',
           tone: 'gold',
@@ -753,9 +778,10 @@
     }
 
     function buildStatusReasons(metrics, previousMetrics, failureSource, latestPr) {
+      const thresholds = getThresholds();
       const reasons = [];
       if (metrics.failed > 0) reasons.push(`${metrics.failed} failed runs in the selected period`);
-      if (metrics.passRate < 85) reasons.push(`${metrics.passRate}% pass rate is below the preferred release threshold`);
+      if (metrics.passRate < thresholds.attentionPassRate) reasons.push(`${metrics.passRate}% pass rate is below the preferred release threshold`);
       if (metrics.passRate < previousMetrics.passRate && previousMetrics.total) reasons.push(`Pass rate is down from ${previousMetrics.passRate}% in the previous matching period`);
       if (failureSource.product > 0) reasons.push(`${failureSource.product} failures appear product-related`);
       if (failureSource.automation > 0) reasons.push(`${failureSource.automation} failures appear automation-related`);
@@ -784,6 +810,7 @@
           full_name: repo.full_name,
           testCaseCount: repo.testCaseCount || repo.tests || repoMetrics.total,
           testTypes: repo.testTypes || ['Smoke', 'Sanity', 'Regression'],
+          testTypeCounts: repo.testTypeCounts || {},
           metrics: repoMetrics,
           passRate: repoMetrics.passRate,
           latestRunAt: repoLatestRunAt,
@@ -895,21 +922,37 @@
       const delta = data.metrics.passRate - data.previousMetrics.passRate;
       const direction = delta > 0 ? 'Improving' : delta < 0 ? 'Declining' : 'Flat';
       document.getElementById('compare-value').textContent = `${direction}`;
-      document.getElementById('compare-copy').textContent =
-        `Current pass rate is ${data.metrics.passRate}% versus ${data.previousMetrics.passRate}% in the previous matching period (${delta >= 0 ? '+' : ''}${delta} pts).`;
+      document.getElementById('compare-copy').innerHTML = `
+        <div class="mini-breakdown">
+          <span class="mini-pill ${delta > 0 ? 'green' : delta < 0 ? 'red' : 'gold'}"><strong>${delta >= 0 ? '+' : ''}${delta} pts</strong></span>
+          <span class="mini-pill blue">Now <strong>${data.metrics.passRate}%</strong></span>
+          <span class="mini-pill gray">Before <strong>${data.previousMetrics.passRate}%</strong></span>
+        </div>
+      `;
     }
 
     function renderCoverage(data) {
       document.getElementById('coverage-value').textContent = `${data.coverage.totalCases}`;
       const counts = data.coverage.counts;
-      document.getElementById('coverage-copy').textContent =
-        `Smoke ${counts.smoke} · Sanity ${counts.sanity} · Regression ${counts.regression} test cases in scope.`;
+      document.getElementById('coverage-copy').innerHTML = `
+        <div class="mini-breakdown">
+          <span class="mini-pill blue">Smoke <strong>${counts.smoke}</strong></span>
+          <span class="mini-pill green">Sanity <strong>${counts.sanity}</strong></span>
+          <span class="mini-pill gold">Regression <strong>${counts.regression}</strong></span>
+          ${counts.unlabeled ? `<span class="mini-pill gray">Unlabeled <strong>${counts.unlabeled}</strong></span>` : ''}
+        </div>
+      `;
     }
 
     function renderFailureSource(data) {
       document.getElementById('failure-source-value').textContent = `${data.failureSource.product}/${data.failureSource.automation}/${data.failureSource.unknown}`;
-      document.getElementById('failure-source-copy').textContent =
-        `Product ${data.failureSource.product} · Automation ${data.failureSource.automation} · Unknown ${data.failureSource.unknown}`;
+      document.getElementById('failure-source-copy').innerHTML = `
+        <div class="mini-breakdown">
+          <span class="mini-pill red">Product <strong>${data.failureSource.product}</strong></span>
+          <span class="mini-pill blue">Automation <strong>${data.failureSource.automation}</strong></span>
+          <span class="mini-pill gray">Unknown <strong>${data.failureSource.unknown}</strong></span>
+        </div>
+      `;
     }
 
     function renderTrend(data) {
@@ -1092,7 +1135,7 @@
         }).join('');
         return;
       }
-      list.innerHTML = `<div class="status-note">No repository summary file yet. Add a GitHub Action that publishes <code>dashboard-summary.json</code> for richer executive reporting.</div>`;
+      list.innerHTML = `<div class="status-note">No repository data matched the current filters yet. Run the dashboard sync workflow again after fresh test activity.</div>`;
     }
 
     function renderBuild(data) {

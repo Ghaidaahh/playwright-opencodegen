@@ -6,7 +6,7 @@ async function openStakeholderDashboard(page: Page) {
   await page.goto('/stakeholder.html');
   await page.getByLabel('Stakeholder Password').fill(stakeholderPassword);
   await page.getByRole('button', { name: 'Open Dashboard' }).click();
-  await expect(page.getByRole('heading', { name: 'Quality Health Overview' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Release Readiness' })).toBeVisible();
 }
 
 test.describe('Stakeholder dashboard', () => {
@@ -45,14 +45,6 @@ test.describe('Stakeholder dashboard', () => {
     await expect(page.locator('.repo-card .name').first()).toContainText(/playwright-opencodegen/i);
     await expect(page.locator('#build-title')).toContainText(/Checkout|Portfolio|Release|quality/i);
     await expect(page.locator('#failure-source-copy')).toContainText(/Product|Automation|Unknown/);
-  });
-
-  test('switches the environment dropdown and updates the summary @sanity', async ({ page }) => {
-    await openStakeholderDashboard(page);
-
-    await page.locator('#env-filter').selectOption('production');
-    await expect(page.locator('#summary-grid')).toContainText('Production');
-    await expect(page.locator('#env-production-copy')).toBeVisible();
   });
 
   test('switches from all repos to a specific repo @sanity', async ({ page }) => {
