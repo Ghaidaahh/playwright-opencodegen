@@ -178,7 +178,7 @@
         <div class="brand">
           <div class="brand-icon">🎭</div>
           <div>
-            <h1>Briefing</h1>
+            <h1>GHAIDAAAA</h1>
           </div>
         </div>
 
@@ -1038,6 +1038,7 @@
     function renderBuild(data) {
       const build = data.summary?.currentBuild || data.summary?.current_build || data.summary?.jiraEpic || data.summary?.jira_epic;
       const tag = document.getElementById('build-tag');
+      const buildCard = document.querySelector('.hero-build');
       const title = document.getElementById('build-title');
       const date = document.getElementById('build-date');
       const latestRun = document.getElementById('build-latest-run');
@@ -1045,13 +1046,30 @@
       const pr = document.getElementById('build-pr');
       const latestMergedPr = data.mergedPullRequests?.[0] || null;
 
+      const getTone = (value) => {
+        const status = String(value || '').toLowerCase();
+        if (status.includes('risk')) return 'red';
+        if (status.includes('attention') || status.includes('review') || status.includes('watch')) return 'gold';
+        if (status.includes('stable') || status.includes('track') || status.includes('ready')) return 'green';
+        return 'gold';
+      };
+
       const prText = latestMergedPr
         ? `#${latestMergedPr.number} ${latestMergedPr.title}${latestMergedPr.repo ? ` · ${latestMergedPr.repo}` : ''} · ${fmtStamp(latestMergedPr.mergedAt)}`
         : 'No recent merged pull requests in the tracked history window.';
 
       if (build) {
-        tag.textContent = build.status || build.tag || 'Build summary';
-        tag.className = 'badge green';
+        const label = build.status || build.tag || 'Build summary';
+        const tone = getTone(label);
+        tag.textContent = label;
+        tag.className = `badge ${tone}`;
+        if (buildCard) {
+          buildCard.style.borderColor = tone === 'red'
+            ? 'rgba(255,95,141,.24)'
+            : tone === 'green'
+              ? 'rgba(35,224,164,.22)'
+              : 'rgba(255,210,77,.22)';
+        }
         title.textContent = build.title || build.name || 'Current delivery summary';
         if (build.updatedAt || build.updated_at) {
           const updated = build.updatedAt || build.updated_at;
@@ -1068,6 +1086,7 @@
       if (data.latestRelease) {
         tag.textContent = data.latestRelease.tag_name || 'Release';
         tag.className = 'badge gold';
+        if (buildCard) buildCard.style.borderColor = 'rgba(255,210,77,.22)';
         title.textContent = data.latestRelease.name || data.latestRelease.tag_name || 'Latest release';
         date.textContent = `Release signal from latest release · ${fmtStamp(data.latestRelease.published_at)}`;
         latestRun.textContent = data.latestRunAt ? `Last run ${fmtStamp(data.latestRunAt)}` : 'No matching runs';
@@ -1078,6 +1097,7 @@
 
       tag.textContent = 'Pending';
       tag.className = 'badge red';
+      if (buildCard) buildCard.style.borderColor = 'rgba(255,95,141,.24)';
       title.textContent = 'No build summary available';
       date.textContent = 'Release signal pending';
       latestRun.textContent = data.latestRunAt ? `Last run ${fmtStamp(data.latestRunAt)}` : 'No matching runs';
