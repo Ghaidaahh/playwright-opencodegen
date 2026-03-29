@@ -263,6 +263,7 @@
             <div id="build-title" style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;line-height:1.2;margin-top:16px">Loading build summary...</div>
             <div id="build-date" class="status-note"></div>
             <div id="build-body" class="status-note"></div>
+            <div id="build-pr" class="status-note"></div>
           </article>
 
           <article class="panel">
@@ -680,6 +681,12 @@
       const selectedRepo = state.currentRepo === 'all'
         ? null
         : (state.dataset?.repos || []).find((repo) => repo.full_name === state.currentRepo);
+      const mergedPullRequests = state.currentRepo === 'all'
+        ? (state.dataset?.repos || [])
+            .flatMap((repo) => (repo.mergedPullRequests || []).map((pull) => ({ ...pull, repo: repo.name })))
+            .sort((a, b) => new Date(b.mergedAt).getTime() - new Date(a.mergedAt).getTime())
+            .slice(0, 5)
+        : (selectedRepo?.mergedPullRequests || []).map((pull) => ({ ...pull, repo: selectedRepo.name }));
 
       return {
         repos,
@@ -692,6 +699,7 @@
         failureSource: buildFailureSourceSummary(filteredRuns),
         envCards: buildEnvironmentCards(),
         latestRelease: selectedRepo?.latestRelease || state.dataset?.latestRelease || null,
+        mergedPullRequests,
         summary: {
           repos,
           currentBuild: state.currentRepo === 'all'
@@ -943,6 +951,12 @@
       const title = document.getElementById('build-title');
       const date = document.getElementById('build-date');
       const body = document.getElementById('build-body');
+      const pr = document.getElementById('build-pr');
+      const latestMergedPr = data.mergedPullRequests?.[0] || null;
+
+      const prText = latestMergedPr
+        ? `Latest merged PR: #${latestMergedPr.number} ${latestMergedPr.title} · ${latestMergedPr.repo ? `${latestMergedPr.repo} · ` : ''}${fmtStamp(latestMergedPr.mergedAt)}`
+        : 'No recent merged pull requests in the tracked history window.';
 
       if (build) {
         tag.textContent = build.status || build.tag || 'Build summary';
@@ -955,6 +969,7 @@
           date.textContent = data.latestRunAt ? `Latest run ${fmtStamp(data.latestRunAt)}` : 'Updated by server-side sync';
         }
         body.textContent = build.summary || build.description || build.body || 'Build summary available.';
+        pr.textContent = prText;
         return;
       }
 
@@ -964,6 +979,7 @@
         title.textContent = data.latestRelease.name || data.latestRelease.tag_name || 'Latest release';
         date.textContent = `Release fallback · ${fmtStamp(data.latestRelease.published_at)}${data.latestRunAt ? ` · Latest run ${fmtStamp(data.latestRunAt)}` : ''}`;
         body.textContent = data.latestRelease.body || 'No executive build summary is published yet.';
+        pr.textContent = prText;
         return;
       }
 
@@ -972,6 +988,7 @@
       title.textContent = 'No build summary available';
       date.textContent = data.latestRunAt ? `Latest run ${fmtStamp(data.latestRunAt)}` : 'Publish dashboard-summary.json to populate this card';
       body.textContent = 'The backend is ready, but no Jira/Epic summary file exists yet.';
+      pr.textContent = prText;
     }
 
     function renderRisks(data) {

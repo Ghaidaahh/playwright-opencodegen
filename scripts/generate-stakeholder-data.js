@@ -124,6 +124,27 @@ async function fetchLatestRelease(ownerRepo, token) {
   return fetchJson(`${API_ROOT}/repos/${ownerRepo}/releases/latest`, token, true);
 }
 
+async function fetchMergedPullRequests(ownerRepo, token, defaultBranch) {
+  const cutoffTime = Date.now() - (DAYS_BACK * 86400000);
+  const pulls = await fetchJson(
+    `${API_ROOT}/repos/${ownerRepo}/pulls?state=closed&base=${encodeURIComponent(defaultBranch)}&sort=updated&direction=desc&per_page=20`,
+    token,
+    false
+  );
+
+  return pulls
+    .filter((pull) => pull.merged_at && new Date(pull.merged_at).getTime() >= cutoffTime)
+    .slice(0, 5)
+    .map((pull) => ({
+      number: pull.number,
+      title: pull.title,
+      url: pull.html_url,
+      author: pull.user?.login || 'unknown',
+      mergedAt: pull.merged_at,
+      base: pull.base?.ref || defaultBranch,
+    }));
+}
+
 function getWorkflowCandidates(ownerRepo) {
   return WORKFLOW_MAP[ownerRepo] || DEFAULT_WORKFLOWS;
 }
@@ -192,6 +213,7 @@ async function buildRepo(ownerRepo, token) {
   const repo = await fetchJson(`${API_ROOT}/repos/${ownerRepo}`, token, false);
   const summary = await fetchRepoSummary(ownerRepo, token, repo.default_branch);
   const latestRelease = await fetchLatestRelease(ownerRepo, token);
+  const mergedPullRequests = await fetchMergedPullRequests(ownerRepo, token, repo.default_branch);
   const runs = (await fetchWorkflowRuns(ownerRepo, token)).map((run) => normalizeRun(run, summary));
 
   const summaryRepo = summary?.repo || summary?.repository || {};
@@ -221,6 +243,7 @@ async function buildRepo(ownerRepo, token) {
           body: latestRelease.body,
         }
       : null,
+    mergedPullRequests,
     runs,
   };
 }
