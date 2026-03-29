@@ -90,12 +90,19 @@ function uniq(values) {
   return [...new Set(values.filter(Boolean))];
 }
 
+function stripComments(source) {
+  return String(source || '')
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/^\s*\/\/.*$/gm, '');
+}
+
 function countTestsFromSource(source) {
   const counts = { smoke: 0, sanity: 0, regression: 0, unlabeled: 0, total: 0 };
   const matcher = /\b(?:test|it)(?:\.(?:only|skip|fixme))?\s*\(\s*(['"`])([\s\S]*?)\1/g;
+  const cleanSource = stripComments(source);
   let match;
 
-  while ((match = matcher.exec(source))) {
+  while ((match = matcher.exec(cleanSource))) {
     const title = String(match[2] || '').toLowerCase();
     counts.total += 1;
     if (title.includes('@smoke')) counts.smoke += 1;
