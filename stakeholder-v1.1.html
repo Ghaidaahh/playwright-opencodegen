@@ -200,6 +200,10 @@
       gap: 18px;
       margin-bottom: 14px;
     }
+    .hero-main {
+      min-width: 0;
+      flex: 1 1 auto;
+    }
     .hero h1 {
       font-size: 34px;
       font-weight: 800;
@@ -476,6 +480,9 @@
     .logout-row {
       display: flex;
       justify-content: flex-end;
+      align-items: center;
+      gap: 10px;
+      flex: 0 0 auto;
     }
     @media (max-width: 1080px) {
       .toolbar, .metrics, .mini-grid, .grid-main, .stack, .repo-grid, .trust-grid { grid-template-columns: 1fr; }
@@ -504,9 +511,8 @@
     <div class="shell">
       <section class="hero">
         <div class="hero-top">
-          <div>
+          <div class="hero-main">
             <h1>GHAIDAAA</h1>
-            <div>
             <div class="hero-meta">
               <span id="header-sync" class="pill">Last synced <strong>Loading...</strong></span>
               <span id="header-last-run" class="pill">Last run <strong>Loading...</strong></span>
