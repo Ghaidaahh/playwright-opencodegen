@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Playwatch Stakeholder Prototype</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #08101d;
+      --paper: #10192b;
+      --paper-2: #16223a;
+      --paper-3: #0d1526;
+      --ink: #edf3ff;
+      --muted: #8d99bb;
+      --border: rgba(125, 154, 230, 0.18);
+      --accent: #6f8cff;
+      --green: #29d39a;
+      --red: #ff6f96;
+      --gold: #ffcb66;
+      --shadow: 0 20px 48px rgba(0, 0, 0, 0.3);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Figtree', sans-serif;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at top left, rgba(111, 140, 255, 0.18), transparent 24%),
+        radial-gradient(circle at top right, rgba(255, 111, 150, 0.08), transparent 20%),
+        linear-gradient(180deg, #07101d 0%, #0b1424 100%);
+    }
+    .hidden { display: none !important; }
+    .login-wrap {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .login-card, .panel, .metric, .mini-card, .field {
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(12px);
+    }
+    .login-card {
+      width: min(100%, 460px);
+      padding: 34px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .brand-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 18px;
+      display: grid;
+      place-items: center;
+      font-size: 28px;
+      color: #fff;
+      background: linear-gradient(135deg, #4d72ff, #2cd7b0 60%, #ffcb66);
+    }
+    .brand h1, .hero h1, .section-title, .value, .mini-value, .repo-name {
+      font-family: 'Sora', sans-serif;
+    }
+    .brand h1 { font-size: 24px; font-weight: 700; }
+    .brand p { margin-top: 6px; color: var(--muted); line-height: 1.7; font-size: 14px; }
+    .error {
+      display: none;
+      margin-bottom: 14px;
+      padding: 12px 14px;
+      border-radius: 14px;
+      color: var(--red);
+      border: 1px solid rgba(255,111,150,0.22);
+      background: rgba(255,111,150,0.08);
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .9px;
+      text-transform: uppercase;
+    }
+    input, select, button { font: inherit; }
+    input, select {
+      width: 100%;
+      padding: 14px 15px;
+      color: var(--ink);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--paper-2);
+    }
+    button {
+      border: 0;
+      cursor: pointer;
+    }
+    .primary, .ghost {
+      border-radius: 14px;
+      font-weight: 700;
+    }
+    .primary {
+      width: 100%;
+      margin-top: 14px;
+      padding: 14px 18px;
+      background: linear-gradient(135deg, #577cff, #7b97ff);
+      color: #fff;
+    }
+    .ghost {
+      padding: 11px 14px;
+      background: rgba(255,255,255,0.04);
+      color: var(--ink);
+      border: 1px solid var(--border);
+    }
+    .shell {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .hero {
+      padding: 24px;
+      margin-bottom: 16px;
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      background:
+        radial-gradient(circle at right, rgba(111,140,255,0.16), transparent 30%),
+        linear-gradient(180deg, rgba(16,25,43,0.98), rgba(14,22,38,0.95));
+      box-shadow: var(--shadow);
+    }
+    .hero-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 14px;
+    }
+    .hero h1 {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      line-height: 1.05;
+    }
+    .hero-sub {
+      color: var(--muted);
+      line-height: 1.7;
+      max-width: 760px;
+      font-size: 14px;
+    }
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .pill, .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      background: rgba(255,255,255,0.03);
+    }
+    .pill strong, .badge { color: var(--ink); font-weight: 700; }
+    .badge.green { color: var(--green); border-color: rgba(41,211,154,0.2); background: rgba(41,211,154,0.08); }
+    .badge.red { color: var(--red); border-color: rgba(255,111,150,0.22); background: rgba(255,111,150,0.08); }
+    .badge.gold { color: var(--gold); border-color: rgba(255,203,102,0.22); background: rgba(255,203,102,0.08); }
+    .toolbar {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .field { padding: 14px; }
+    .grid-main {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .panel {
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(16,25,43,0.98), rgba(14,22,38,0.95));
+    }
+    .panel-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+    .section-copy, .helper, .repo-meta, .repo-time {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+    .summary-copy {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--ink);
+      margin-bottom: 14px;
+    }
+    .reasons, .trust-grid, .mini-breakdown, .repo-grid, .risk-list {
+      display: grid;
+      gap: 10px;
+    }
+    .reasons {
+      grid-template-columns: 1fr;
+    }
+    .reason {
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .reason strong { color: var(--ink); }
+    .trust-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .trust-item {
+      border-radius: 18px;
+      border: 1px solid var(--border);
+      padding: 14px;
+      background: rgba(255,255,255,0.025);
+    }
+    .trust-item span {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .9px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .trust-item strong {
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .metric {
+      padding: 18px;
+      position: relative;
+      background: linear-gradient(180deg, rgba(16,25,43,0.98), rgba(14,22,38,0.95));
+    }
+    .metric::before {
+      content: '';
+      position: absolute;
+      inset: 0 auto auto 0;
+      height: 3px;
+      width: 100%;
+      background: var(--accent);
+    }
+    .metric:nth-child(2)::before { background: var(--red); }
+    .metric:nth-child(3)::before { background: var(--gold); }
+    .metric:nth-child(4)::before { background: var(--green); }
+    .metric-label {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .9px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .value {
+      font-size: 44px;
+      font-weight: 800;
+      line-height: 0.98;
+      letter-spacing: -1.2px;
+      margin-bottom: 8px;
+    }
+    .metric:nth-child(1) .value { color: var(--accent); }
+    .metric:nth-child(2) .value { color: var(--red); }
+    .metric:nth-child(3) .value { color: var(--gold); }
+    .metric:nth-child(4) .value { color: var(--green); }
+    .mini-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .mini-card {
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(16,25,43,0.98), rgba(14,22,38,0.95));
+    }
+    .mini-head {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: .9px;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+    .mini-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+    .mini-breakdown {
+      margin-top: 12px;
+      grid-template-columns: 1fr;
+    }
+    .mini-pill {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.03);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .mini-pill strong { color: var(--ink); }
+    .mini-pill.blue { border-color: rgba(111,140,255,0.18); }
+    .mini-pill.red { border-color: rgba(255,111,150,0.18); }
+    .mini-pill.green { border-color: rgba(41,211,154,0.18); }
+    .mini-pill.gold { border-color: rgba(255,203,102,0.18); }
+    .stack {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 16px;
+      margin-bottom: 16px;
+    }
+    .chart-box {
+      height: 260px;
+      border-radius: 18px;
+      border: 1px solid rgba(255,255,255,0.05);
+      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      padding: 8px;
+    }
+    .repo-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .repo-card {
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      padding: 16px;
+      background: rgba(255,255,255,0.03);
+    }
+    .repo-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .repo-name {
+      font-size: 17px;
+      font-weight: 700;
+      letter-spacing: -0.25px;
+      line-height: 1.15;
+    }
+    .repo-stats {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .repo-stat {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.025);
+    }
+    .repo-stat span {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      color: var(--muted);
+      font-weight: 700;
+    }
+    .repo-stat strong { font-size: 16px; }
+    .risk-list {
+      grid-template-columns: 1fr;
+    }
+    .risk-item {
+      display: flex;
+      gap: 10px;
+      color: var(--ink);
+      line-height: 1.7;
+      font-size: 13px;
+    }
+    .risk-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      margin-top: 6px;
+      background: var(--red);
+      flex: 0 0 auto;
+    }
+    .logout-row {
+      display: flex;
+      justify-content: flex-end;
+    }
+    @media (max-width: 1080px) {
+      .toolbar, .metrics, .mini-grid, .grid-main, .stack, .repo-grid, .trust-grid { grid-template-columns: 1fr; }
+      .hero-top, .panel-title { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <section id="login-view" class="login-wrap">
+    <div class="login-card">
+      <div class="brand">
+        <div class="brand-icon">🎭</div>
+        <div>
+          <h1>Playwatch</h1>
+          <p>Prototype view for leadership review. Sign in with the stakeholder password to explore the concept separately from the main dashboard.</p>
+        </div>
+      </div>
+      <div id="login-error" class="error"></div>
+      <label for="password">Stakeholder Password</label>
+      <input type="password" id="password" placeholder="Enter password" />
+      <button id="login-btn" class="primary">Open Prototype</button>
+    </div>
+  </section>
+
+  <main id="dashboard-view" class="hidden">
+    <div class="shell">
+      <section class="hero">
+        <div class="hero-top">
+          <div>
+            <h1>Release Readiness Prototype</h1>
+            <div class="hero-sub">A trust-first version for leadership review. This prototype puts freshness, source-of-truth, and plain-language release signals ahead of technical detail.</div>
+            <div class="hero-meta">
+              <span id="header-sync" class="pill">Last synced <strong>Loading...</strong></span>
+              <span id="header-last-run" class="pill">Last run <strong>Loading...</strong></span>
+              <span id="header-build-source" class="pill">Build source <strong>Loading...</strong></span>
+            </div>
+          </div>
+          <div class="logout-row">
+            <button id="logout-btn" class="ghost">Sign out</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="toolbar">
+        <div class="field">
+          <label for="repo-filter">Repository</label>
+          <select id="repo-filter"></select>
+        </div>
+        <div class="field">
+          <label for="range-filter">Time selection</label>
+          <select id="range-filter">
+            <option value="day" selected>Today</option>
+            <option value="week">Week</option>
+            <option value="month">Month</option>
+            <option value="year">Year</option>
+          </select>
+        </div>
+        <div class="field">
+          <label id="calendar-filter-label" for="calendar-filter">Calendar day</label>
+          <div id="calendar-filter-wrap"></div>
+        </div>
+        <div class="field">
+          <label for="type-filter">Test type</label>
+          <select id="type-filter">
+            <option value="all">All test types</option>
+            <option value="smoke">Smoke</option>
+            <option value="sanity">Sanity</option>
+            <option value="regression">Regression</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="grid-main">
+        <article class="panel">
+          <div class="panel-title">
+            <div class="section-title">Executive Summary</div>
+            <div id="status-badge" class="badge gold">Loading</div>
+          </div>
+          <div id="summary-copy" class="summary-copy">Reviewing quality signals...</div>
+          <div id="summary-reasons" class="reasons">
+            <div class="reason">Loading key reasons...</div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="section-title" style="margin-bottom:12px;">Trust and Freshness</div>
+          <div id="trust-grid" class="trust-grid">
+            <div class="trust-item"><span>Last synced</span><strong>Loading...</strong></div>
+          </div>
+        </article>
+      </section>
+
+      <section class="metrics">
+        <article class="metric">
+          <div class="metric-label">Pass rate</div>
+          <div id="pass-rate" class="value">-</div>
+          <div id="pass-rate-sub" class="helper">Loading...</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">Failures</div>
+          <div id="failures" class="value">-</div>
+          <div id="failures-sub" class="helper">Loading...</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">Total runs</div>
+          <div id="total-runs" class="value">-</div>
+          <div id="total-runs-sub" class="helper">Loading...</div>
+        </article>
+        <article class="metric">
+          <div class="metric-label">Average duration</div>
+          <div id="avg-duration" class="value">-</div>
+          <div id="avg-duration-sub" class="helper">Loading...</div>
+        </article>
+      </section>
+
+      <section class="mini-grid">
+        <article class="mini-card">
+          <div class="mini-head">Comparison with previous time</div>
+          <div id="compare-value" class="mini-value">-</div>
+          <div id="compare-copy" class="mini-breakdown">
+            <div class="mini-pill blue">Loading comparison...</div>
+          </div>
+        </article>
+        <article class="mini-card">
+          <div class="mini-head">Coverage in selected view</div>
+          <div id="coverage-value" class="mini-value">-</div>
+          <div id="coverage-copy" class="mini-breakdown">
+            <div class="mini-pill blue">Loading coverage...</div>
+          </div>
+        </article>
+        <article class="mini-card">
+          <div class="mini-head">Failure source</div>
+          <div id="failure-source-value" class="mini-value">-</div>
+          <div id="failure-source-copy" class="mini-breakdown">
+            <div class="mini-pill blue">Loading failure source...</div>
+          </div>
+        </article>
+      </section>
+
+      <section class="stack">
+        <article class="panel">
+          <div class="panel-title">
+            <div class="section-title">Current Build</div>
+          </div>
+          <div id="build-title" class="summary-copy">Loading build summary...</div>
+          <div id="build-explainer" class="helper" style="margin-bottom:12px;">This summary is generated automatically from recent workflow activity and merged pull requests.</div>
+          <div id="build-trust" class="trust-grid">
+            <div class="trust-item"><span>Release signal</span><strong>Loading...</strong></div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="panel-title">
+            <div class="section-title">Pass / Fail Trend</div>
+          </div>
+          <div class="chart-box"><canvas id="trend-chart"></canvas></div>
+        </article>
+      </section>
+
+      <section class="grid-main">
+        <article class="panel">
+          <div class="section-title" style="margin-bottom:12px;">Repository Breakdown</div>
+          <div class="helper" style="margin-bottom:14px;">A simpler leadership view of each tracked repository, including current pass rate, failures, freshness, and build signal.</div>
+          <div id="repo-grid" class="repo-grid">
+            <div class="repo-card">Loading repositories...</div>
+          </div>
+        </article>
+
+        <article class="panel">
+          <div class="section-title" style="margin-bottom:12px;">Top Risks</div>
+          <div id="risks-list" class="risk-list">
+            <div class="risk-item"><span class="risk-dot"></span><span>Loading risks...</span></div>
+          </div>
+        </article>
+      </section>
+    </div>
+  </main>
+
+  <script>
+    const STAKEHOLDER_PASSWORD = 'manager123';
+    const state = {
+      dataset: null,
+      currentRepo: 'all',
+      range: 'day',
+      type: 'all',
+      calendarValue: new Date().toISOString().slice(0, 10),
+      trendChart: null,
+    };
+
+    const loginView = document.getElementById('login-view');
+    const dashboardView = document.getElementById('dashboard-view');
+    const loginError = document.getElementById('login-error');
+
+    function fmtDur(seconds) {
+      if (!seconds) return '-';
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.round(seconds % 60);
+      return mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+    }
+
+    function fmtStamp(value) {
+      if (!value) return 'No timestamp';
+      return new Date(value).toLocaleString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit',
+      });
+    }
+
+    function getThresholds() {
+      return {
+        riskFailedRuns: Number(state.dataset?.thresholds?.riskFailedRuns ?? 5),
+        riskPassRate: Number(state.dataset?.thresholds?.riskPassRate ?? 60),
+        attentionPassRate: Number(state.dataset?.thresholds?.attentionPassRate ?? 85),
+      };
+    }
+
+    function toInputDate(date) {
+      const copy = new Date(date);
+      copy.setMinutes(copy.getMinutes() - copy.getTimezoneOffset());
+      return copy.toISOString().slice(0, 10);
+    }
+
+    function getWeekValue(dateLike) {
+      const date = new Date(dateLike);
+      const utc = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = utc.getUTCDay() || 7;
+      utc.setUTCDate(utc.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+      const weekNo = Math.ceil((((utc - yearStart) / 86400000) + 1) / 7);
+      return `${utc.getUTCFullYear()}-W${String(weekNo).padStart(2, '0')}`;
+    }
+
+    function getDateFromWeekValue(weekValue) {
+      const [yearPart, weekPart] = String(weekValue).split('-W');
+      const year = Number(yearPart);
+      const week = Number(weekPart);
+      const simple = new Date(Date.UTC(year, 0, 1 + (week - 1) * 7));
+      const dayOfWeek = simple.getUTCDay() || 7;
+      if (dayOfWeek <= 4) simple.setUTCDate(simple.getUTCDate() - dayOfWeek + 1);
+      else simple.setUTCDate(simple.getUTCDate() + 8 - dayOfWeek);
+      return new Date(simple);
+    }
+
+    function getDefaultCalendarValue(range) {
+      const today = new Date();
+      if (range === 'week') return getWeekValue(today);
+      if (range === 'month') return toInputDate(today).slice(0, 7);
+      if (range === 'year') return String(today.getFullYear());
+      return toInputDate(today);
+    }
+
+    function getCurrentPeriodLabel() {
+      if (state.range === 'day') return new Date(state.calendarValue).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      if (state.range === 'week') return state.calendarValue.replace('-W', ' · Week ');
+      if (state.range === 'month') return new Date(`${state.calendarValue}-01`).toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+      return state.calendarValue;
+    }
+
+    function renderCalendarControl() {
+      const wrap = document.getElementById('calendar-filter-wrap');
+      const label = document.getElementById('calendar-filter-label');
+      const allRuns = (state.dataset?.repos || []).flatMap((repo) => repo.runs || []);
+      const years = [...new Set(allRuns.map((run) => String(new Date(run.created_at).getFullYear())))].sort().reverse();
+      if (!years.length) years.push(String(new Date().getFullYear()));
+
+      if (state.range === 'year') {
+        label.textContent = 'Calendar year';
+        wrap.innerHTML = `<select id="calendar-filter">${years.map((year) => `<option value="${year}">${year}</option>`).join('')}</select>`;
+      } else {
+        const typeMap = { day: 'date', week: 'week', month: 'month' };
+        const labelMap = { day: 'Calendar day', week: 'Calendar week', month: 'Calendar month' };
+        label.textContent = labelMap[state.range];
+        wrap.innerHTML = `<input id="calendar-filter" type="${typeMap[state.range]}" />`;
+      }
+
+      if (!state.calendarValue) state.calendarValue = getDefaultCalendarValue(state.range);
+      const input = document.getElementById('calendar-filter');
+      input.value = state.calendarValue;
+      input.addEventListener('change', (event) => {
+        state.calendarValue = event.target.value;
+        renderDashboard();
+      });
+    }
+
+    function matchesRange(runDate) {
+      const date = new Date(runDate);
+      if (state.range === 'day') {
+        const target = new Date(state.calendarValue);
+        return date.getFullYear() === target.getFullYear() && date.getMonth() === target.getMonth() && date.getDate() === target.getDate();
+      }
+      if (state.range === 'week') {
+        const weekStart = getDateFromWeekValue(state.calendarValue);
+        const weekEnd = new Date(weekStart);
+        weekEnd.setDate(weekEnd.getDate() + 7);
+        return date >= weekStart && date < weekEnd;
+      }
+      if (state.range === 'month') {
+        const [year, month] = state.calendarValue.split('-').map(Number);
+        return date.getFullYear() === year && date.getMonth() === month - 1;
+      }
+      return String(date.getFullYear()) === state.calendarValue;
+    }
+
+    function matchesFilters(run) {
+      if (!matchesRange(run.created_at)) return false;
+      if (state.type !== 'all' && String(run.type || '').toLowerCase() !== state.type) return false;
+      return true;
+    }
+
+    function getFilteredRuns() {
+      const repos = state.currentRepo === 'all'
+        ? (state.dataset?.repos || [])
+        : (state.dataset?.repos || []).filter((repo) => repo.full_name === state.currentRepo);
+      return repos.flatMap((repo) => (repo.runs || []).filter(matchesFilters));
+    }
+
+    function getPreviousPeriodRuns() {
+      const repos = state.currentRepo === 'all'
+        ? (state.dataset?.repos || [])
+        : (state.dataset?.repos || []).filter((repo) => repo.full_name === state.currentRepo);
+
+      return repos.flatMap((repo) => (repo.runs || []).filter((run) => {
+        const date = new Date(run.created_at);
+        if (state.type !== 'all' && String(run.type || '').toLowerCase() !== state.type) return false;
+        if (state.range === 'day') {
+          const prev = new Date(state.calendarValue);
+          prev.setDate(prev.getDate() - 1);
+          return date.getFullYear() === prev.getFullYear() && date.getMonth() === prev.getMonth() && date.getDate() === prev.getDate();
+        }
+        if (state.range === 'week') {
+          const weekStart = getDateFromWeekValue(state.calendarValue);
+          const prevStart = new Date(weekStart);
+          prevStart.setDate(prevStart.getDate() - 7);
+          const prevEnd = new Date(weekStart);
+          return date >= prevStart && date < prevEnd;
+        }
+        if (state.range === 'month') {
+          const [year, month] = state.calendarValue.split('-').map(Number);
+          const current = new Date(year, month - 1, 1);
+          const prev = new Date(current.getFullYear(), current.getMonth() - 1, 1);
+          return date.getFullYear() === prev.getFullYear() && date.getMonth() === prev.getMonth();
+        }
+        return String(date.getFullYear()) === String(Number(state.calendarValue) - 1);
+      }));
+    }
+
+    function buildMetrics(runs) {
+      const passed = runs.filter((run) => run.conclusion === 'success').length;
+      const failed = runs.filter((run) => run.conclusion === 'failure').length;
+      const skipped = runs.filter((run) => run.conclusion === 'skipped').length;
+      const cancelled = runs.filter((run) => run.conclusion === 'cancelled').length;
+      const total = runs.length;
+      const avgDurationSec = runs.length
+        ? runs.reduce((sum, run) => sum + ((new Date(run.updated_at || run.created_at).getTime() - new Date(run.created_at).getTime()) / 1000), 0) / runs.length
+        : 0;
+      return {
+        total,
+        passed,
+        failed,
+        skipped,
+        cancelled,
+        avgDurationSec,
+        passRate: total ? Math.round((passed / total) * 100) : 0,
+      };
+    }
+
+    function buildFailureSource(runs) {
+      const failedRuns = runs.filter((run) => run.conclusion === 'failure');
+      const summary = { product: 0, automation: 0, unknown: 0 };
+      failedRuns.forEach((run) => {
+        const key = String(run.failureSource || 'unknown').toLowerCase();
+        if (summary[key] !== undefined) summary[key] += 1;
+        else summary.unknown += 1;
+      });
+      return summary;
+    }
+
+    function buildCoverage(repos) {
+      const selectedRepos = state.currentRepo === 'all'
+        ? repos
+        : repos.filter((repo) => repo.full_name === state.currentRepo);
+      const counts = { smoke: 0, sanity: 0, regression: 0, unlabeled: 0 };
+      selectedRepos.forEach((repo) => {
+        const sourceCounts = repo.testTypeCounts || {};
+        counts.smoke += sourceCounts.smoke || 0;
+        counts.sanity += sourceCounts.sanity || 0;
+        counts.regression += sourceCounts.regression || 0;
+        counts.unlabeled += sourceCounts.unlabeled || 0;
+      });
+      return {
+        totalCases: selectedRepos.reduce((sum, repo) => sum + (repo.testCaseCount || 0), 0),
+        counts,
+      };
+    }
+
+    function buildTrend(runs) {
+      const groups = {};
+      runs.forEach((run) => {
+        const date = new Date(run.created_at);
+        let key;
+        if (state.range === 'day') key = `${String(date.getHours()).padStart(2, '0')}:00`;
+        else if (state.range === 'year') key = date.toLocaleString('en-US', { month: 'short' });
+        else key = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (!groups[key]) groups[key] = { pass: 0, fail: 0 };
+        if (run.conclusion === 'success') groups[key].pass += 1;
+        if (run.conclusion === 'failure') groups[key].fail += 1;
+      });
+      const labels = Object.keys(groups).reverse();
+      return {
+        labels,
+        pass: labels.map((label) => groups[label].pass),
+        fail: labels.map((label) => groups[label].fail),
+      };
+    }
+
+    function buildExecutiveStatus(metrics, previousMetrics) {
+      const thresholds = getThresholds();
+      if (metrics.failed >= thresholds.riskFailedRuns || metrics.passRate < thresholds.riskPassRate) {
+        return {
+          tone: 'red',
+          label: 'At risk',
+          summary: 'Quality needs attention before leadership should feel confident about release readiness.',
+        };
+      }
+      if (metrics.failed > 0 || metrics.passRate < thresholds.attentionPassRate || metrics.passRate < previousMetrics.passRate) {
+        return {
+          tone: 'gold',
+          label: 'Needs attention',
+          summary: 'Quality is moving, but there are still signals that need review before confidence feels comfortable.',
+        };
+      }
+      return {
+        tone: 'green',
+        label: 'On track',
+        summary: 'Recent results suggest the selected view is stable enough for a confident stakeholder conversation.',
+      };
+    }
+
+    function buildSummaryReasons(metrics, previousMetrics, failureSource, latestPr) {
+      const reasons = [];
+      if (metrics.failed > 0) reasons.push(`<strong>${metrics.failed} failing runs</strong> are present in the selected time.`);
+      if (metrics.passRate < getThresholds().attentionPassRate) reasons.push(`<strong>${metrics.passRate}% pass rate</strong> is below the preferred confidence target.`);
+      if (failureSource.automation > 0) reasons.push(`<strong>${failureSource.automation} failures</strong> look automation-related, so some quality risk may come from test instability.`);
+      if (failureSource.product > 0) reasons.push(`<strong>${failureSource.product} failures</strong> look product-related and should be treated as direct release risk.`);
+      if (metrics.passRate < previousMetrics.passRate && previousMetrics.total) reasons.push(`Pass rate is lower than the previous time selection.`);
+      if (latestPr) reasons.push(`The latest merged change is <strong>PR #${latestPr.number}</strong>.`);
+      return reasons.slice(0, 3);
+    }
+
+    function buildTopRisks(metrics, previousMetrics, failureSource) {
+      const risks = [];
+      if (metrics.failed > 0) risks.push(`There are ${metrics.failed} failing runs in the selected time.`);
+      if (metrics.passRate < previousMetrics.passRate && previousMetrics.total) risks.push(`Pass rate has dropped compared with the previous time.`);
+      if (failureSource.product > 0) risks.push(`${failureSource.product} failures appear product-related.`);
+      if (failureSource.automation > 0) risks.push(`${failureSource.automation} failures appear automation-related.`);
+      return risks.slice(0, 4);
+    }
+
+    function getBuildSource(data) {
+      if (data.currentBuild && data.latestMergedPr) return 'merged PR + latest workflow run';
+      if (data.currentBuild) return 'latest workflow run';
+      if (data.latestRelease) return 'latest release fallback';
+      return 'pending automation signal';
+    }
+
+    function buildViewModel() {
+      const filteredRuns = getFilteredRuns();
+      const previousRuns = getPreviousPeriodRuns();
+      const metrics = buildMetrics(filteredRuns);
+      const previousMetrics = buildMetrics(previousRuns);
+      const trend = buildTrend(filteredRuns);
+      const latestRunAt = filteredRuns
+        .map((run) => run.updated_at || run.created_at)
+        .filter(Boolean)
+        .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] || null;
+      const repos = (state.dataset?.repos || []).map((repo) => {
+        const repoRuns = (repo.runs || []).filter(matchesFilters);
+        const repoMetrics = buildMetrics(repoRuns);
+        const repoLatestRunAt = repoRuns
+          .map((run) => run.updated_at || run.created_at)
+          .filter(Boolean)
+          .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0] || null;
+        return {
+          name: repo.name,
+          full_name: repo.full_name,
+          metrics: repoMetrics,
+          latestRunAt: repoLatestRunAt,
+          testCaseCount: repo.testCaseCount || 0,
+          testTypeCounts: repo.testTypeCounts || {},
+          currentBuild: repo.currentBuild || null,
+        };
+      });
+      const selectedRepo = state.currentRepo === 'all'
+        ? null
+        : (state.dataset?.repos || []).find((repo) => repo.full_name === state.currentRepo);
+      const mergedPullRequests = state.currentRepo === 'all'
+        ? (state.dataset?.repos || [])
+            .flatMap((repo) => (repo.mergedPullRequests || []).map((pull) => ({ ...pull, repo: repo.name })))
+            .sort((a, b) => new Date(b.mergedAt).getTime() - new Date(a.mergedAt).getTime())
+        : (selectedRepo?.mergedPullRequests || []).map((pull) => ({ ...pull, repo: selectedRepo.name }));
+      const latestMergedPr = mergedPullRequests[0] || null;
+      const currentBuild = state.currentRepo === 'all'
+        ? state.dataset?.portfolioBuild || null
+        : selectedRepo?.currentBuild || null;
+
+      return {
+        metrics,
+        previousMetrics,
+        coverage: buildCoverage(state.dataset?.repos || []),
+        failureSource: buildFailureSource(filteredRuns),
+        latestRunAt,
+        trend,
+        repos,
+        currentBuild,
+        latestMergedPr,
+        latestRelease: selectedRepo?.latestRelease || null,
+      };
+    }
+
+    function renderHeader(data) {
+      document.getElementById('header-sync').innerHTML = `Last synced <strong>${fmtStamp(state.dataset?.generatedAt)}</strong>`;
+      document.getElementById('header-last-run').innerHTML = `Last run <strong>${data.latestRunAt ? fmtStamp(data.latestRunAt) : 'No runs in selection'}</strong>`;
+      document.getElementById('header-build-source').innerHTML = `Build source <strong>${getBuildSource(data)}</strong>`;
+    }
+
+    function renderExecutiveSummary(data) {
+      const status = buildExecutiveStatus(data.metrics, data.previousMetrics);
+      const badge = document.getElementById('status-badge');
+      badge.textContent = status.label;
+      badge.className = `badge ${status.tone}`;
+      document.getElementById('summary-copy').textContent = status.summary;
+      const reasons = buildSummaryReasons(data.metrics, data.previousMetrics, data.failureSource, data.latestMergedPr);
+      const reasonsEl = document.getElementById('summary-reasons');
+      reasonsEl.innerHTML = reasons.length
+        ? reasons.map((reason) => `<div class="reason">${reason}</div>`).join('')
+        : '<div class="reason">No major concerns were detected in the current selection.</div>';
+    }
+
+    function renderTrust(data) {
+      const grid = document.getElementById('trust-grid');
+      grid.innerHTML = `
+        <div class="trust-item"><span>Last synced</span><strong>${fmtStamp(state.dataset?.generatedAt)}</strong></div>
+        <div class="trust-item"><span>Latest run recorded</span><strong>${data.latestRunAt ? fmtStamp(data.latestRunAt) : 'No runs in selection'}</strong></div>
+        <div class="trust-item"><span>Current build source</span><strong>${getBuildSource(data)}</strong></div>
+        <div class="trust-item"><span>Selected time</span><strong>${getCurrentPeriodLabel()}</strong></div>
+      `;
+    }
+
+    function renderMetrics(data) {
+      document.getElementById('pass-rate').textContent = `${data.metrics.passRate}%`;
+      document.getElementById('pass-rate-sub').textContent = `${data.metrics.passed} of ${data.metrics.total} runs passed in the selected time.`;
+      document.getElementById('failures').textContent = String(data.metrics.failed);
+      document.getElementById('failures-sub').textContent = `${data.metrics.skipped} skipped and ${data.metrics.cancelled} cancelled.`;
+      document.getElementById('total-runs').textContent = String(data.metrics.total);
+      document.getElementById('total-runs-sub').textContent = `Runs included in ${getCurrentPeriodLabel()}.`;
+      document.getElementById('avg-duration').textContent = fmtDur(data.metrics.avgDurationSec);
+      document.getElementById('avg-duration-sub').textContent = 'Average time each selected run took to finish.';
+    }
+
+    function renderComparison(data) {
+      if (!data.previousMetrics.total) {
+        document.getElementById('compare-value').textContent = 'No earlier comparison yet';
+        document.getElementById('compare-copy').innerHTML = '<div class="mini-pill blue">More history is needed before this comparison can be shown clearly.</div>';
+        return;
+      }
+      const delta = data.metrics.passRate - data.previousMetrics.passRate;
+      const direction = delta > 0 ? 'Pass rate improved' : delta < 0 ? 'Pass rate declined' : 'Pass rate stayed the same';
+      const movement = delta > 0
+        ? `${Math.abs(delta)}% higher than the previous time`
+        : delta < 0
+          ? `${Math.abs(delta)}% lower than the previous time`
+          : 'The same as the previous time';
+      document.getElementById('compare-value').textContent = direction;
+      document.getElementById('compare-copy').innerHTML = `
+        <div class="mini-pill ${delta > 0 ? 'green' : delta < 0 ? 'red' : 'gold'}"><span>Change</span><strong>${movement}</strong></div>
+        <div class="mini-pill blue"><span>Selected time</span><strong>${data.metrics.passRate}%</strong></div>
+        <div class="mini-pill"><span>Previous time</span><strong>${data.previousMetrics.passRate}%</strong></div>
+      `;
+    }
+
+    function renderCoverage(data) {
+      const counts = data.coverage.counts;
+      document.getElementById('coverage-value').textContent = String(data.coverage.totalCases);
+      document.getElementById('coverage-copy').innerHTML = `
+        <div class="mini-pill blue"><span>Smoke</span><strong>${counts.smoke}</strong></div>
+        <div class="mini-pill green"><span>Sanity</span><strong>${counts.sanity}</strong></div>
+        <div class="mini-pill gold"><span>Regression</span><strong>${counts.regression}</strong></div>
+        ${counts.unlabeled ? `<div class="mini-pill"><span>Unlabeled</span><strong>${counts.unlabeled}</strong></div>` : ''}
+      `;
+    }
+
+    function renderFailureSource(data) {
+      document.getElementById('failure-source-value').textContent = `${data.failureSource.product}/${data.failureSource.automation}/${data.failureSource.unknown}`;
+      document.getElementById('failure-source-copy').innerHTML = `
+        <div class="mini-pill red"><span>Product</span><strong>${data.failureSource.product}</strong></div>
+        <div class="mini-pill blue"><span>Automation</span><strong>${data.failureSource.automation}</strong></div>
+        <div class="mini-pill"><span>Unknown</span><strong>${data.failureSource.unknown}</strong></div>
+      `;
+    }
+
+    function renderBuild(data) {
+      const build = data.currentBuild;
+      const latestPr = data.latestMergedPr;
+      document.getElementById('build-title').textContent = build?.title || 'No current build summary available yet.';
+      document.getElementById('build-trust').innerHTML = `
+        <div class="trust-item"><span>Release signal</span><strong>${build?.status || 'Pending'}</strong></div>
+        <div class="trust-item"><span>Latest merged change</span><strong>${latestPr ? `PR #${latestPr.number} · ${latestPr.title}` : 'No recent merged PR'}</strong></div>
+        <div class="trust-item"><span>Last run</span><strong>${data.latestRunAt ? fmtStamp(data.latestRunAt) : 'No runs in selection'}</strong></div>
+        <div class="trust-item"><span>Source of this summary</span><strong>${getBuildSource(data)}</strong></div>
+      `;
+    }
+
+    function renderTrend(data) {
+      const ctx = document.getElementById('trend-chart').getContext('2d');
+      if (state.trendChart) state.trendChart.destroy();
+      state.trendChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: data.trend.labels,
+          datasets: [
+            {
+              label: 'Pass',
+              data: data.trend.pass,
+              backgroundColor: 'rgba(41, 211, 154, 0.82)',
+              borderRadius: 10,
+              borderSkipped: false,
+              maxBarThickness: 34,
+            },
+            {
+              label: 'Fail',
+              data: data.trend.fail,
+              backgroundColor: 'rgba(255, 111, 150, 0.82)',
+              borderRadius: 10,
+              borderSkipped: false,
+              maxBarThickness: 34,
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#a8b3d5',
+                usePointStyle: true,
+                boxWidth: 10,
+                boxHeight: 10,
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#8d99bb' },
+              grid: { display: false },
+              border: { display: false },
+            },
+            y: {
+              beginAtZero: true,
+              ticks: { color: '#8d99bb', stepSize: 1 },
+              grid: { color: 'rgba(255,255,255,0.06)' },
+              border: { display: false },
+            }
+          }
+        }
+      });
+    }
+
+    function renderRepos(data) {
+      const repos = state.currentRepo === 'all'
+        ? data.repos
+        : data.repos.filter((repo) => repo.full_name === state.currentRepo);
+      const grid = document.getElementById('repo-grid');
+      grid.innerHTML = repos.length
+        ? repos.map((repo) => {
+            const tone = repo.metrics.passRate >= getThresholds().attentionPassRate ? 'green' : repo.metrics.passRate >= getThresholds().riskPassRate ? 'gold' : 'red';
+            return `
+              <div class="repo-card">
+                <div class="repo-row">
+                  <div>
+                    <div class="repo-name">${repo.name}</div>
+                    <div class="repo-meta">${repo.testCaseCount} test cases in discovered scope</div>
+                    <div class="repo-time">Latest run: ${repo.latestRunAt ? fmtStamp(repo.latestRunAt) : 'No runs in selected time'}</div>
+                  </div>
+                  <div class="badge ${tone}">${repo.metrics.passRate}% pass rate</div>
+                </div>
+                <div class="repo-stats">
+                  <div class="repo-stat"><span>Failures</span><strong>${repo.metrics.failed}</strong></div>
+                  <div class="repo-stat"><span>Total runs</span><strong>${repo.metrics.total}</strong></div>
+                  <div class="repo-stat"><span>Build signal</span><strong>${repo.currentBuild?.status || 'Pending'}</strong></div>
+                </div>
+              </div>
+            `;
+          }).join('')
+        : '<div class="repo-card">No repositories match the current selection.</div>';
+    }
+
+    function renderRisks(data) {
+      const risks = buildTopRisks(data.metrics, data.previousMetrics, data.failureSource);
+      document.getElementById('risks-list').innerHTML = risks.length
+        ? risks.map((risk) => `<div class="risk-item"><span class="risk-dot"></span><span>${risk}</span></div>`).join('')
+        : '<div class="risk-item"><span class="risk-dot" style="background:var(--green)"></span><span>No major risks detected in this selection.</span></div>';
+    }
+
+    function populateRepos() {
+      const select = document.getElementById('repo-filter');
+      const repos = state.dataset?.repos || [];
+      select.innerHTML = [
+        '<option value="all">All repos</option>',
+        ...repos.map((repo) => `<option value="${repo.full_name}">${repo.name}</option>`),
+      ].join('');
+      select.value = state.currentRepo;
+    }
+
+    function renderDashboard() {
+      renderCalendarControl();
+      const data = buildViewModel();
+      populateRepos();
+      renderHeader(data);
+      renderExecutiveSummary(data);
+      renderTrust(data);
+      renderMetrics(data);
+      renderComparison(data);
+      renderCoverage(data);
+      renderFailureSource(data);
+      renderBuild(data);
+      renderTrend(data);
+      renderRepos(data);
+      renderRisks(data);
+    }
+
+    async function loadData() {
+      state.dataset = await fetch(`./stakeholder-data.json?${Date.now()}`).then((res) => {
+        if (!res.ok) throw new Error('Could not load stakeholder data.');
+        return res.json();
+      });
+      renderDashboard();
+    }
+
+    function login() {
+      const password = document.getElementById('password').value;
+      if (password !== STAKEHOLDER_PASSWORD) {
+        loginError.textContent = 'Incorrect stakeholder password.';
+        loginError.style.display = 'block';
+        return;
+      }
+      loginError.style.display = 'none';
+      loginView.classList.add('hidden');
+      dashboardView.classList.remove('hidden');
+      loadData().catch((error) => alert(error.message));
+    }
+
+    function logout() {
+      dashboardView.classList.add('hidden');
+      loginView.classList.remove('hidden');
+      document.getElementById('password').value = '';
+    }
+
+    document.getElementById('login-btn').addEventListener('click', login);
+    document.getElementById('password').addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') login();
+    });
+    document.getElementById('logout-btn').addEventListener('click', logout);
+    document.getElementById('repo-filter').addEventListener('change', (event) => {
+      state.currentRepo = event.target.value;
+      renderDashboard();
+    });
+    document.getElementById('range-filter').addEventListener('change', (event) => {
+      state.range = event.target.value;
+      state.calendarValue = getDefaultCalendarValue(state.range);
+      renderDashboard();
+    });
+    document.getElementById('type-filter').addEventListener('change', (event) => {
+      state.type = event.target.value;
+      renderDashboard();
+    });
+  </script>
+</body>
+</html>
