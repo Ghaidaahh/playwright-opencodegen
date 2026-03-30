@@ -20,6 +20,40 @@
       --red: #ff6f96;
       --gold: #ffcb66;
       --shadow: 0 20px 48px rgba(0, 0, 0, 0.3);
+      --surface-soft: rgba(255,255,255,0.03);
+      --surface-soft-2: rgba(255,255,255,0.025);
+      --surface-hero: linear-gradient(180deg, rgba(16,25,43,0.98), rgba(14,22,38,0.95));
+      --surface-panel: linear-gradient(180deg, rgba(16,25,43,0.98), rgba(14,22,38,0.95));
+      --surface-card: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+      --surface-chart: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      --chart-grid: rgba(255,255,255,0.06);
+      --chart-label: #8d99bb;
+      --chart-legend: #a8b3d5;
+    }
+    body[data-theme="light"] {
+      --bg: #eef3ff;
+      --paper: #ffffff;
+      --paper-2: #f4f7ff;
+      --paper-3: #eaf0ff;
+      --ink: #18203b;
+      --muted: #647091;
+      --border: #d5dff5;
+      --accent: #436cf5;
+      --green: #129d74;
+      --red: #d63c69;
+      --gold: #c89a1d;
+      --shadow: 0 18px 42px rgba(42,61,110,.14);
+      --surface-soft: rgba(67,108,245,0.06);
+      --surface-soft-2: rgba(67,108,245,0.04);
+      --surface-hero:
+        radial-gradient(circle at right, rgba(67,108,245,0.12), transparent 30%),
+        linear-gradient(180deg, rgba(255,255,255,0.96), rgba(242,246,255,0.95));
+      --surface-panel: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(241,245,255,0.94));
+      --surface-card: linear-gradient(180deg, rgba(255,255,255,.94), rgba(245,248,255,.92));
+      --surface-chart: linear-gradient(180deg, rgba(255,255,255,.92), rgba(246,249,255,.9));
+      --chart-grid: rgba(24,32,59,.08);
+      --chart-label: #647091;
+      --chart-legend: #4b5778;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -31,6 +65,12 @@
         radial-gradient(circle at top right, rgba(255, 111, 150, 0.08), transparent 20%),
         linear-gradient(180deg, #07101d 0%, #0b1424 100%);
     }
+    body[data-theme="light"] {
+      background:
+        radial-gradient(circle at top left, rgba(67, 108, 245, 0.12), transparent 24%),
+        radial-gradient(circle at top right, rgba(214, 60, 105, 0.06), transparent 20%),
+        linear-gradient(180deg, #eef3ff 0%, #f8fbff 100%);
+    }
     .hidden { display: none !important; }
     .login-wrap {
       min-height: 100vh;
@@ -41,7 +81,7 @@
     .login-card, .panel, .metric, .mini-card, .field {
       border: 1px solid var(--border);
       border-radius: 24px;
-      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.015));
+      background: var(--surface-card);
       box-shadow: var(--shadow);
       backdrop-filter: blur(12px);
     }
@@ -114,9 +154,31 @@
     }
     .ghost {
       padding: 11px 14px;
-      background: rgba(255,255,255,0.04);
+      background: var(--surface-soft);
       color: var(--ink);
       border: 1px solid var(--border);
+    }
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 4px;
+      background: var(--surface-soft);
+    }
+    .theme-toggle button {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .5px;
+    }
+    .theme-toggle button.active {
+      background: rgba(111,140,255,.12);
+      color: var(--ink);
     }
     .shell {
       max-width: 1400px;
@@ -128,9 +190,7 @@
       margin-bottom: 16px;
       border: 1px solid var(--border);
       border-radius: 28px;
-      background:
-        radial-gradient(circle at right, rgba(111,140,255,0.16), transparent 30%),
-        linear-gradient(180deg, rgba(16,25,43,0.98), rgba(14,22,38,0.95));
+      background: var(--surface-hero);
       box-shadow: var(--shadow);
     }
     .hero-top {
@@ -167,7 +227,7 @@
       border: 1px solid var(--border);
       font-size: 12px;
       color: var(--muted);
-      background: rgba(255,255,255,0.03);
+      background: var(--surface-soft);
     }
     .pill strong, .badge { color: var(--ink); font-weight: 700; }
     .badge.green { color: var(--green); border-color: rgba(41,211,154,0.2); background: rgba(41,211,154,0.08); }
@@ -188,7 +248,7 @@
     }
     .panel {
       padding: 18px;
-      background: linear-gradient(180deg, rgba(16,25,43,0.98), rgba(14,22,38,0.95));
+      background: var(--surface-panel);
     }
     .panel-title {
       display: flex;
@@ -237,7 +297,7 @@
       border-radius: 18px;
       border: 1px solid var(--border);
       padding: 14px;
-      background: rgba(255,255,255,0.025);
+      background: var(--surface-soft-2);
     }
     .trust-item span {
       display: block;
@@ -261,7 +321,7 @@
     .metric {
       padding: 18px;
       position: relative;
-      background: linear-gradient(180deg, rgba(16,25,43,0.98), rgba(14,22,38,0.95));
+      background: var(--surface-panel);
     }
     .metric::before {
       content: '';
@@ -301,7 +361,7 @@
     }
     .mini-card {
       padding: 18px;
-      background: linear-gradient(180deg, rgba(16,25,43,0.98), rgba(14,22,38,0.95));
+      background: var(--surface-panel);
     }
     .mini-head {
       color: var(--muted);
@@ -329,7 +389,7 @@
       border-radius: 14px;
       border: 1px solid var(--border);
       padding: 10px 12px;
-      background: rgba(255,255,255,0.03);
+      background: var(--surface-soft);
       color: var(--muted);
       font-size: 13px;
     }
@@ -348,7 +408,7 @@
       height: 260px;
       border-radius: 18px;
       border: 1px solid rgba(255,255,255,0.05);
-      background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));
+      background: var(--surface-chart);
       padding: 8px;
     }
     .repo-grid {
@@ -358,7 +418,7 @@
       border-radius: 20px;
       border: 1px solid var(--border);
       padding: 16px;
-      background: rgba(255,255,255,0.03);
+      background: var(--surface-soft);
     }
     .repo-row {
       display: flex;
@@ -383,7 +443,7 @@
       border-radius: 14px;
       border: 1px solid var(--border);
       padding: 10px 12px;
-      background: rgba(255,255,255,0.025);
+      background: var(--surface-soft-2);
     }
     .repo-stat span {
       display: block;
@@ -454,6 +514,10 @@
             </div>
           </div>
           <div class="logout-row">
+            <div class="theme-toggle" aria-label="Theme toggle">
+              <button id="theme-dark" type="button">Dark</button>
+              <button id="theme-light" type="button">Light</button>
+            </div>
             <button id="logout-btn" class="ghost">Sign out</button>
           </div>
         </div>
@@ -601,6 +665,7 @@
       currentRepo: 'all',
       range: 'day',
       type: 'all',
+      theme: localStorage.getItem('stakeholder_theme') || 'dark',
       calendarValue: new Date().toISOString().slice(0, 10),
       trendChart: null,
     };
@@ -608,6 +673,16 @@
     const loginView = document.getElementById('login-view');
     const dashboardView = document.getElementById('dashboard-view');
     const loginError = document.getElementById('login-error');
+    const themeDarkBtn = document.getElementById('theme-dark');
+    const themeLightBtn = document.getElementById('theme-light');
+
+    function applyTheme(theme) {
+      state.theme = theme === 'light' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', state.theme);
+      themeDarkBtn?.classList.toggle('active', state.theme === 'dark');
+      themeLightBtn?.classList.toggle('active', state.theme === 'light');
+      localStorage.setItem('stakeholder_theme', state.theme);
+    }
 
     function fmtDur(seconds) {
       if (!seconds) return '-';
@@ -1033,6 +1108,7 @@
 
     function renderTrend(data) {
       const ctx = document.getElementById('trend-chart').getContext('2d');
+      const styles = getComputedStyle(document.body);
       if (state.trendChart) state.trendChart.destroy();
       state.trendChart = new Chart(ctx, {
         type: 'bar',
@@ -1063,7 +1139,7 @@
           plugins: {
             legend: {
               labels: {
-                color: '#a8b3d5',
+                color: styles.getPropertyValue('--chart-legend').trim() || '#a8b3d5',
                 usePointStyle: true,
                 boxWidth: 10,
                 boxHeight: 10,
@@ -1072,14 +1148,14 @@
           },
           scales: {
             x: {
-              ticks: { color: '#8d99bb' },
+              ticks: { color: styles.getPropertyValue('--chart-label').trim() || '#8d99bb' },
               grid: { display: false },
               border: { display: false },
             },
             y: {
               beginAtZero: true,
-              ticks: { color: '#8d99bb', stepSize: 1 },
-              grid: { color: 'rgba(255,255,255,0.06)' },
+              ticks: { color: styles.getPropertyValue('--chart-label').trim() || '#8d99bb', stepSize: 1 },
+              grid: { color: styles.getPropertyValue('--chart-grid').trim() || 'rgba(255,255,255,0.06)' },
               border: { display: false },
             }
           }
@@ -1195,6 +1271,15 @@
       state.type = event.target.value;
       renderDashboard();
     });
+    themeDarkBtn?.addEventListener('click', () => {
+      applyTheme('dark');
+      if (state.dataset) renderDashboard();
+    });
+    themeLightBtn?.addEventListener('click', () => {
+      applyTheme('light');
+      if (state.dataset) renderDashboard();
+    });
+    applyTheme(state.theme);
   </script>
 </body>
 </html>
