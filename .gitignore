@@ -1,9 +1,12 @@
 
 # Playwright
+.DS_Store
 node_modules/
 /test-results/
 /playwright-report/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
-index.html
+results.json
+test-results.json
+test-report.html

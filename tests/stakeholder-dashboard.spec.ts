@@ -3,7 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 const stakeholderPassword = process.env.STAKEHOLDER_PASSWORD || 'manager123';
 
 async function openStakeholderDashboard(page: Page) {
-  await page.goto('/stakeholder.html');
+  await page.goto('/stakeholder-v1.0.html');
   await page.getByLabel('Stakeholder Password').fill(stakeholderPassword);
   await page.getByRole('button', { name: 'Open Dashboard' }).click();
   await expect(page.getByRole('heading', { name: 'Release Readiness' })).toBeVisible();
